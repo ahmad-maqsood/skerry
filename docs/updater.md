@@ -18,13 +18,13 @@ Releases are built, signed, and published entirely via GitHub Actions. Maintaine
 
 1. Set the version once: `node scripts/release/bump-version.mjs patch` (or `minor`, `major`), then commit and push it. The version must match in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`.
 2. Open GitHub repository -> **Actions** -> **Release** -> **Run workflow**.
-3. Tick **Publish a GitHub release** to publish. Leave it unticked to only build.
+3. Tick **Publish a GitHub release** to publish. Leave it unticked for a quick trial build.
 4. Click **Run workflow**.
 
-Either way the workflow checks the signing secrets, runs `pnpm check` and Clippy, then builds signed NSIS (`.exe`) and MSI (`.msi`) installers with `.sig` files, `latest.json` and `SHA256SUMS.txt`.
+Either way the workflow checks the signing secrets first. Clippy and the Rust tests are not run here: CI runs them on every push to `main`, so check that CI is green for the commit you release.
 
-- **Unticked**: the files are attached to the workflow run as a `skerry-installers` download (kept 7 days). Nothing is published and no tag is created.
-- **Ticked**: also creates tag and release `vX.Y.Z` with generated notes. A version containing `-` (for example `0.1.0-beta.1`) is published as a pre-release that the in-app updater ignores. An existing release is never overwritten; bump the version instead.
+- **Unticked** (trial): builds and signs only the NSIS installer (`.exe` and its `.sig`, plus `SHA256SUMS.txt`) and attaches them to the workflow run as a `skerry-installers` download (kept 7 days). There is no MSI and no `latest.json`, so a trial build cannot be published. Nothing is published and no tag is created. Locally: `node scripts/release/release.mjs --no-upload --nsis-only`.
+- **Ticked**: runs `pnpm check`, builds signed NSIS and MSI installers with their `.sig` files, `latest.json` and `SHA256SUMS.txt`, then creates tag and release `vX.Y.Z` with generated notes. A version containing `-` (for example `0.1.0-beta.1`) is published as a pre-release that the in-app updater ignores. An existing release is never overwritten; bump the version instead.
 
 
 ### Troubleshooting Releases

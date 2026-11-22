@@ -1,8 +1,11 @@
 name: Release
 
 # One button: Actions > Release > Run workflow.
-#   publish unticked: builds and signs the installers, then attaches them to the run as a download.
-#   publish ticked:   does the same, then publishes a GitHub release that in-app updates pick up.
+#   publish unticked: a quick trial. Builds and signs only the NSIS installer and attaches it to the
+#                     run as a download. No MSI and no update manifest, so it cannot be published.
+#   publish ticked:   the full release: runs the frontend checks, builds and signs both the NSIS and
+#                     MSI installers, then publishes a GitHub release that in-app updates pick up.
+# Clippy and the Rust tests are not repeated here: CI runs them on every push to main.
 # The version comes from package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json
 # (they must match). Change it with: node scripts/release/bump-version.mjs patch
 
@@ -58,7 +61,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.99.1
-          components: clippy
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -70,11 +72,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Pre-check frontend
+      # Only a release people will install is worth 30 seconds of checking again.
+      - name: Check the frontend
+        if: ${{ inputs.publish }}
         run: pnpm check
-
-      - name: Pre-check Rust
-        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 
       - name: Build, sign and publish
         if: ${{ inputs.publish }}
@@ -83,12 +84,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and sign only
+      - name: Build and sign a trial installer
         if: ${{ !inputs.publish }}
         shell: bash
-        run: node scripts/release/release.mjs --no-upload
+        run: node scripts/release/release.mjs --no-upload --nsis-only
 
-      - name: Attach the installers to this run
+      - name: Attach the installer to this run
         if: ${{ !inputs.publish }}
         uses: actions/upload-artifact@v4
         with:
@@ -98,6 +99,4 @@ jobs:
           path: |
             src-tauri/target/release/bundle/nsis/*.exe
             src-tauri/target/release/bundle/nsis/*.sig
-            src-tauri/target/release/bundle/nsis/latest.json
             src-tauri/target/release/bundle/nsis/SHA256SUMS.txt
-            src-tauri/target/release/bundle/msi/*.msi

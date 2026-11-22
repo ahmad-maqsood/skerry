@@ -1,7 +1,8 @@
 // Builds, signs and publishes a release that in-app updates can pick up.
 //
 // Usage:
-//   pnpm release [--base-url <url>] [--no-upload]
+//   pnpm release [--base-url <url>] [--no-upload] [--nsis-only]
+//   --nsis-only (with --no-upload) builds just the signed NSIS installer, for a quick trial.
 //
 // Required CI environment variables (repository secrets):
 //   TAURI_SIGNING_PRIVATE_KEY           private key content (or path to key file)
@@ -63,21 +64,34 @@ function run(command, commandArgs, options = {}) {
   return result;
 }
 
-export function runRelease() {
-  const args = process.argv.slice(2);
+/**
+ * What the command line asks for. `--nsis-only` is a quick trial build: no MSI (which needs the
+ * WiX tools and a second bundling pass) and no update manifest (which lists the MSI), so it can
+ * never be published.
+ */
+export function parseReleaseArgs(args) {
   const baseFlag = args.indexOf("--base-url");
   const baseUrl = baseFlag >= 0 ? args[baseFlag + 1] : "";
   const upload = !args.includes("--no-upload");
-
+  const nsisOnly = args.includes("--nsis-only");
   if (baseFlag >= 0 && (!baseUrl || !URL.canParse(baseUrl) || new URL(baseUrl).protocol !== "https:")) {
-    fail("--base-url requires a valid HTTPS URL.");
+    throw new Error("--base-url requires a valid HTTPS URL.");
   }
+  if (nsisOnly && upload) {
+    throw new Error("--nsis-only is a trial build and cannot be published: the update manifest needs the MSI. Add --no-upload.");
+  }
+  return { baseUrl, upload, nsisOnly };
+}
 
+export function runRelease() {
+  let options;
   try {
+    options = parseReleaseArgs(process.argv.slice(2));
     validateSigningSecrets(process.env);
   } catch (error) {
     fail(error.message);
   }
+  const { baseUrl, upload, nsisOnly } = options;
 
   const version = JSON.parse(readFileSync(CONFIG, "utf8")).version;
   const pkgVersion = JSON.parse(readFileSync("package.json", "utf8")).version;
@@ -105,7 +119,7 @@ export function runRelease() {
   const configs = ["--config", OVERLAY];
   let wixVersion;
   try {
-    wixVersion = msiVersion(version);
+    wixVersion = nsisOnly ? undefined : msiVersion(version);
   } catch (error) {
     fail(error.message);
   }
@@ -115,12 +129,14 @@ export function runRelease() {
     configs.push("--config", MSI_OVERLAY);
     console.log(`MSI version for ${version}: ${wixVersion}`);
   }
-  run("pnpm", ["tauri", "build", "--ci", ...configs, "--bundles", "nsis,msi"]);
+  run("pnpm", ["tauri", "build", "--ci", ...configs, "--bundles", nsisOnly ? "nsis" : "nsis,msi"]);
 
-  const latestArgs = ["scripts/release/make-latest-json.mjs"];
-  if (existsSync(notesFile)) latestArgs.push("--notes-file", notesFile);
-  if (baseUrl) latestArgs.push("--base-url", baseUrl);
-  run("node", latestArgs);
+  if (!nsisOnly) {
+    const latestArgs = ["scripts/release/make-latest-json.mjs"];
+    if (existsSync(notesFile)) latestArgs.push("--notes-file", notesFile);
+    if (baseUrl) latestArgs.push("--base-url", baseUrl);
+    run("node", latestArgs);
+  }
 
   if (releaseFeatures.plugins) {
     run("powershell", [
@@ -136,9 +152,12 @@ export function runRelease() {
 
   const installer = readdirSync(BUNDLE_DIR).find((name) => name.endsWith(`_${version}_x64-setup.exe`));
   if (!installer) fail(`Missing installer in ${BUNDLE_DIR}.`);
-  const msi = readdirSync(MSI_DIR).find((name) => msiNames(version).some((suffix) => name.endsWith(suffix)));
-  if (!msi) fail(`Missing MSI installer in ${MSI_DIR}.`);
-  const installers = [`${BUNDLE_DIR}/${installer}`, `${MSI_DIR}/${msi}`];
+  const installers = [`${BUNDLE_DIR}/${installer}`];
+  if (!nsisOnly) {
+    const msi = readdirSync(MSI_DIR).find((name) => msiNames(version).some((suffix) => name.endsWith(suffix)));
+    if (!msi) fail(`Missing MSI installer in ${MSI_DIR}.`);
+    installers.push(`${MSI_DIR}/${msi}`);
+  }
   const checksumPath = `${BUNDLE_DIR}/SHA256SUMS.txt`;
   writeFileSync(
     checksumPath,
@@ -146,7 +165,9 @@ export function runRelease() {
   );
 
   if (!upload) {
-    console.log(`\n✓ Built v${version}. NSIS: ${BUNDLE_DIR}; MSI: ${MSI_DIR} (--no-upload).`);
+    console.log(nsisOnly
+      ? `\n✓ Built v${version} as a trial (NSIS only, no update manifest): ${BUNDLE_DIR}.`
+      : `\n✓ Built v${version}. NSIS: ${BUNDLE_DIR}; MSI: ${MSI_DIR} (--no-upload).`);
     return;
   }
 

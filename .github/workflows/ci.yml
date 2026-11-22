@@ -138,11 +138,10 @@ jobs:
 
 
   ci-passed:
-    if: github.ref == 'refs/heads/main'
     name: "CI passed"
     runs-on: ubuntu-latest
     needs: [frontend, rust]
-    if: always()
+    if: always() && github.ref == 'refs/heads/main'
     steps:
       - name: Check status of parallel jobs
         run: |

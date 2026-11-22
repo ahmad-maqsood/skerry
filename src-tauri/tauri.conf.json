@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "skerry",
+  "productName": "Skerry",
   "version": "0.1.0",
   "identifier": "com.ahmad-maqsood.skerry",
   "build": {

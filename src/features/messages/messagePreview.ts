@@ -10,11 +10,11 @@ export type MessagePreview = {
   timestamp: number;
   appLogo?: string | null;
   receivedAt: number;
-  /** Set for the island's own pop-ups (a copied text, a new song): they open that page, not an app. */
+  /** Set for the island's own pop-ups (a copied text, a new song, the charger): they open a page, not an app. */
   kind?: PreviewKind;
 };
 
-export type PreviewKind = "clipboard" | "music";
+export type PreviewKind = "clipboard" | "music" | "battery";
 
 export function messagePreviewText(
   preview: MessagePreview,

@@ -95,8 +95,8 @@ export function IslandCollapsedBar({
     useWindowDragGesture(isTucked || positionLocked, onWindowDragStart);
   const isMusicPlaying = mediaState.playbackStatus === "playing";
   const openPreview = (shown: MessagePreview) => {
-    // The island's own pop-ups (a copied text, a new song) open their page, not an app.
-    if (shown.kind) onOpenPage(shown.kind);
+    // The island's own pop-ups (a copied text, a new song, the charger) open their page, not an app.
+    if (shown.kind) onOpenPage(shown.kind === "battery" ? "system" : shown.kind);
     else void systemNotifications.openApp(shown.appId);
   };
 

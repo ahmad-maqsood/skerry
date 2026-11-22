@@ -76,6 +76,7 @@ export const DEFAULT_SETTINGS: IslandSettings = {
   revealOnMessage: true,
   clipboardPopup: true,
   musicPopup: true,
+  chargerPopup: true,
   expandTrigger: "hover",
   hoverExpandDelayMs: DEFAULT_HOVER_EXPAND_DELAY_MS,
   hoverCollapseDelayMs: DEFAULT_HOVER_COLLAPSE_DELAY_MS,

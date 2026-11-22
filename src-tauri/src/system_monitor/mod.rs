@@ -5,11 +5,17 @@ pub mod sampler;
 pub mod service;
 
 use tauri::AppHandle;
-use models::SystemSnapshot;
+use models::{BatterySnapshot, SystemSnapshot};
 
 #[tauri::command]
 pub async fn get_system_snapshot() -> Result<SystemSnapshot, String> {
     Ok(service::get_system_snapshot())
+}
+
+/// Battery and charger state alone, for the island's "charger plugged / unplugged" pop-up.
+#[tauri::command]
+pub async fn get_battery_status() -> Result<Option<BatterySnapshot>, String> {
+    Ok(sampler::battery_snapshot())
 }
 
 #[tauri::command]
@@ -29,6 +35,7 @@ macro_rules! tauri_commands {
     ($next:ident [$($done:tt)*] $($rest:tt)*) => {
         $next!([$($done)*
             crate::system_monitor::get_system_snapshot,
+            crate::system_monitor::get_battery_status,
             crate::system_monitor::start_system_sampling,
             crate::system_monitor::stop_system_sampling,
         ] $($rest)*)

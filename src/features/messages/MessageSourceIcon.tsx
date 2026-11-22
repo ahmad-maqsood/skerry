@@ -1,4 +1,4 @@
-import { Bell, Clipboard, Music } from "lucide-react";
+import { Bell, BatteryCharging, Clipboard, Music } from "lucide-react";
 import type { PreviewKind } from "./messagePreview";
 import "./MessageSourceIcon.css";
 
@@ -28,7 +28,7 @@ export function MessageSourceIcon({
     );
   }
 
-  const Icon = kind === "clipboard" ? Clipboard : kind === "music" ? Music : Bell;
+  const Icon = kind === "clipboard" ? Clipboard : kind === "music" ? Music : kind === "battery" ? BatteryCharging : Bell;
   return (
     <span
       className="message-source-icon message-source-icon--fallback"

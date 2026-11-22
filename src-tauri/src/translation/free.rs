@@ -3,6 +3,7 @@
 //! Neither needs an account; both can be unreachable on some networks, so every failure
 //! names the service and suggests another.
 
+use super::language::Target;
 use super::provider::{Provider, ProviderKind};
 use reqwest::{Client, Url};
 use std::time::Duration;
@@ -12,14 +13,14 @@ const MYMEMORY_ENDPOINT: &str = "https://api.mymemory.translated.net/get";
 /// MyMemory refuses a query longer than 500 characters; longer text goes in pieces.
 const MYMEMORY_CHUNK: usize = 480;
 
-/// Translates `text` into `target` ("en" or "zh") with a keyless provider.
-pub(super) async fn translate(provider: &Provider, text: &str, target: &str) -> Result<String, String> {
+/// Translates `text` into `target` with a keyless provider.
+pub(super) async fn translate(provider: &Provider, text: &str, target: &Target) -> Result<String, String> {
     let client = Client::builder()
         .timeout(Duration::from_secs(15))
         .build()
         .map_err(|error| format!("Failed to create translation request: {error}"))?;
     match provider.kind {
-        ProviderKind::Google => google(&client, provider.name, text, target).await,
+        ProviderKind::Google => google(&client, provider.name, text, target.language.code).await,
         ProviderKind::MyMemory => {
             let mut output = String::new();
             for piece in split_chunks(text, MYMEMORY_CHUNK) {
@@ -39,9 +40,8 @@ fn network_error(name: &str, error: &reqwest::Error) -> String {
     }
 }
 
-async fn google(client: &Client, name: &str, text: &str, target: &str) -> Result<String, String> {
-    let target = if target == "en" { "en" } else { "zh-CN" };
-    let url = Url::parse_with_params(GOOGLE_ENDPOINT, [("client", "gtx"), ("sl", "auto"), ("tl", target), ("dt", "t")])
+async fn google(client: &Client, name: &str, text: &str, target_code: &str) -> Result<String, String> {
+    let url = Url::parse_with_params(GOOGLE_ENDPOINT, [("client", "gtx"), ("sl", "auto"), ("tl", target_code), ("dt", "t")])
         .map_err(|error| error.to_string())?;
     // Sent as a form body: a long text would not fit in the query string. Url encodes it
     // the way a form would (reqwest is built without its form feature).
@@ -81,13 +81,13 @@ fn parse_google(name: &str, value: &serde_json::Value) -> Result<String, String>
     Ok(output.to_string())
 }
 
-async fn mymemory(client: &Client, name: &str, text: &str, target: &str) -> Result<String, String> {
+async fn mymemory(client: &Client, name: &str, text: &str, target: &Target) -> Result<String, String> {
     if text.trim().is_empty() {
         return Ok(text.to_string());
     }
-    // MyMemory needs the source language; it is whichever of the two the target is not.
-    let pair = if target == "en" { "zh-CN|en" } else { "en|zh-CN" };
-    let url = Url::parse_with_params(MYMEMORY_ENDPOINT, [("q", text), ("langpair", pair)])
+    // MyMemory needs a source language: the one the app knows, or "Autodetect" when it does not.
+    let pair = format!("{}|{}", target.source.unwrap_or("Autodetect"), target.language.code);
+    let url = Url::parse_with_params(MYMEMORY_ENDPOINT, [("q", text), ("langpair", pair.as_str())])
         .map_err(|error| error.to_string())?;
     let response = client
         .get(url)

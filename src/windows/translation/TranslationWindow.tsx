@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from "rea
 import { ArrowRight, Check, Clipboard, Copy, Grip, Languages, LoaderCircle, Settings2, X } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { hasTranslationSecret, hideTranslationWindow, listenTranslationWindowOpened, readTranslationClipboard, setTranslationShortcut } from "../../features/translation/api";
-import type { Direction } from "../../features/translation/storage";
+import { LanguagePicker } from "../../features/translation/LanguagePicker";
 import { DEFAULT_PROVIDER_MODELS } from "../../features/translation/providers";
 import { useTranslationSettings } from "../../features/translation/useTranslationSettings";
 import { openSettingsWindow } from "../settings/api";
@@ -33,11 +33,6 @@ export function TranslationWindow() {
   const skipAutoSource = useRef<string | null>(null);
   pasteOnOpenRef.current = settings.pasteClipboardOnOpen;
   const inputLength = Array.from(input).length;
-  const targetLanguage = settings.direction === "zh-en"
-    ? t.translator.english
-    : settings.direction === "en-zh"
-      ? t.translator.other
-      : t.translator.bilingual;
 
   // Keys are stored per service, so the saved state follows the selected one.
   useEffect(() => {
@@ -109,6 +104,7 @@ export function TranslationWindow() {
   useEffect(() => {
     const handleTab = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Tab" || event.isComposing || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+      if ((event.target as Element | null)?.closest?.(".language-picker")) return;
       event.preventDefault();
       event.stopPropagation();
       void pasteLatestClipboard();
@@ -136,7 +132,7 @@ export function TranslationWindow() {
   // Service and model in use, e.g. "DeepSeek · deepseek-flash", so a wrong model is easy to spot.
   const model = settings.models[settings.provider]?.trim() || DEFAULT_PROVIDER_MODELS[settings.provider];
   const providerLabel = model ? `${t.translator.providers[settings.provider]} · ${model}` : t.translator.providers[settings.provider];
-  const autoTranslateKey = `${settings.direction}\0${settings.provider}\0${settings.customBaseUrl}\0${settings.models[settings.provider] ?? ""}`;
+  const autoTranslateKey = `${settings.targetLanguage}\0${settings.provider}\0${settings.customBaseUrl}\0${settings.models[settings.provider] ?? ""}`;
   useAutoTranslate(settings.autoTranslate && hasSecret && !isLoading, input, autoTranslateKey, skipAutoSource, submit);
 
   const openSettings = () => openSettingsWindow("translation");
@@ -167,11 +163,9 @@ export function TranslationWindow() {
 
         <div className="translation-window__toolbar">
           <div className="translation-window__languages">
-            <select id="translation-direction" aria-label={t.translator.direction} value={settings.direction} disabled={isLoading} onChange={(event) => setSettings({ ...settings, direction: event.target.value as Direction })}>
-              <option value="auto">{t.translator.auto}</option><option value="zh-en">{t.translator.other}</option><option value="en-zh">{t.translator.english}</option>
-            </select>
+            <span>{t.translator.auto}</span>
             <ArrowRight size={15} aria-hidden="true" />
-            <span>{targetLanguage}</span>
+            <LanguagePicker value={settings.targetLanguage} disabled={isLoading} onChange={(targetLanguage) => setSettings({ ...settings, targetLanguage })} />
           </div>
           <span className="translation-window__provider">{providerLabel}</span>
         </div>

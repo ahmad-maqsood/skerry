@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, Clipboard, Copy, LoaderCircle, X } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import { hasTranslationSecret, readTranslationClipboard } from "./api";
-import type { Direction } from "./storage";
+import { LanguagePicker } from "./LanguagePicker";
 import { useAutoTranslate } from "./useAutoTranslate";
 import { useTranslationRequest } from "./useTranslationRequest";
 import { useTranslationSettings } from "./useTranslationSettings";
@@ -26,9 +26,6 @@ export function TranslationPanel({ isOpen, onOpenSettings }: { isOpen: boolean; 
   const skipAutoSource = useRef<string | null>(null);
   const latest = useRef({ input, pasteOnOpen: settings.pasteClipboardOnOpen });
   latest.current = { input, pasteOnOpen: settings.pasteClipboardOnOpen };
-  const targetLanguage = settings.direction === "zh-en"
-    ? t.translator.english
-    : settings.direction === "en-zh" ? t.translator.other : t.translator.bilingual;
 
   // Checked each time the page opens, so a key saved in the settings window meanwhile is seen.
   useEffect(() => {
@@ -80,17 +77,15 @@ export function TranslationPanel({ isOpen, onOpenSettings }: { isOpen: boolean; 
     input, settings, output, requestId, inputRef, setInput, setOutput, setError, setIsLoading, setDidCopy,
     onStart: noteAutoSource,
   });
-  const autoTranslateKey = `${settings.direction}\0${settings.provider}\0${settings.customBaseUrl}\0${settings.models[settings.provider] ?? ""}`;
+  const autoTranslateKey = `${settings.targetLanguage}\0${settings.provider}\0${settings.customBaseUrl}\0${settings.models[settings.provider] ?? ""}`;
   useAutoTranslate(isOpen && settings.autoTranslate && hasSecret && !isLoading, input, autoTranslateKey, skipAutoSource, submit);
 
   return (
     <div className="translation-panel">
       <div className="translation-panel__toolbar">
-        <select aria-label={t.translator.direction} value={settings.direction} disabled={isLoading} onChange={(event) => { const direction = event.target.value as Direction; setSettings((current) => ({ ...current, direction })); }}>
-          <option value="auto">{t.translator.auto}</option><option value="zh-en">{t.translator.other}</option><option value="en-zh">{t.translator.english}</option>
-        </select>
+        <span>{t.translator.auto}</span>
         <ArrowRight size={13} aria-hidden="true" />
-        <span>{targetLanguage}</span>
+        <LanguagePicker value={settings.targetLanguage} disabled={isLoading} onChange={(targetLanguage) => setSettings((current) => ({ ...current, targetLanguage }))} />
         <span className="translation-panel__provider">{t.translator.providers[settings.provider]}</span>
       </div>
       <div className="translation-panel__source">

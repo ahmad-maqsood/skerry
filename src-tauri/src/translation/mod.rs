@@ -1,5 +1,6 @@
 mod direction;
 mod free;
+mod language;
 mod provider;
 
 use crate::clipboard_history::{parse_shortcut_binding, ShortcutBinding};
@@ -191,8 +192,9 @@ pub fn delete_translation_secret(provider: Option<String>) -> Result<(), String>
     }
 }
 
-/// `provider`, `base_url` and `model` are optional so that a request without them
-/// behaves as before: DeepSeek with its default model.
+/// `provider`, `base_url`, `model` and `target_language` are optional so that a request without
+/// them behaves as before: DeepSeek with its default model, and `direction` choosing between
+/// English and Chinese. A `target_language` (a code from language.rs) takes the place of `direction`.
 #[tauri::command]
 pub async fn translate_text(
     text: String,
@@ -200,6 +202,7 @@ pub async fn translate_text(
     provider: Option<String>,
     base_url: Option<String>,
     model: Option<String>,
+    target_language: Option<String>,
 ) -> Result<String, String> {
     let text = text.trim();
     if text.is_empty() {
@@ -208,16 +211,10 @@ pub async fn translate_text(
     if text.chars().count() > MAX_CHARACTERS {
         return Err("You can translate up to 5000 characters at a time.".to_string());
     }
-    let target = match direction.as_str() {
-        "zh-en" => "en",
-        "en-zh" => "zh",
-        // By the language most of the text is in, not by foreign characters alone.
-        "auto" => direction::auto_target(text),
-        _ => return Err("Unsupported translation direction.".to_string()),
-    };
+    let target = language::resolve_target(&direction, target_language.as_deref(), text)?;
     let provider = find_provider(provider.as_deref())?;
     if provider.kind != ProviderKind::Chat {
-        return free::translate(provider, text, target).await;
+        return free::translate(provider, text, &target).await;
     }
     let endpoint = completions_url(provider, base_url.as_deref())?;
     let model = resolve_model(provider, model.as_deref())?;
@@ -229,11 +226,7 @@ pub async fn translate_text(
         .build()
         .map_err(|error| format!("Could not create the translation request: {error}"))?;
 
-    let language = if target == "en" {
-        "English"
-    } else {
-        "the target language"
-    };
+    let language = target.language.name;
     let response = client
         .post(endpoint)
         .bearer_auth(secret)

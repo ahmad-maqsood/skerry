@@ -42,7 +42,7 @@ export function useTranslationRequest({
     setIsLoading(true);
     try {
       const { provider } = settings;
-      const translated = await translateText(text, settings.direction, {
+      const translated = await translateText(text, settings.targetLanguage, {
         provider,
         baseUrl: provider === "custom" ? settings.customBaseUrl.trim() : null,
         model: settings.models[provider]?.trim() || null,

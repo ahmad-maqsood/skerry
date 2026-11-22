@@ -26,13 +26,14 @@ export type TranslatorText = {
   shortcut: string;
   pressShortcut: string;
   shortcutHint: string;
-  direction: string;
+  /** Names the output language picker for screen readers. */
+  targetLanguage: string;
+  /** The source side of the language bar: the source language is always detected. */
   auto: string;
-  zhEn: string;
-  enZh: string;
-  other: string;
-  english: string;
-  bilingual: string;
+  /** The picker's first choice: Chinese is translated into English, anything else into Chinese. */
+  autoTarget: string;
+  searchLanguages: string;
+  noLanguageMatch: string;
   source: string;
   placeholder: string;
   paste: string;
@@ -80,13 +81,11 @@ export const en: TranslatorText = {
   shortcut: "Global shortcut",
   pressShortcut: "Press a key combination…",
   shortcutHint: "Click the field, then press a new key combination",
-  direction: "Direction",
+  targetLanguage: "Translate into",
   auto: "Auto-detect",
-  zhEn: "Other → English",
-  enZh: "English → Other",
-  other: "Other",
-  english: "English",
-  bilingual: "Translation",
+  autoTarget: "Auto: English ↔ Chinese",
+  searchLanguages: "Search languages",
+  noLanguageMatch: "No language matches",
   source: "Source",
   placeholder: "Enter text, or press Tab to paste the latest clipboard text",
   paste: "Paste latest clipboard text",

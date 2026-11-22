@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type EventCallback } from "@tauri-apps/api/event";
+import { AUTO_TARGET_LANGUAGE } from "./languages";
 import { isKeylessTranslationProvider, type TranslationProvider } from "./providers";
-import type { Direction } from "./storage";
 
 // Matches the event name emitted in translation/mod.rs.
 export const TRANSLATION_WINDOW_OPENED_EVENT = "translation-window-opened";
@@ -38,8 +38,17 @@ export function readTranslationClipboard() {
   return invoke<string | null>("read_translation_clipboard");
 }
 
-export function translateText(text: string, direction: Direction, service: TranslationService) {
-  return invoke<string>("translate_text", { text, direction, ...service });
+/**
+ * `targetLanguage` is a code from languages.ts, or "auto" to let the native side pick English or
+ * Chinese from the text. `direction` is the command's earlier argument and stays "auto".
+ */
+export function translateText(text: string, targetLanguage: string, service: TranslationService) {
+  return invoke<string>("translate_text", {
+    text,
+    direction: "auto",
+    targetLanguage: targetLanguage === AUTO_TARGET_LANGUAGE ? null : targetLanguage,
+    ...service,
+  });
 }
 
 export function saveTranslationSecret(secret: string, provider: TranslationProvider) {

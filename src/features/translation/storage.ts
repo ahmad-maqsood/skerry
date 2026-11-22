@@ -1,3 +1,4 @@
+import { AUTO_TARGET_LANGUAGE, isTargetLanguage } from "./languages.ts";
 import {
   DEFAULT_TRANSLATION_PROVIDER,
   LEGACY_TRANSLATION_PROVIDER,
@@ -5,12 +6,12 @@ import {
   type TranslationProvider,
 } from "./providers.ts";
 
-export type Direction = "auto" | "zh-en" | "en-zh";
 export type TranslationSettings = {
   shortcut: string;
   /** Off releases the global shortcut while translation itself stays on. */
   shortcutEnabled: boolean;
-  direction: Direction;
+  /** The language to translate into: a code from languages.ts, or "auto" (Chinese into English, anything else into Chinese). */
+  targetLanguage: string;
   provider: TranslationProvider;
   /** Base URL of the OpenAI-compatible service used by the "custom" provider. */
   customBaseUrl: string;
@@ -27,7 +28,7 @@ const LEGACY_DEFAULT_SHORTCUTS = new Set(["Alt+Space", "Alt+C"]);
 export const DEFAULT_SETTINGS: TranslationSettings = {
   shortcut: "Ctrl+Shift+F",
   shortcutEnabled: true,
-  direction: "auto",
+  targetLanguage: AUTO_TARGET_LANGUAGE,
   provider: DEFAULT_TRANSLATION_PROVIDER,
   customBaseUrl: "",
   models: {},
@@ -45,6 +46,14 @@ function normalizeModels(value: unknown): TranslationSettings["models"] {
   );
 }
 
+/** Versions before the output language could be chosen saved `direction`: English, Chinese or auto. */
+function normalizeTargetLanguage(value: Record<string, unknown>): string {
+  if (isTargetLanguage(value.targetLanguage)) return value.targetLanguage;
+  if (value.direction === "zh-en") return "en";
+  if (value.direction === "en-zh") return "zh-CN";
+  return AUTO_TARGET_LANGUAGE;
+}
+
 export function normalizeTranslationSettings(stored: unknown): TranslationSettings {
   if (typeof stored !== "object" || stored === null) return DEFAULT_SETTINGS;
   const value = stored as Record<string, unknown>;
@@ -54,7 +63,7 @@ export function normalizeTranslationSettings(stored: unknown): TranslationSettin
     shortcut: LEGACY_DEFAULT_SHORTCUTS.has(shortcut) ? DEFAULT_SETTINGS.shortcut : shortcut,
     // Saved before the switch existed: the shortcut was always on.
     shortcutEnabled: value.shortcutEnabled !== false,
-    direction: value.direction === "zh-en" || value.direction === "en-zh" ? value.direction : "auto",
+    targetLanguage: normalizeTargetLanguage(value),
     provider: isTranslationProvider(value.provider) ? value.provider : LEGACY_TRANSLATION_PROVIDER,
     customBaseUrl: typeof value.customBaseUrl === "string" ? value.customBaseUrl : "",
     models: normalizeModels(value.models),

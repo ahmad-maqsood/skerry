@@ -89,6 +89,7 @@ export function SettingsPanel({
           locale={locale}
           settings={settings}
           detachedSettings={detached}
+          systemNotifications={systemNotifications}
           onLocaleChange={setLocale}
           onSettingsChange={setSettings}
           onDetachedSettingsChange={onDetachedChange}
@@ -110,7 +111,7 @@ export function SettingsPanel({
       {category === "translation" && <TranslationSettingsPage settings={settings} onSettingsChange={setSettings} />}
       {category === "clipboard" && <ClipboardSettingsPage settings={settings} onSettingsChange={setSettings} />}
       {category === "music" && <MusicSettingsPage settings={settings} onSettingsChange={setSettings} />}
-      {category === "system" && <SystemSettingsPage />}
+      {category === "system" && <SystemSettingsPage islandSettings={settings} onIslandSettingsChange={setSettings} />}
       {category === "plugins" && <PluginsSettingsPage />}
       {category === "about" && <AboutSettingsPage />}
     </LayoutEditor>

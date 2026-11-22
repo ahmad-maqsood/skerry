@@ -57,7 +57,7 @@ export function IslandApp() {
   const game = useGameMode(settings, { mode, isTucked, collapseIsland, tuckIsland, revealIsland });
   const notices = useIslandNotices(settings, { mode, isTucked, quiet: game.quiet });
   useIdleUpdateInstall(mode === "collapsed", game.quiet);
-  const { systemNotifications, preview, hasMessagePreview } = notices;
+  const { systemNotifications, preview, hasMessagePreview, dismissPreview } = notices;
   // The output level shows only on the collapsed island (its waveform).
   const media = useMediaState(settings.musicEnabled, mode === "collapsed");
   const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight, notebookProps } = useIslandTodos({ settings, navigation, quiet: game.quiet });
@@ -144,6 +144,12 @@ export function IslandApp() {
     onCollapse: collapseIsland,
   });
 
+  // Minimizing also sends away a pop-up showing (a copy, a song): it would slide the island back out.
+  const minimizeAndDismiss = useCallback(() => {
+    dismissPreview();
+    if (settings.minimizeAction === "tray") minimizeIsland(); else minimizeToEdge();
+  }, [dismissPreview, minimizeIsland, minimizeToEdge, settings.minimizeAction]);
+
   const hoverTucked = useIslandHover({
     settings,
     navigation,
@@ -215,7 +221,7 @@ export function IslandApp() {
         onCollapse={collapseIsland}
         onResetPosition={resetIslandPosition}
         minimizesToTray={settings.minimizeAction === "tray"}
-        onMinimize={settings.minimizeAction === "tray" ? minimizeIsland : minimizeToEdge}
+        onMinimize={minimizeAndDismiss}
         onOpenTranslator={settings.translationEnabled ? openTranslator : null}
         onOpenSettings={openSettings}
         onReveal={hoverTucked}

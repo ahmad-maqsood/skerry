@@ -2,9 +2,32 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-sizing: border-box;
+  /* Fill the island's fixed page height so the content scrolls inside it instead of being clipped. */
+  height: 100%;
+  min-height: 0;
   padding: 12px 14px 14px;
+  overflow-x: hidden;
   overflow-y: auto;
   user-select: none;
+}
+
+/* Thin, track-less scrollbar like the todo list's, instead of the white system one. */
+.system-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.system-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.system-panel::-webkit-scrollbar-thumb {
+  background: var(--color-white-a18);
+  border-radius: var(--radius-pill);
+}
+
+.system-panel::-webkit-scrollbar-button {
+  display: none;
 }
 
 .system-panel__grid {

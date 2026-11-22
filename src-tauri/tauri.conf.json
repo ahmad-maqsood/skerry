@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "skerry",
+  "productName": "Skerry",
   "version": "0.1.0",
   "identifier": "com.ahmad-maqsood.skerry",
   "build": {
@@ -108,6 +108,8 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "license": "GPL-3.0-only",
+    "licenseFile": "../LICENSE"
   }
 }

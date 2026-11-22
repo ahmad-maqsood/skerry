@@ -52,11 +52,14 @@
   font-size: calc(11px * var(--island-font-scale, 1));
   font-weight: 600;
   color: var(--task-text-color);
-  background: var(--island-control-surface-hover, rgba(255, 255, 255, 0.14));
-  padding: 1px 6px;
+  /* Opaque: the island colour with a lift on top, so nothing behind the chip shows through. */
+  background: color-mix(in srgb, var(--task-text-color) 16%, var(--island-background-color, #2f2f37));
+  border: 1px solid color-mix(in srgb, var(--task-text-color) 14%, transparent);
+  padding: 2px 9px;
   border-radius: var(--radius-pill, 9999px);
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
   transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 2;
 }
@@ -66,8 +69,9 @@
   transform: translate(-50%, -50%) scale(1);
 }
 
+/* The time gives way completely, so the two swap instead of overlapping. */
 .collapsed-clock-wrapper:hover .collapsed-clock {
-  opacity: 0.15;
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

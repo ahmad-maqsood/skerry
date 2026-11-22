@@ -131,6 +131,18 @@
   --dot-glow: rgba(229, 142, 226, 0.44);
 }
 
+/* Out of the flow: as a grid item of the centred icon button it took a row of its own and
+   pushed the bell above the other page icons. */
+.island-message-button__dot {
+  position: absolute;
+  z-index: 1;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-circle);
+  background: var(--color-badge);
+  pointer-events: none;
+}
+
 .dot-button--messages .island-message-button__dot {
   top: 6px;
   right: 2px;

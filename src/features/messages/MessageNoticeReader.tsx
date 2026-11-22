@@ -36,7 +36,7 @@ export function MessageNoticeReader({
     >
       <div className="message-notice__header">
         <span className="message-notice__drag" {...drag}>
-          <MessageSourceIcon logo={preview.appLogo} name={appName} size={16} />
+          <MessageSourceIcon logo={preview.appLogo} name={appName} size={16} kind={preview.kind} />
         </span>
         <strong className="message-notice__sender">{sender}</strong>
         <button

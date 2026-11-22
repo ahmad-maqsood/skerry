@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from "react";
-import { Inbox } from "lucide-react";
+import { Inbox, Minus } from "lucide-react";
 import type { CollapsedItem, CollapsedSlot } from "../../features/appearance/types";
 import type { MediaState } from "../../features/media/api";
 import { CollapsedLyric } from "../../features/media/CollapsedLyric";
@@ -51,6 +51,9 @@ type IslandCollapsedBarProps = {
   shelfCount: number | null;
   onOpenPage: (page: IslandPage) => void;
   onWindowDragStart: () => void;
+  /** False when the minimize button tucks the island to the top edge instead of the tray. */
+  minimizesToTray: boolean;
+  onMinimize: () => void;
 };
 
 /** The collapsed island: status light, todo or message summary, music button and tuck handle. */
@@ -78,6 +81,8 @@ export function IslandCollapsedBar({
   shelfCount,
   onOpenPage,
   onWindowDragStart,
+  minimizesToTray,
+  onMinimize,
 }: IslandCollapsedBarProps) {
   const t = useTranslation();
   const clockWeather = useClockWeather();
@@ -89,7 +94,9 @@ export function IslandCollapsedBar({
     useWindowDragGesture(isTucked || positionLocked, onWindowDragStart);
   const isMusicPlaying = mediaState.playbackStatus === "playing";
   const openPreview = (shown: MessagePreview) => {
-    void systemNotifications.openApp(shown.appId);
+    // The island's own pop-ups (a copied text, a new song) open their page, not an app.
+    if (shown.kind) onOpenPage(shown.kind);
+    else void systemNotifications.openApp(shown.appId);
   };
 
   if (noticeReader && preview && !isExpanded && !isTucked) return (
@@ -220,6 +227,18 @@ export function IslandCollapsedBar({
       }}
     >
       {collapsedLayout.map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
+      {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}
+      <button
+        className="island-collapsed-minimize"
+        type="button"
+        aria-label={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
+        onClick={(event) => {
+          event.stopPropagation();
+          onMinimize();
+        }}
+      >
+        <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
+      </button>
     </div>
   );
 }

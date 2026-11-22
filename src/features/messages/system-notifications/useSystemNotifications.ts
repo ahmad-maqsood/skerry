@@ -23,6 +23,7 @@ import {
   saveSystemNotificationsEnabled,
 } from "./storage";
 import type { SystemNotificationSnapshot } from "./types";
+import type { PreviewKind } from "../messagePreview";
 
 export type SystemNotificationPreview = {
   id: string;
@@ -33,6 +34,7 @@ export type SystemNotificationPreview = {
   timestamp: number;
   appLogo?: string | null;
   receivedAt: number;
+  kind?: PreviewKind;
 };
 
 const EMPTY_SNAPSHOT: SystemNotificationSnapshot = {
@@ -59,6 +61,8 @@ export type SystemNotificationsController = {
   toggleAppMuted: (appId: string) => Promise<void>;
   toggleHideText: (hide: boolean) => Promise<void>;
   openApp: (appId: string) => Promise<void>;
+  /** Shows a pop-up of the island's own (a copied text, a new song) like a notification, if one may show now. */
+  showPreview: (preview: Omit<SystemNotificationPreview, "receivedAt">) => void;
   requestAccess: () => Promise<string>;
   openSettings: (access: boolean) => Promise<void>;
 };
@@ -285,6 +289,10 @@ export function useSystemNotifications(
     }
   }, []);
 
+  const showPreview = useCallback((next: Omit<SystemNotificationPreview, "receivedAt">) => {
+    if (canPreviewRef.current) setPreview({ ...next, receivedAt: Date.now() });
+  }, []);
+
   const requestAccess = useCallback(async () => {
     if (!isTauri()) return "allowed";
     return requestSystemNotificationAccess();
@@ -308,6 +316,7 @@ export function useSystemNotifications(
     toggleAppMuted,
     toggleHideText,
     openApp,
+    showPreview,
     requestAccess,
     openSettings,
   };

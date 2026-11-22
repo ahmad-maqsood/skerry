@@ -46,7 +46,26 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
-  padding-right: 2px;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+/* Thin, track-less scrollbar like the todo list's, instead of the white system one with arrows. */
+.messages-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-list::-webkit-scrollbar-thumb {
+  background: var(--color-white-a18);
+  border-radius: var(--radius-pill);
+}
+
+.messages-list::-webkit-scrollbar-button {
+  display: none;
 }
 
 .messages-app-group {

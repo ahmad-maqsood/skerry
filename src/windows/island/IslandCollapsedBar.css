@@ -156,6 +156,33 @@
   background: var(--color-white-a18);
 }
 
+/* Tucks the island to the top edge (or the tray); always the last thing on the bar. */
+.island-collapsed-minimize {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--text-3);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.island-collapsed-minimize:hover,
+.island-collapsed-minimize:focus-visible {
+  color: var(--color-fg-strong);
+  background: var(--color-white-a18);
+}
+
+.island-collapsed-minimize:focus-visible {
+  outline: 2px solid var(--color-focus-ring-soft);
+  outline-offset: 1px;
+}
+
 /* The status light is its own slot (Settings → Appearance → On the island): it opens the last page
    (or the message being previewed). A few pixels round the 9px light keep it easy to hit. */
 .island__light {

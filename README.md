@@ -37,6 +37,10 @@
 
 ---
 
+---
+
+> **Project origin and modification notice — 2026-11-22:** Skerry is a modified version of [Fly Island](https://github.com/flyl1u/fly-island), originally created by **flyl1u** and licensed under GPL-3.0. Skerry has been redesigned and extended, and is maintained as a separate project. It is not an official continuation of, or endorsed by, the upstream project.
+
 ## Overview
 
 Skerry brings a streamlined, glanceable floating island to the top of your Windows desktop. It consolidates notifications, music playback with synced lyrics, clipboard history, to-dos, file staging, and live PC health monitoring into one compact interface that expands on hover and tucks away when idle.
@@ -175,6 +179,12 @@ Compile production release packages (NSIS installer and MSI bundle):
 ```powershell
 pnpm tauri build
 ```
+
+
+
+### Source Code for Releases
+
+Each published GitHub Release page also provides GitHub-generated source archives (**Source code (zip)** and **Source code (tar.gz)**) for the release tag. These archives let users obtain the source corresponding to that tagged release alongside the installer. See [all Skerry releases](https://github.com/ahmad-maqsood/skerry/releases).
 
 ---
 
@@ -342,6 +352,8 @@ For instructions on reporting security vulnerabilities, please refer to [SECURIT
 
 ## Licence and Credits
 
-Skerry is free and open-source software licensed under the [GNU General Public License v3.0](LICENSE).
+Skerry's main application is a modified derivative of [Fly Island](https://github.com/flyl1u/fly-island) and is distributed under [GNU GPL-3.0-only](LICENSE). The project-origin and modification history are recorded in [NOTICE.md](NOTICE.md).
 
-For open-source attributions, project lineage, and third-party notices, see [NOTICE.md](NOTICE.md).
+The optional plugin workspace crates under `plugins/` declare the MIT License; see [plugins/LICENSE-MIT](plugins/LICENSE-MIT). Third-party dependency license details and the current scope of the license inventory are explained in [NOTICE.md](NOTICE.md).
+
+The full GPL license text is configured for inclusion in the Windows installer bundles.

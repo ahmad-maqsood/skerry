@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteClipboardItems, copyClipboardItem, deleteClipboardItem, getClipboardHistory, listenClipboardHistoryChanged, listenClipboardHistoryShortcut, setClipboardItemNote, toggleClipboardFavorite, type ClipboardHistorySnapshot } from "./api";
 import { DEFAULT_CLIPBOARD_HISTORY } from "./settings";
 
@@ -16,7 +16,11 @@ export function useClipboardHistory(onShortcut?: () => void) {
     }
   }, []);
 
+  // When this window itself last put an item back on the clipboard: not a new copy to announce.
+  const ownCopyAtRef = useRef(0);
+
   const copyClipboardHistoryItem = useCallback(async (id: string) => {
+    ownCopyAtRef.current = Date.now();
     try {
       const snapshot = await copyClipboardItem(id);
       setClipboardHistory(snapshot);
@@ -120,6 +124,7 @@ export function useClipboardHistory(onShortcut?: () => void) {
 
   return {
     clipboardHistory,
+    ownCopyAtRef,
     copyClipboardHistoryItem,
     toggleClipboardHistoryFavorite,
     updateClipboardHistoryItemNote,

@@ -1,14 +1,18 @@
-import { Bell } from "lucide-react";
+import { Bell, Clipboard, Music } from "lucide-react";
+import type { PreviewKind } from "./messagePreview";
 import "./MessageSourceIcon.css";
 
 export function MessageSourceIcon({
   logo,
   name = "App",
   size = 16,
+  kind,
 }: {
   logo?: string | null;
   name?: string;
   size?: number;
+  /** The island's own pop-ups show their own icon when there is no logo (the cover). */
+  kind?: PreviewKind;
 }) {
   if (logo) {
     return (
@@ -24,13 +28,14 @@ export function MessageSourceIcon({
     );
   }
 
+  const Icon = kind === "clipboard" ? Clipboard : kind === "music" ? Music : Bell;
   return (
     <span
       className="message-source-icon message-source-icon--fallback"
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
-      <Bell size={Math.max(12, size - 4)} strokeWidth={2} />
+      <Icon size={Math.max(12, size - 4)} strokeWidth={2} />
     </span>
   );
 }

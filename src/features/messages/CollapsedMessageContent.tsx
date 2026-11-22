@@ -16,7 +16,7 @@ type ContentTransition = {
 function MessageContent({ preview }: { preview: MessagePreview }) {
   return (
     <>
-      <MessageSourceIcon logo={preview.appLogo} name={preview.appDisplayName} size={16} />
+      <MessageSourceIcon logo={preview.appLogo} name={preview.appDisplayName} size={16} kind={preview.kind} />
       <span className="island-message-preview__text">
         <strong className="island-message-preview__sender">
           {preview.title.trim() || preview.appDisplayName || "App"}

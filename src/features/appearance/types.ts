@@ -119,6 +119,10 @@ export type IslandSettings = {
   autoTuckRetractDelayMs: number;
   /** A tucked island slides back into view to show a new message preview. */
   revealOnMessage: boolean;
+  /** The island pops out to show a text as it is copied (needs clipboard history on). */
+  clipboardPopup: boolean;
+  /** The island pops out to show the song when a new one starts playing. */
+  musicPopup: boolean;
   expandTrigger: ExpandTrigger;
   /** Pointer rest time (ms) before a hover opens the island. */
   hoverExpandDelayMs: number;

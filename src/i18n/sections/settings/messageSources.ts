@@ -9,6 +9,10 @@ export type SettingsMessageSourcesText = {
   gameNotices: string;
   gameNoticesHint: string;
   gameNoticeSeconds: string;
+  popupClipboard: string;
+  popupClipboardHint: string;
+  popupMusic: string;
+  popupMusicHint: string;
   masterToggle: string;
   masterToggleHint: string;
   accessStatus: string;
@@ -37,6 +41,10 @@ export const en: SettingsMessageSourcesText = {
   gameNotices: "Still show notifications",
   gameNoticesHint: "Shows notifications on the island during full-screen games, for display only: it never takes the focus, and clicks pass through to the game.",
   gameNoticeSeconds: "Notification duration",
+  popupClipboard: "Show copied text",
+  popupClipboardHint: "The island pops out for a moment to show a text as you copy it. Needs clipboard history to be on.",
+  popupMusic: "Show new songs",
+  popupMusicHint: "The island pops out for a moment to show the song when a new one starts playing.",
   masterToggle: "Receive system notifications",
   masterToggleHint: "Listens to incoming Windows toast notifications (WhatsApp, Telegram, Outlook, browsers, etc.) and displays them on the island.",
   accessStatus: "Notification access",

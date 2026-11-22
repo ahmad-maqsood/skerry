@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { visibleCollapsedSlots } from "../../features/appearance/collapsedLayout";
 // First: the message panels it loads bring CSS that must come before the page panels' and the shell's.
 import { useIslandNotices } from "./useIslandNotices";
+import { useIslandPopups } from "./useIslandPopups";
 // The page panels; before IslandShell so their CSS keeps its place in the cascade.
 import { IslandPages } from "./IslandPages";
 import { useSettingsPresentation } from "../settings/useSettingsPresentation";
@@ -87,6 +88,14 @@ export function IslandApp() {
 
   const clipboard = useClipboardHistory(toggleClipboardHistory);
   const { clipboardHistory } = clipboard;
+  // A copied text and a new song pop out like a notification.
+  useIslandPopups({
+    settings,
+    showPreview: systemNotifications.showPreview,
+    clipboardHistory,
+    ownCopyAtRef: clipboard.ownCopyAtRef,
+    mediaState: media.mediaState,
+  });
 
   const { features, navigateToPage: openEnabledPage } = useIslandFeatures({
     settings,

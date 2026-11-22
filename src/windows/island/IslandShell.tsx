@@ -217,6 +217,8 @@ export function IslandShell({
           shelfCount={shelfCount}
           onOpenPage={onOpenPage}
           onWindowDragStart={onWindowDragStart}
+          minimizesToTray={minimizesToTray}
+          onMinimize={onMinimize}
         />
 
         <div

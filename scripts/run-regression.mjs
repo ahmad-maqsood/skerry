@@ -3,6 +3,7 @@
 //
 //   pnpm test:regression                 every page
 //   pnpm test:regression clipboard       pages whose name contains the word
+//   node scripts/run-regression.mjs --shard=2/3   the second third of the pages (CI runs three)
 //   REGRESSION_REDUCED_MOTION=reduce pnpm test:regression  emulate Windows animations off
 //
 // Pages are driven over the DevTools protocol in a normal tab, not with --dump-dom:
@@ -109,6 +110,18 @@ export function pageOutcome({ testResult = "", dataResult = "", text = "" }) {
 /** Number of passed checks, counted from the page's "PASS ..." lines. */
 export function passedChecks(text) {
   return (text.match(/^PASS /gm) ?? []).length;
+}
+
+/**
+ * The pages of one shard, from "--shard=2/3" (the second of three). Pages are dealt out in
+ * turn, so the slow ones listed next to each other (the island tour) spread over the shards.
+ */
+export function selectShard(pages, spec) {
+  const match = /^(\d+)\/(\d+)$/.exec(spec);
+  const index = Number(match?.[1]);
+  const total = Number(match?.[2]);
+  if (!match || index < 1 || index > total) throw new Error(`--shard expects i/n with 1 <= i <= n, got "${spec}".`);
+  return pages.filter((_, position) => position % total === index - 1);
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -264,9 +277,12 @@ export async function withRegressionBrowser(root, firstPage, use, { featuresEnab
 
 async function main() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const filters = process.argv.slice(2);
-  const pages = PAGES.filter((page) => filters.length === 0 || filters.some((word) => page.includes(word)));
-  if (pages.length === 0) throw new Error(`No regression page matches ${filters.join(", ")}.`);
+  const args = process.argv.slice(2);
+  const shard = args.find((arg) => arg.startsWith("--shard="))?.slice("--shard=".length);
+  const filters = args.filter((arg) => !arg.startsWith("--"));
+  const matching = PAGES.filter((page) => filters.length === 0 || filters.some((word) => page.includes(word)));
+  const pages = shard === undefined ? matching : selectShard(matching, shard);
+  if (pages.length === 0) throw new Error(`No regression page matches ${filters.join(", ") || "this shard"}.`);
   let failed = 0;
   console.log(`Regression prefers-reduced-motion: ${process.env.REGRESSION_REDUCED_MOTION ?? "no-preference"}`);
   for (const featuresEnabled of [false, true]) {

@@ -302,16 +302,18 @@ flowchart TD
 
 ## CI and Releases
 
-Skerry uses a modern, two-phase CI/CD architecture hosted entirely on GitHub Actions:
+Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a run takes as long as its slowest job:
 
-- **Continuous Integration (`.github/workflows/ci.yml`)**:
-  - **Frontend Job**: Runs on `ubuntu-latest` for maximum speed. Executes dependency installation (`pnpm install --frozen-lockfile`), type checking (`tsc`), test suite type checking, ESLint, file size limits, Node unit tests, production Vite build, and automated headless Chrome browser regression tests.
-  - **Rust Job**: Runs in parallel on `windows-latest`. Validates Rust code using `cargo clippy --all-targets -D warnings` and executes Rust unit tests sharing a single cached `target/` directory.
-  - **Gate Check**: A lightweight `CI passed` status check monitors both jobs for branch protection.
+- **Continuous Integration (`.github/workflows/ci.yml`)**, on every push to `main` (and on a manual run from any branch):
+  - **Frontend checks** (`ubuntu-latest`): `pnpm check` (type check, test type check, ESLint, file size limits, Node unit tests) and a production Vite build.
+  - **Browser pages** (`windows-latest`, three shards): the headless Chrome regression pages, which need Windows fonts, split across three runners with `scripts/run-regression.mjs --shard=i/3`.
+  - **Clippy** and **Rust tests** (`windows-latest`, one job each): `cargo clippy --all-targets -D warnings` and `cargo test --lib` for the app and the plugins, each with its own Rust cache.
+  - **Gate Check**: a lightweight `CI passed` status check that needs all of the above, for branch protection.
 
-- **Automated Releases (`.github/workflows/release.yml`)**:
-  - Releases are triggered via `workflow_dispatch` (with `bump` choices `patch`, `minor`, `major` and optional `prerelease` toggle) or by pushing release tags matching `v*.*.*`.
-  - The workflow handles semantic version increments across `package.json`, `Cargo.toml`, `Cargo.lock`, and `tauri.conf.json`, tags the commit, verifies repository signing secrets (`TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, `TAURI_UPDATER_PUBKEY`), compiles NSIS and MSI packages, signs assets with minisign, generates `latest.json`, and publishes the GitHub Release.
+- **Releases (`.github/workflows/release.yml`)**, started by hand with **Run workflow**:
+  - **Publish unticked**: a quick trial that builds and signs only the NSIS installer and attaches it to the run.
+  - **Publish ticked**: runs `pnpm check`, builds and signs the NSIS and MSI installers, generates `latest.json` and publishes the GitHub Release. Clippy and the Rust tests are not repeated; CI already ran them.
+  - Signing needs the repository secrets `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` and `TAURI_UPDATER_PUBKEY`; see [docs/updater.md](docs/updater.md).
   - The in-app updater queries `https://github.com/ahmad-maqsood/skerry/releases/latest/download/latest.json` and performs silent background downloads with idle auto-install.
 
 ---

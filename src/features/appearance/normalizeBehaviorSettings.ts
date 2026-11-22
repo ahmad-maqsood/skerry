@@ -24,6 +24,9 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     messageExpandMaxHeight: wholeSeconds(settings?.messageExpandMaxHeight, MESSAGE_EXPAND_MAX_HEIGHT, MESSAGE_EXPAND_MAX_HEIGHT.default),
     messageExpandSeconds: wholeSeconds(settings?.messageExpandSeconds, MESSAGE_EXPAND_SECONDS, MESSAGE_EXPAND_SECONDS.default),
     gameShowNotices: settings?.gameShowNotices === true,
+    // On unless turned off.
+    clipboardPopup: settings?.clipboardPopup !== false,
+    musicPopup: settings?.musicPopup !== false,
     gameNoticeSeconds: wholeSeconds(settings?.gameNoticeSeconds, GAME_NOTICE_SECONDS, GAME_NOTICE_SECONDS.default),
     todoTimerReminder: settings?.todoTimerReminder === true,
     todoTimerReminderSound: settings?.todoTimerReminderSound === true,

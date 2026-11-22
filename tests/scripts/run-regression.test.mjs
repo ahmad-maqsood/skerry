@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { PAGES, pageOutcome, passedChecks } from "../../scripts/run-regression.mjs";
+import { PAGES, pageOutcome, passedChecks, selectShard } from "../../scripts/run-regression.mjs";
 
 test("each way a regression page reports its result is understood", () => {
   assert.equal(pageOutcome({ testResult: "passed" }), "passed");
@@ -29,6 +29,17 @@ test("passed checks are counted from PASS lines only", () => {
 test("every listed regression page exists", () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
   for (const page of PAGES) assert.ok(existsSync(path.join(root, "tests/regression", page.split("?")[0])), page);
+});
+
+test("shards together cover every page exactly once", () => {
+  const shards = [1, 2, 3].map((index) => selectShard(PAGES, `${index}/3`));
+  assert.deepEqual(shards.flat().sort(), [...PAGES].sort());
+  assert.ok(Math.max(...shards.map((shard) => shard.length)) - Math.min(...shards.map((shard) => shard.length)) <= 1);
+  assert.deepEqual(selectShard(PAGES, "1/1"), PAGES);
+});
+
+test("a malformed shard is refused", () => {
+  for (const spec of ["", "3", "0/3", "4/3", "a/b", "1/0"]) assert.throws(() => selectShard(PAGES, spec), /--shard/, spec);
 });
 
 test("each run gets free ports of its own", async () => {

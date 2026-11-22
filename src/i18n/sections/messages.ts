@@ -6,6 +6,8 @@ export type MessagesText = {
   openApp: string;
   yesterday: string;
   newMessage: string;
+  /** Title of the island pop-up for a text just copied. */
+  copiedToClipboard: string;
   noticeOpen: (app: string) => string;
   noticeReader: (sender: string) => string;
   notificationsCount: (count: number) => string;
@@ -23,6 +25,7 @@ export const en: MessagesText = {
   openApp: "Open application",
   yesterday: "Yesterday",
   newMessage: "New notification",
+  copiedToClipboard: "Copied",
   noticeOpen: (app) => `Open ${app}`,
   noticeReader: (sender) => `Full notification from ${sender}`,
   notificationsCount: (count) => `${count} notification${count === 1 ? "" : "s"}`,

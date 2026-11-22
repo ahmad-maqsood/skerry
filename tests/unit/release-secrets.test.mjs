@@ -1,6 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { validateSigningSecrets } from "../../scripts/release/release.mjs";
+import { parseReleaseArgs, validateSigningSecrets } from "../../scripts/release/release.mjs";
+
+test("a full release is the default, and a trial build is NSIS only", () => {
+  assert.deepEqual(parseReleaseArgs([]), { baseUrl: "", upload: true, nsisOnly: false });
+  assert.deepEqual(parseReleaseArgs(["--no-upload"]), { baseUrl: "", upload: false, nsisOnly: false });
+  assert.deepEqual(parseReleaseArgs(["--no-upload", "--nsis-only"]), { baseUrl: "", upload: false, nsisOnly: true });
+});
+
+test("an NSIS-only build cannot be published, because the update manifest needs the MSI", () => {
+  assert.throws(() => parseReleaseArgs(["--nsis-only"]), /cannot be published/);
+});
+
+test("a base URL must be HTTPS", () => {
+  assert.equal(parseReleaseArgs(["--base-url", "https://example.com/dl"]).baseUrl, "https://example.com/dl");
+  assert.throws(() => parseReleaseArgs(["--base-url", "http://example.com"]), /HTTPS/);
+  assert.throws(() => parseReleaseArgs(["--base-url"]), /HTTPS/);
+});
 
 test("validateSigningSecrets succeeds when all secrets are present", () => {
   const env = {

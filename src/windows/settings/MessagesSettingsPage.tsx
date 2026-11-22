@@ -96,6 +96,18 @@ export function MessagesSettingsPage({
           }
         />
         <NoticeRows settings={settings} onSettingsChange={onSettingsChange} />
+        <SettingsToggleRow
+          title={labels.popupClipboard}
+          description={labels.popupClipboardHint}
+          checked={settings.clipboardPopup}
+          onChange={(clipboardPopup) => onSettingsChange({ ...settings, clipboardPopup })}
+        />
+        <SettingsToggleRow
+          title={labels.popupMusic}
+          description={labels.popupMusicHint}
+          checked={settings.musicPopup}
+          onChange={(musicPopup) => onSettingsChange({ ...settings, musicPopup })}
+        />
       </SettingsGroup>
 
       {enabled && (

@@ -79,10 +79,10 @@ pub(super) fn monitor(service: Arc<NotificationService>, receiver: mpsc::Receive
         };
 
         if let Some((snapshot, newest)) = change {
-            let suppressed = win32::notification_state::fullscreen_signal()
-                != win32::notification_state::FullscreenSignal::None;
-            let newest_for_publish = if suppressed { None } else { newest };
-            publish(&service, snapshot, newest_for_publish);
+            // Always tell the front end about the newest notification: whether it pops up over a
+            // full-screen app is game mode's decision there ("Do not disturb in full screen" and
+            // "Still show notifications"), not something to drop here for every full-screen state.
+            publish(&service, snapshot, newest);
         }
 
         if receiver.recv_timeout(Duration::from_secs(1))

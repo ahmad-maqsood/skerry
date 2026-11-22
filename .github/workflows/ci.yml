@@ -13,14 +13,16 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Jobs run side by side, so a run takes as long as its slowest job, not the sum of them.
+# Only work that needs Windows runs on Windows (the Rust app and the browser pages that
+# compare line-wrapping in Windows fonts); the rest runs on Linux, which starts faster.
+# A manual run from another branch runs everything too, to try out changes to this file.
 jobs:
-  frontend:
-    if: github.ref == 'refs/heads/main'
-    name: Frontend
-    # The app's fonts (Segoe UI, Microsoft YaHei) are Windows fonts; line-wrapping checks in the
-    # regression pages only match on a Windows runner.
-    runs-on: windows-latest
-    timeout-minutes: 20
+  checks:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -36,48 +38,65 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Logs go to the runner's temp folder, not the repository, so the clean-tree check stays valid.
-      - name: Type check, lint, file size, unit tests
-        shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/ci-logs"
-          set -o pipefail
-          pnpm check 2>&1 | tee "$RUNNER_TEMP/ci-logs/check.log"
+      # Type check, lint, file size and unit tests.
+      - name: Check
+        run: pnpm check
 
+      # `pnpm build` would type check a second time; `pnpm check` just did.
       - name: Build frontend
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm build 2>&1 | tee "$RUNNER_TEMP/ci-logs/build.log"
+        run: pnpm exec vite build
 
-      # Bundles Vite, runs all regression pages in tests/regression/ using pre-installed Chrome on the runner.
-      - name: Browser regression pages
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm test:regression 2>&1 | tee "$RUNNER_TEMP/ci-logs/regression.log"
-
-      - name: Upload frontend logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-logs-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/ci-logs
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Check the tests left the repository clean
-        shell: bash
+      - name: Check the run left the repository clean
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            echo "::error::The test run changed or created files in the repository:"
+            echo "::error::The run changed or created files in the repository:"
             git status --porcelain
             exit 1
           fi
 
-  rust:
-    if: github.ref == 'refs/heads/main'
-    name: Rust
+  regression:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    name: Browser pages (${{ matrix.shard }}/3)
+    # The app's fonts (Segoe UI, Microsoft YaHei) are Windows fonts; line-wrapping checks in the
+    # regression pages only match on a Windows runner.
+    runs-on: windows-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Each shard runs a third of the pages in tests/regression/ using the Chrome on the runner.
+      - name: Browser regression pages
+        shell: bash
+        run: node scripts/run-regression.mjs --shard=${{ matrix.shard }}/3
+
+      - name: Check the run left the repository clean
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::The run changed or created files in the repository:"
+            git status --porcelain
+            exit 1
+          fi
+
+  clippy:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    name: Clippy
     runs-on: windows-latest
     timeout-minutes: 30
     env:
@@ -97,57 +116,68 @@ jobs:
           workspaces: |
             src-tauri
             plugins
-          shared-key: skerry-rust
+          shared-key: skerry-clippy
 
       - name: Clippy (app)
         shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/ci-logs"
-          set -o pipefail
-          cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings 2>&1 | tee "$RUNNER_TEMP/ci-logs/clippy-app.log"
-
-      - name: Rust tests (app)
-        shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/ci-logs"
-          set -o pipefail
-          cargo test --manifest-path src-tauri/Cargo.toml 2>&1 | tee "$RUNNER_TEMP/ci-logs/test-app.log"
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 
       - name: Clippy (plugins)
         shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/ci-logs"
-          set -o pipefail
-          cargo clippy --manifest-path plugins/Cargo.toml --workspace --all-targets -- -D warnings 2>&1 | tee "$RUNNER_TEMP/ci-logs/clippy-plugins.log"
+        run: cargo clippy --manifest-path plugins/Cargo.toml --workspace --all-targets -- -D warnings
+
+  rust-tests:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    name: Rust tests
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
+      RUST_BACKTRACE: 1
+      # Full debug info makes the Windows linker slow and the cache large. Line tables keep
+      # file and line numbers in a failing test's backtrace.
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same version as rust-toolchain.toml; change both together.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri
+            plugins
+          shared-key: skerry-test
+
+      # --lib: the app has no doctests or integration tests, and without it Cargo also builds
+      # the whole app a second time as a plain library and binary just to run nothing.
+      - name: Rust tests (app)
+        shell: bash
+        run: cargo test --manifest-path src-tauri/Cargo.toml --lib
 
       - name: Plugin tests
         shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/ci-logs"
-          set -o pipefail
-          cargo test --manifest-path plugins/Cargo.toml --workspace 2>&1 | tee "$RUNNER_TEMP/ci-logs/test-plugins.log"
-
-      - name: Upload Rust logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust-logs-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/ci-logs
-          if-no-files-found: warn
-          retention-days: 14
-
+        run: cargo test --manifest-path plugins/Cargo.toml --workspace
 
   ci-passed:
     name: "CI passed"
     runs-on: ubuntu-latest
-    needs: [frontend, rust]
-    if: always() && github.ref == 'refs/heads/main'
+    needs: [checks, regression, clippy, rust-tests]
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
     steps:
       - name: Check status of parallel jobs
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          if [ "${{ needs.frontend.result }}" != "success" ] || [ "${{ needs.rust.result }}" != "success" ]; then
-            echo "Frontend result: ${{ needs.frontend.result }}"
-            echo "Rust result: ${{ needs.rust.result }}"
-            exit 1
-          fi
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "A CI job did not succeed."
+              exit 1
+            fi
+          done
           echo "All CI jobs passed successfully."

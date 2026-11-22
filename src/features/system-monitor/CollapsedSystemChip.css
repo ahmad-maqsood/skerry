@@ -1,0 +1,51 @@
+.island-system-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 6px;
+  background: none;
+  border: none;
+  color: var(--island-card-text, #ffffff);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.island-system-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.island-system-chip__label {
+  opacity: 0.7;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.island-system-chip__ring-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.island-system-chip__ring {
+  transform: rotate(-90deg);
+}
+
+.island-system-chip__ring-bg {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+.island-system-chip__ring-val {
+  stroke: var(--island-accent, #3b82f6);
+  transition: stroke-dashoffset 0.3s ease;
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>Skerry</title>
+  <defs>
+    <clipPath id="pill"><rect x="132" y="342" width="760" height="340" rx="170"/></clipPath>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26205A"/><stop offset="1" stop-color="#0E0A2B"/></linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD28A"/><stop offset="1" stop-color="#FF6B8B"/></linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4B2C9A"/><stop offset="1" stop-color="#2A1766"/></linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+  <g clip-path="url(#pill)">
+    <rect x="132" y="342" width="760" height="340" fill="url(#sky)"/>
+    <circle cx="700" cy="470" r="62" fill="#FFF1C9"/>
+    <path d="M222 690 C300 540 400 450 500 450 C600 450 690 540 760 690Z" fill="#1A0F45"/>
+    <path d="M110 628 Q238 592 366 628 T622 628 T878 628 T1134 628 V700 H110Z" fill="url(#sea)"/>
+  </g>
+</svg>

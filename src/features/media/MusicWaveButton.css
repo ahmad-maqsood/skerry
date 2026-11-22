@@ -1,0 +1,47 @@
+.music-wave-button {
+  width: 28px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 0 0 28px;
+  padding: 0;
+  color: var(--text-2);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+  box-shadow: none;
+  transition:
+    color 140ms ease,
+    opacity 140ms ease;
+}
+
+.music-wave-button span {
+  width: 3px;
+  height: 13px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  opacity: var(--wave-opacity, 0.72);
+  transform: scaleY(var(--wave-scale, 0.35));
+  transform-origin: 50% 50%;
+  transition:
+    opacity 100ms linear,
+    transform 100ms linear;
+}
+
+.music-wave-button:hover {
+  color: var(--text-1);
+}
+
+.music-wave-button:focus-visible {
+  outline: 2px solid var(--color-white-a18);
+  outline-offset: 4px;
+}
+
+.music-wave-button--idle {
+  color: var(--text-3);
+}

@@ -1,0 +1,178 @@
+.stage--font-pixel {
+  font-family: sans-serif;
+  font-synthesis: weight;
+  -webkit-font-smoothing: none;
+}
+
+.stage--font-pixel .todo-form input,
+.stage--font-pixel textarea,
+.stage--font-pixel .todo-title,
+.stage--font-pixel .todo-title-input,
+.stage--font-pixel .archive-card__date {
+  font-family: inherit;
+}
+
+.stage--font-pixel .island__brand,
+.stage--font-pixel .island__active-task,
+.stage--font-pixel .island__todo-count {
+  font-size: calc(14px * var(--island-font-scale, 1));
+  font-weight: 400;
+  -webkit-text-stroke: 0.3px currentColor;
+}
+
+.stage {
+  --island-collapsed-scale-target: 1;
+  --island-expanded-scale-target: 1;
+  --collapsed-island-width: 340px;
+  --collapsed-island-height: 38px;
+  font-size: calc(16px * var(--island-font-scale, 1));
+  --task-text-color: #ffffff;
+  --island-pulse-color: #3ae489;
+  --island-pulse-glow-color: rgba(58, 228, 137, 0.72);
+  --island-pulse-brightness: 100%;
+  --island-background-color: #2F2F37;
+  --todo-background-color: #f8f4e9;
+  --glass-intensity: 0.72;
+  --glass-tint-color: rgba(47, 47, 55, 0.53);
+  --glass-collapsed-tint-color: rgba(47, 47, 55, 0.8);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+}
+
+.island--todo .icon-button {
+  color: var(--text-2);
+  background: var(--color-white-a09);
+}
+
+.island--todo .icon-button:hover {
+  color: var(--color-fg-strong);
+  background: var(--color-white-a16);
+}
+
+.icon-button {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--text-2);
+  background: var(--color-white-a08);
+  border: 0;
+  border-radius: var(--radius-pill);
+  outline: none;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.icon-button.island-reset-button--available {
+  color: color-mix(in srgb, #0071b8 calc(var(--is-light) * 100%), #c8efff);
+  background: rgba(116, 214, 255, 0.14);
+}
+
+.icon-button:hover {
+  color: var(--color-fg-strong);
+  background: rgba(var(--overlay-rgb), 0.15);
+}
+
+.icon-button:active {
+  transform: translateY(1px);
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.editor-panel {
+  height: 100%;
+  border-radius: var(--island-panel-radius, 10px);
+  corner-shape: var(--island-corner-shape, round);
+  border: 0;
+}
+
+.save-check-icon {
+  flex: 0 0 auto;
+  animation: saveCheckPop 420ms ease both;
+}
+
+.save-check-icon path,
+.save-check-icon polyline,
+.save-check-icon line {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: saveCheckDraw 420ms ease forwards;
+}
+
+@keyframes saveButtonPop {
+  0% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes saveCheckPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.62);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes saveCheckDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .island__active-task {
+    animation: none;
+  }
+
+  .dot-button,
+  .icon-button,
+  .music-wave-button,
+  .music-control-button,
+  .island__collapse-target,
+  .todo-item,
+  .todo-start,
+  .todo-delete,
+  .todo-drag-handle,
+  .project-link,
+  .project-link--star .project-link__icon,
+  .save-path-button {
+    transition: none;
+  }
+
+  .project-link--star:is(:hover, :focus-visible) .project-link__icon {
+    transform: none;
+  }
+
+  .save-check-icon,
+  .save-check-icon path,
+  .save-check-icon polyline,
+  .save-check-icon line {
+    animation: none;
+  }
+
+  .music-control-button__track-change {
+    animation: none;
+  }
+}

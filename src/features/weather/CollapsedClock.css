@@ -1,0 +1,83 @@
+.collapsed-clock-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+.collapsed-clock {
+  flex: 0 0 auto;
+  display: inline-block;
+  min-width: 5ch;
+  color: var(--task-text-color);
+  font-size: calc(13px * var(--island-font-scale, 1));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  transition: opacity 220ms ease-out, transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.collapsed-clock--seconds {
+  min-width: 7.5ch;
+}
+
+.collapsed-clock--tick {
+  animation: collapsedClockTick 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes collapsedClockTick {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.collapsed-clock__date-chip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.88);
+  opacity: 0;
+  pointer-events: none;
+  font-size: calc(11px * var(--island-font-scale, 1));
+  font-weight: 600;
+  color: var(--task-text-color);
+  background: var(--island-control-surface-hover, rgba(255, 255, 255, 0.14));
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 9999px);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.collapsed-clock-wrapper:hover .collapsed-clock__date-chip {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.collapsed-clock-wrapper:hover .collapsed-clock {
+  opacity: 0.15;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapsed-clock {
+    transition: none;
+  }
+  .collapsed-clock--tick {
+    animation: none;
+  }
+  .collapsed-clock__date-chip {
+    transition: none;
+  }
+}

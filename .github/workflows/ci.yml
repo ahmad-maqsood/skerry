@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend
+    # The app's fonts (Segoe UI, Microsoft YaHei) are Windows fonts; line-wrapping checks in the
+    # regression pages only match on a Windows runner.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Logs go to the runner's temp folder, not the repository, so the clean-tree check stays valid.
+      - name: Type check, lint, file size, unit tests
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-logs"
+          set -o pipefail
+          pnpm check 2>&1 | tee "$RUNNER_TEMP/ci-logs/check.log"
+
+      - name: Build frontend
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm build 2>&1 | tee "$RUNNER_TEMP/ci-logs/build.log"
+
+      # Bundles Vite, runs all regression pages in tests/regression/ using pre-installed Chrome on the runner.
+      - name: Browser regression pages
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:regression 2>&1 | tee "$RUNNER_TEMP/ci-logs/regression.log"
+
+      - name: Upload frontend logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-logs
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Check the tests left the repository clean
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::The test run changed or created files in the repository:"
+            git status --porcelain
+            exit 1
+          fi
+
+  rust:
+    name: Rust
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
+      RUST_BACKTRACE: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same version as rust-toolchain.toml; change both together.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri
+            plugins
+          shared-key: skerry-rust
+
+      - name: Clippy (app)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-logs"
+          set -o pipefail
+          cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings 2>&1 | tee "$RUNNER_TEMP/ci-logs/clippy-app.log"
+
+      - name: Rust tests (app)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-logs"
+          set -o pipefail
+          cargo test --manifest-path src-tauri/Cargo.toml 2>&1 | tee "$RUNNER_TEMP/ci-logs/test-app.log"
+
+      - name: Clippy (plugins)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-logs"
+          set -o pipefail
+          cargo clippy --manifest-path plugins/Cargo.toml --workspace --all-targets -- -D warnings 2>&1 | tee "$RUNNER_TEMP/ci-logs/clippy-plugins.log"
+
+      - name: Plugin tests
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-logs"
+          set -o pipefail
+          cargo test --manifest-path plugins/Cargo.toml --workspace 2>&1 | tee "$RUNNER_TEMP/ci-logs/test-plugins.log"
+
+      - name: Upload Rust logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-logs
+          if-no-files-found: warn
+          retention-days: 14
+
+
+  ci-passed:
+    name: "CI passed"
+    runs-on: ubuntu-latest
+    needs: [frontend, rust]
+    if: always()
+    steps:
+      - name: Check status of parallel jobs
+        run: |
+          if [ "${{ needs.frontend.result }}" != "success" ] || [ "${{ needs.rust.result }}" != "success" ]; then
+            echo "Frontend result: ${{ needs.frontend.result }}"
+            echo "Rust result: ${{ needs.rust.result }}"
+            exit 1
+          fi
+          echo "All CI jobs passed successfully."

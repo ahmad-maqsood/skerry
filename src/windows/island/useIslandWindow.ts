@@ -1,0 +1,220 @@
+import { isGlass } from "../../features/appearance/settings";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { DEFAULT_SETTINGS } from "../../features/appearance/settings";
+import type { IslandSettings } from "../../features/appearance/types";
+import { shapedSettings } from "../../features/appearance/islandShape";
+import * as islandApi from "./api";
+import { clearIslandPosition } from "./storage";
+import { setIslandTopEdgeCapsule } from "./topEdge";
+import { useIslandPosition } from "./useIslandPosition";
+import { useGlassCapture } from "./useGlassCapture";
+import { useNativeLayout } from "./useNativeLayout";
+import { useSettingsPositionReset } from "./useSettingsPositionReset";
+import type { IslandMode, NativeGlassState } from "./types";
+import { isIslandPickerOpen } from "../../lib/islandPicker";
+
+type IslandWindowOptions = {
+  mode: IslandMode;
+  isTucked: boolean;
+  settings: IslandSettings;
+  setSettings: (settings: IslandSettings) => void;
+  expandedIslandHeight: number;
+  collapsedIslandWidth: number;
+  /** A grown message preview's size, and whether clicks pass through it (useMessageNotice). */
+  notice: IslandNotice;
+  onCollapse: () => void;
+};
+
+export type IslandNotice = { width: number | null; height: number | null; clickThrough: boolean };
+
+/** Keeps the native island window (size, position, glass, focus) in sync with the island's state. */
+export function useIslandWindow({
+  mode,
+  isTucked,
+  settings,
+  setSettings,
+  expandedIslandHeight,
+  collapsedIslandWidth,
+  notice,
+  onCollapse,
+}: IslandWindowOptions) {
+  const syncNativeLayout = useNativeLayout(settings);
+  // The glass's live backdrop: what is behind the island, blurred (glass_capture.rs).
+  useGlassCapture(isGlass(settings.material), isTucked, settings.glassBlur);
+  const { isPositionDetached, setIsPositionDetached, islandPositionRef, startIslandDrag } = useIslandPosition(settings.positionLocked);
+  const [nativeGlassState, setNativeGlassState] =
+    useState<NativeGlassState>("disabled");
+  const didShowInitialWindow = useRef(false);
+  const syncNativeInteraction = useCallback(
+    async (
+      nextMode: IslandMode,
+      nextSettings: IslandSettings,
+      nextExpandedHeight: number,
+      nextCollapsedWidth: number,
+      nextIsTucked: boolean,
+      nextNotice: IslandNotice,
+    ) => {
+      // The capsule floats below the top edge as a pill (islandShape.ts).
+      const shaped = shapedSettings(nextSettings);
+      try {
+        const glassState = await islandApi.setIslandInteraction({
+          mode: nextMode,
+          collapsedScale: nextSettings.collapsedScale,
+          expandedScale: nextSettings.expandedScale,
+          marginY: shaped.marginY,
+          expandedHeight: nextExpandedHeight,
+          collapsedWidth: nextCollapsedWidth,
+          collapsedHeight: nextSettings.collapsedHeight,
+          customPosition: islandPositionRef.current,
+          isTucked: nextIsTucked,
+          tuckStyle: nextSettings.tuckStyle,
+          tuckEdgeHeight: nextSettings.tuckEdgeHeight,
+          positionLocked: nextSettings.positionLocked,
+          animatePosition: true,
+          glassEnabled: isGlass(nextSettings.material),
+          glassIntensity: nextSettings.glassIntensity,
+          glassTint: nextSettings.islandBackgroundColor,
+          cornerRadius: nextSettings.islandCornerRadius,
+          collapsedCornerRadius: shaped.collapsedCornerRadius,
+          cornerShape: nextSettings.islandCornerShape,
+          monitorFollow: nextSettings.islandMonitor,
+          noticeWidth: nextNotice.width,
+          noticeHeight: nextNotice.height,
+          clickThrough: nextNotice.clickThrough,
+        });
+        setNativeGlassState(glassState);
+      } catch (error) {
+        console.error("Failed to sync island interaction", error);
+        setNativeGlassState(
+          isGlass(nextSettings.material)
+            ? "css-fallback"
+            : "disabled",
+        );
+      }
+    },
+    [islandPositionRef],
+  );
+
+  const showReadyIsland = useCallback(async () => {
+    if (didShowInitialWindow.current) {
+      return;
+    }
+
+    didShowInitialWindow.current = true;
+
+    try {
+      await islandApi.showReadyIsland();
+    } catch (error) {
+      console.error("Failed to show island", error);
+    }
+  }, []);
+
+  const minimizeIsland = useCallback(async () => {
+    try {
+      await islandApi.minimizeIsland();
+    } catch (error) {
+      console.error("Failed to minimize island", error);
+    }
+  }, []);
+
+  const resetIslandPosition = useCallback(async () => {
+    try {
+      const nextSettings = { ...settings, marginY: DEFAULT_SETTINGS.marginY };
+      await syncNativeLayout(nextSettings);
+      await islandApi.resetIslandPosition();
+      islandPositionRef.current = null;
+      setIsPositionDetached(false);
+      clearIslandPosition();
+      setSettings(nextSettings);
+    } catch (error) {
+      console.error("Failed to reset island position", error);
+    }
+  }, [islandPositionRef, setIsPositionDetached, setSettings, settings, syncNativeLayout]);
+  useSettingsPositionReset(resetIslandPosition);
+  useEffect(() => setIslandTopEdgeCapsule(settings.islandShape === "capsule"), [settings.islandShape]);
+
+  // One native call at a time, and only the latest state once it returns. A page that
+  // measures its content several times in a few frames would otherwise queue each height as its
+  // own window resize on the native side and stall the expansion.
+  const interactionQueue = useRef<{ running: boolean; next: (() => Promise<void>) | null }>({ running: false, next: null });
+  useEffect(() => {
+    const queue = interactionQueue.current;
+    queue.next = () => syncNativeInteraction(
+      mode,
+      settings,
+      expandedIslandHeight,
+      collapsedIslandWidth,
+      isTucked,
+      notice,
+    );
+    if (queue.running) return;
+    queue.running = true;
+    void (async () => {
+      while (queue.next) {
+        const send = queue.next;
+        queue.next = null;
+        await send();
+      }
+      queue.running = false;
+      void showReadyIsland();
+    })();
+    // Lists exactly the settings fields syncNativeInteraction sends, so unrelated
+    // settings changes do not cost a native round trip (expansion performance).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    expandedIslandHeight,
+    collapsedIslandWidth,
+    notice.width,
+    notice.height,
+    notice.clickThrough,
+    isTucked,
+    mode,
+    settings.tuckStyle,
+    settings.tuckEdgeHeight,
+    settings.marginY,
+    settings.islandShape,
+    settings.material,
+    settings.glassIntensity,
+    settings.islandBackgroundColor,
+    settings.collapsedScale,
+    settings.collapsedHeight,
+    settings.expandedScale,
+    settings.islandCornerRadius,
+    settings.collapsedCornerRadius,
+    settings.islandCornerShape,
+    settings.islandMonitor,
+    settings.positionLocked,
+    showReadyIsland,
+    syncNativeInteraction,
+  ]);
+
+  useEffect(() => {
+    let didCancel = false;
+    let unlisten: (() => void) | null = null;
+
+    void getCurrentWindow()
+      .onFocusChanged(({ payload: focused }) => {
+        if (!focused && mode === "expanded" && !isIslandPickerOpen()) {
+          onCollapse();
+        }
+      })
+      .then((nextUnlisten) => {
+        if (didCancel) {
+          nextUnlisten();
+        } else {
+          unlisten = nextUnlisten;
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to listen for island focus changes", error);
+      });
+
+    return () => {
+      didCancel = true;
+      unlisten?.();
+    };
+  }, [onCollapse, mode]);
+
+  return { isPositionDetached, nativeGlassState, minimizeIsland, startIslandDrag, resetIslandPosition };
+}

@@ -1,0 +1,67 @@
+use super::*;
+use serde_json::{json, Value};
+use std::{fs, path::Path};
+
+fn sample() -> Value {
+    json!({ "app": "skerry", "formatVersion": 1, "exportedAt": "2026-11-19T00:00:00Z", "appVersion": "0.1.0",
+        "localStorage": { "skerry-future": "raw" },
+        "files": { "launchAtStartup": false,
+            "plugins": { "developerMode": false, "indexUrl": "", "installed": [] },
+            "clipboard": { "settings": { "enabled": true, "captureImages": true, "maxItems": 30 }, "history": null },
+            "data": { "file-shelf.json": { "items": [] } } } })
+}
+
+#[test]
+fn identity_and_structure_are_validated_before_writing() {
+    assert!(Backup::parse(&serde_json::to_vec(&sample()).unwrap()).is_ok());
+    assert!(Backup::parse(b"broken").err().unwrap().contains("invalidJson"));
+    for (field, value, error) in [("app", json!("other"), "wrongApp"), ("formatVersion", json!(2), "unsupportedVersion"),
+        ("localStorage", json!({ "key": false }), "invalidStructure"), ("files", json!({}), "invalidStructure")] {
+        let mut sample = sample();
+        sample[field] = value;
+        assert!(Backup::parse(&serde_json::to_vec(&sample).unwrap()).err().unwrap().contains(error));
+    }
+    for key in ["skerry-position", "skerry-position-reset", "skerry-panel-preview", "foreign"] { assert!(!format::storage_key(key)); }
+    assert!(format::storage_key("skerry-future"));
+}
+
+#[test]
+fn data_file_allowlist_does_not_accept_runtime_secrets_or_coordinates() {
+    for name in ["clipboard-location.json", "settings-window.json", "../outside.json", "plugins-state.json"] {
+        let mut sample = sample();
+        sample["files"]["data"][name] = json!({});
+        assert!(Backup::parse(&serde_json::to_vec(&sample).unwrap()).is_err());
+    }
+    let mut sample = sample();
+    sample["files"]["assets"] = json!({ "sound-packs/../outside.exe": "ZGF0YQ==" });
+    assert!(Backup::parse(&serde_json::to_vec(&sample).unwrap()).is_err());
+}
+
+#[test]
+fn plan_preserves_device_files_and_current_clipboard_without_opt_in() {
+    let directory = std::env::temp_dir().join(format!("skerry-config-transfer-{}-plan", std::process::id()));
+    fs::create_dir_all(&directory).unwrap();
+    fs::write(directory.join("settings-window.json"), "device").unwrap();
+    let backup = Backup::parse(&serde_json::to_vec(&sample()).unwrap()).unwrap();
+    let (plan, missing) = backup.files.plan(&directory).unwrap();
+    assert!(!plan.contains_key(&directory.join("settings-window.json")));
+    assert!(!plan.contains_key(&directory.join("clipboard-location.json")));
+    assert!(plan.contains_key(&directory.join("plugins-restore.json")));
+    assert!(missing.is_empty());
+    assert_eq!(fs::read_to_string(directory.join("settings-window.json")).unwrap(), "device");
+    fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn atomic_write_replaces_and_removes_only_the_chosen_file() {
+    let directory = std::env::temp_dir().join(format!("skerry-config-transfer-{}-write", std::process::id()));
+    fs::create_dir_all(&directory).unwrap();
+    let path = directory.join("backup.json");
+    transaction::write(&path, Some(b"old")).unwrap();
+    transaction::write(&path, Some(b"new")).unwrap();
+    assert_eq!(transaction::read_limited(&path, 3).unwrap(), b"new");
+    assert!(transaction::read_limited(&path, 2).is_err());
+    transaction::write(&path, None).unwrap();
+    assert!(!Path::new(&path).exists());
+    fs::remove_dir_all(directory).unwrap();
+}

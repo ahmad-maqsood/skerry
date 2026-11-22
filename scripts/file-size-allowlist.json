@@ -1,0 +1,5 @@
+{
+  "description": "Legacy allowlisted files exceeding size limits with their current line counts (.rs counts production code excluding inline test modules). Strictly decreasing: files cannot grow longer; remove entry once brought within limits. See AGENTS.md.",
+  "lines": {},
+  "inlineTests": {}
+}

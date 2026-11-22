@@ -1,0 +1,200 @@
+.island-preview {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--space-lg);
+}
+
+/* A stand-in wallpaper with colour behind the island, so opacity and glass are visible. */
+.island-preview__desktop {
+  position: relative;
+  /* Sizes the expanded island's drawing (its --u), so the pane's height follows its width. */
+  container-type: inline-size;
+  min-height: 196px;
+  padding-bottom: 44px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  border-radius: var(--corner-xl);
+  corner-shape: var(--corner-shape);
+  background:
+    radial-gradient(circle at 22% 30%, rgba(255, 170, 92, 0.85), transparent 46%),
+    radial-gradient(circle at 78% 62%, rgba(84, 156, 255, 0.85), transparent 50%),
+    radial-gradient(circle at 46% 96%, rgba(196, 98, 255, 0.7), transparent 52%),
+    #2b3445;
+}
+
+.island-preview__island {
+  display: flex;
+  align-items: center;
+  background: var(--preview-fill);
+  corner-shape: var(--preview-corner-shape, round);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  color: rgb(var(--preview-ink));
+  transform-origin: top center;
+}
+
+.island-preview__island--glass {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, calc(0.04 + var(--preview-glass) * 0.1)), transparent 46%),
+    var(--preview-fill);
+}
+
+/* Liquid glass: a bright rim with a darker hairline inside it, as on the island (IslandGlass.css). */
+.island-preview__island--liquidGlass {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, calc(0.22 + var(--preview-glass) * 0.3)),
+    inset 0 1.5px 0.5px rgba(255, 255, 255, calc(0.3 + var(--preview-glass) * 0.4)),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.1),
+    0 10px 24px rgba(0, 0, 0, 0.22);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.42);
+}
+
+[data-tone="light"] .island-preview__island--liquidGlass {
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+}
+
+/* Frosted glass: a wash of white over the tint and a 1px bright rim (IslandGlass.css). */
+.island-preview__island--frostedGlass {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
+    var(--preview-fill);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, calc(0.14 + var(--preview-glass) * 0.08)),
+    0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+[data-tone="light"] .island-preview__island--frostedGlass {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)),
+    var(--preview-fill);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.island-preview__island--collapsed {
+  /* Keep room for the widest notch at the largest overall scale. */
+  --c: min(1px, calc(92cqw / var(--preview-collapsed-limit)));
+  --preview-radius-collapsed: calc(var(--preview-radius-collapsed-px) * var(--c));
+  width: calc(var(--preview-collapsed-width) * var(--c));
+  height: calc(var(--preview-collapsed-height) * var(--c));
+  gap: calc(8 * var(--c));
+  padding: 0 calc(18 * var(--c));
+  border-radius: 0 0 var(--preview-radius-collapsed) var(--preview-radius-collapsed);
+  transform: scale(var(--preview-collapsed-scale));
+  font-size: calc(13 * var(--c) * var(--preview-font-scale));
+  font-weight: 600;
+}
+
+/*
+ * Keep room for the largest scale: at that size the drawing fills 92% of the pane. Padding,
+ * corners and everything inside follow the real island's proportions.
+ */
+.island-preview__island--expanded {
+  --u: calc(92cqw / var(--preview-expanded-max-scale) / 660);
+  --preview-radius-expanded: calc(var(--preview-radius-px) * var(--u));
+  width: calc(660 * var(--u));
+  padding: calc(12 * var(--u)) calc(20 * var(--u)) calc(16 * var(--u));
+  border-radius: 0 0 var(--preview-radius-expanded) var(--preview-radius-expanded);
+  transform: scale(var(--preview-expanded-scale));
+}
+
+/* Away from the top edge (Position → distance from the top) the island is rounded all round. */
+.island-preview__island--detached {
+  margin-top: 10px;
+}
+
+.island-preview__island--detached.island-preview__island--collapsed {
+  border-radius: var(--preview-radius-collapsed);
+}
+
+.island-preview__island--detached.island-preview__island--expanded {
+  border-radius: var(--preview-radius-expanded);
+}
+
+/* The capsule's collapsed bar is a true pill, as on the island (IslandShell.css). */
+.island-preview__island--capsule.island-preview__island--collapsed {
+  corner-shape: round;
+}
+
+.island-preview__pulse {
+  width: calc(9 * var(--c));
+  height: calc(9 * var(--c));
+  flex: none;
+  border-radius: 50%;
+  background: var(--preview-pulse);
+  box-shadow: 0 0 8px var(--preview-pulse-glow);
+  filter: brightness(var(--preview-pulse-brightness));
+}
+
+.island-preview__task {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--preview-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.island-preview__rows {
+  display: grid;
+  gap: calc(8 * var(--u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(22 * var(--u) * var(--preview-font-scale));
+}
+
+.island-preview__row {
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--u));
+  min-width: 0;
+  padding: calc(10 * var(--u)) calc(14 * var(--u));
+  border-radius: calc(14 * var(--u));
+  background: rgba(127, 127, 127, 0.14);
+}
+
+.island-preview__row--done .island-preview__task {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.island-preview__check {
+  width: calc(18 * var(--u));
+  height: calc(18 * var(--u));
+  flex: none;
+  border: max(1px, calc(2 * var(--u))) solid var(--preview-text);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.island-preview--font-pixel .island-preview__island {
+  font-family: sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: none;
+}
+
+.island-preview--font-pixel .island-preview__island--collapsed {
+  font-size: calc(14 * var(--c) * var(--preview-font-scale));
+}
+
+.island-preview__caption {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.36);
+  /* Always on the dark caption chip, whatever the island's tone. */
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 11px;
+}
+
+@media (max-width: 620px) {
+  .island-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

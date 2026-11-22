@@ -1,0 +1,43 @@
+import type { Translations } from "../types";
+import * as common from "../sections/common.ts";
+import * as messages from "../sections/messages.ts";
+import * as translator from "../sections/translator.ts";
+import * as island from "../sections/island.ts";
+import * as notebook from "../sections/notebook.ts";
+import * as archive from "../sections/archive.ts";
+import * as music from "../sections/music.ts";
+import * as todo from "../sections/todo.ts";
+import * as clipboard from "../sections/clipboard.ts";
+import * as fileShelf from "../sections/fileShelf.ts";
+import * as systemMonitor from "../sections/systemMonitor.ts";
+import * as settings from "../sections/settings/index.ts";
+
+const en: Translations = {
+  localeLabel: "English",
+  localeTag: "en",
+
+  common: common.en,
+  messages: messages.en,
+  translator: translator.en,
+
+  island: island.en,
+
+
+  notebook: notebook.en,
+
+  archive: archive.en,
+
+  music: music.en,
+
+  todo: todo.en,
+
+  clipboard: clipboard.en,
+
+  fileShelf: fileShelf.en,
+
+  systemMonitor: systemMonitor.en,
+
+  settings: settings.en,
+};
+
+export default en;

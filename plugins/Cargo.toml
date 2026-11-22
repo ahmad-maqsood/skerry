@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "sdk",
+    "grok-bot",
+    "gemini",
+    "hermes",
+]
+resolver = "2"

@@ -1,0 +1,48 @@
+.messages-settings__access-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  gap: 12px;
+}
+
+.messages-settings__access-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.messages-settings__access-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+.messages-settings__access-status {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.messages-settings__access-status--ready {
+  color: var(--color-success, #34c759);
+}
+
+.messages-settings__access-status--warn {
+  color: var(--color-warning, #ff9f0a);
+}
+
+.messages-settings__empty {
+  padding: 16px;
+  color: var(--text-3);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.messages-settings__app-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+}

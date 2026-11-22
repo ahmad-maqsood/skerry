@@ -1,0 +1,46 @@
+export type SettingsExpandText = {
+  title: string;
+  /** The group of auto-tuck, its delay and the tucked look. */
+  tuckTitle: string;
+  trigger: string;
+  click: string;
+  hover: string;
+  /** (A) Seconds after the cursor leaves the open island before it collapses. */
+  autoCollapse: string;
+  autoCollapseHint: string;
+  /** (B) Seconds the collapsed island idles before it tucks into a line. */
+  tuckDelay: string;
+  tuckDelayHint: string;
+  /** How the tucked island looks: the island's rim, a short line, or nothing. */
+  tuckStyle: string;
+  tuckStyles: { edge: string; line: string; hidden: string };
+  /** How much of the island the "edge" tuck leaves on screen. */
+  tuckEdgeHeight: string;
+  /** General → Tuck: the tucked look is set on the appearance page. */
+  tuckLookHint: string;
+  /** Unit after the number fields. */
+  secondsUnit: string;
+  /** Ctrl + mouse wheel over the open island switches its page. */
+  ctrlWheel: string;
+  ctrlWheelHint: string;
+};
+
+
+export const en: SettingsExpandText = {
+  title: "Opening & closing",
+  tuckTitle: "Tuck to the edge",
+  trigger: "Open the island by",
+  click: "Click",
+  hover: "Hover",
+  autoCollapse: "Collapse the open island",
+  autoCollapseHint: "Seconds after the cursor leaves the open island before it collapses; 0 keeps it open.",
+  tuckDelay: "Tuck the collapsed island",
+  tuckDelayHint: "Seconds the collapsed island sits idle before it slides up to the top edge.",
+  tuckStyle: "Tucked look",
+  tuckStyles: { edge: "Edge", line: "Line", hidden: "Hidden" },
+  tuckEdgeHeight: "Visible edge",
+  tuckLookHint: "How the tucked island looks is under Appearance → Tuck to the edge.",
+  secondsUnit: "s",
+  ctrlWheel: "Ctrl + wheel switches pages",
+  ctrlWheelHint: "On the open island, hold Ctrl and turn the mouse wheel to go to the previous or next page in the header's order.",
+};

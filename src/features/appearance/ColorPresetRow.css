@@ -1,0 +1,117 @@
+.appearance-presets {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+}
+
+.settings-row__control:has(> .appearance-presets) {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.appearance-preset {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.appearance-preset__apply,
+.appearance-presets__add {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-white-a18);
+  border-radius: var(--radius-circle);
+  cursor: pointer;
+}
+
+.appearance-preset__apply[aria-pressed="true"] {
+  outline: 1px solid var(--color-text-muted);
+  outline-offset: 2px;
+}
+
+.appearance-presets__add {
+  background: transparent;
+  color: var(--color-text-subtle);
+  border-style: dashed;
+}
+
+.appearance-presets__add:hover:enabled {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.appearance-presets__add:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.appearance-preset__delete {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: 1px solid var(--color-white-a18);
+  border-radius: var(--radius-circle);
+  background: var(--color-surface-dark);
+  color: var(--color-text-muted);
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+}
+
+.appearance-preset:hover .appearance-preset__delete,
+.appearance-preset:focus-within .appearance-preset__delete {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.appearance-preset__delete:hover {
+  color: var(--color-text);
+}
+
+.appearance-preset--confirming .appearance-preset__apply {
+  cursor: default;
+}
+
+.appearance-preset--confirming .appearance-preset__delete,
+.appearance-preset--confirming .appearance-preset__delete:hover {
+  opacity: 1;
+  pointer-events: auto;
+  color: var(--color-white);
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.appearance-presets__confirmation {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 7px);
+  z-index: 2;
+  width: max-content;
+  max-width: min(160px, 100%);
+  padding: 4px 7px;
+  border-radius: var(--corner-sm);
+  background: var(--color-surface-dark);
+  color: var(--color-danger);
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.appearance-preset__apply:focus-visible,
+.appearance-preset__delete:focus-visible,
+.appearance-presets__add:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

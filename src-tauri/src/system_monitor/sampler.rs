@@ -155,7 +155,8 @@ impl SystemSampler {
         let wifi = if let Some(wifi_status) = wifi::query_wifi_status() {
             WifiSnapshot {
                 connected: true,
-                ssid: Some(wifi_status.ssid),
+                // An empty name (details unreadable) shows as plain "Connected" in the panel.
+                ssid: Some(wifi_status.ssid).filter(|name| !name.is_empty()),
                 signal_percent: wifi_status.signal_percent,
                 link_speed_mbps: wifi_status.link_speed_mbps,
                 phy_type: Some(wifi_status.phy_type),

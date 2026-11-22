@@ -162,7 +162,8 @@ export function IslandCollapsedBar({
           }}
         >
           {updatePending && <span className="island-update-dot island-update-dot--inline" aria-hidden="true" />}
-          {collapsedCover && <img className="collapsed-cover" src={collapsedCover} alt="" draggable={false} />}
+          {/* The new-song popup already shows the cover as its icon, so the bar's own cover waits until it is gone. */}
+          {collapsedCover && preview?.kind !== "music" && <img className="collapsed-cover" src={collapsedCover} alt="" draggable={false} />}
           <CollapsedMessageContent preview={preview} enabled={!isExpanded && !isTucked}>
             {showCollapsedText && showTitle && (
               <span className="island__brand">Skerry</span>

@@ -354,4 +354,4 @@ For instructions on reporting security vulnerabilities, please refer to [SECURIT
 
 Skerry is a modified derivative of Fly Island by flyl1u and is distributed under the [GNU General Public License v3.0](LICENSE). The project-origin and modification notice is recorded in [NOTICE.md](NOTICE.md).
 
-For third-party attributions and other notices, see [NOTICE.md](NOTICE.md).
+The full GPL-3.0 license text is also included in the Windows installer packages. For third-party attributions and other notices, see [NOTICE.md](NOTICE.md).

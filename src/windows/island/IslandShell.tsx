@@ -67,6 +67,8 @@ type IslandShellProps = {
   /** Files on the shelf for the collapsed bar, or null when it does not show them. */
   shelfCount: number | null;
   onOpenPage: (page: IslandPage) => void;
+  /** Opens the island on its first page. */
+  onExpand: () => void;
   onWindowDragStart: () => void;
   onCollapse: () => void;
   onResetPosition: () => void;
@@ -116,6 +118,7 @@ export function IslandShell({
   features,
   shelfCount,
   onOpenPage,
+  onExpand,
   onWindowDragStart,
   onCollapse,
   onResetPosition,
@@ -171,7 +174,7 @@ export function IslandShell({
       aria-label={collapsedLabel}
       onClick={(event) => {
         if (!isExpanded && event.target === event.currentTarget) {
-          onOpenPage(page);
+          onExpand();
         }
       }}
       onPointerMove={handleGlassPointerMove}
@@ -197,7 +200,6 @@ export function IslandShell({
           systemNotifications={systemNotifications}
           preview={preview}
           noticeReader={notice?.reader ? { scrolls: notice.scrolls } : null}
-          page={page}
           isExpanded={isExpanded}
           isTucked={isTucked}
           positionLocked={positionLocked}
@@ -216,6 +218,7 @@ export function IslandShell({
           showMusic={features.music}
           shelfCount={shelfCount}
           onOpenPage={onOpenPage}
+          onExpand={onExpand}
           onWindowDragStart={onWindowDragStart}
           minimizesToTray={minimizesToTray}
           onMinimize={onMinimize}

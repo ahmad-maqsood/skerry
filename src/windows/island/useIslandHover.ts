@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import type { IslandSettings } from "../../features/appearance/types";
 import { useHoverExpand } from "./useHoverExpand";
 import { useHoverFocus } from "./useHoverFocus";
@@ -6,7 +5,6 @@ import type { useIslandNavigation } from "./useIslandNavigation";
 import { usePanelPreview } from "./usePanelPreview";
 import { useTuckedHoverOpen } from "./useTuckedHoverOpen";
 import { tuckedHoverOpensPanel } from "./tuckedHover";
-import type { IslandPage } from "./types";
 import { useIslandPickerOpen } from "../../lib/islandPicker";
 
 type IslandHoverOptions = {
@@ -15,14 +13,14 @@ type IslandHoverOptions = {
   /** Game mode keeps the island quiet. */
   quiet: boolean;
   hasMessagePreview: boolean;
-  openEnabledPage: (page: IslandPage) => void;
+  /** Opens the island on its first page. */
+  expandIsland: () => void;
 };
 
 /** Opening the island by hovering it, tucked or not, and the panel preview; returns the tucked island's hover handler. */
-export function useIslandHover({ settings, navigation, quiet, hasMessagePreview, openEnabledPage }: IslandHoverOptions) {
+export function useIslandHover({ settings, navigation, quiet, hasMessagePreview, expandIsland }: IslandHoverOptions) {
   const pickerOpen = useIslandPickerOpen();
-  const { mode, page, isTucked, isPeeking, collapseIsland, peekIsland, retractsAfterPeek, resumePeek } = navigation;
-  const openCurrentPage = useCallback(() => openEnabledPage(page), [openEnabledPage, page]);
+  const { mode, isTucked, isPeeking, collapseIsland, peekIsland, retractsAfterPeek, resumePeek } = navigation;
   useHoverExpand({
     enabled: settings.expandTrigger === "hover" && !quiet,
     delayMs: settings.hoverExpandDelayMs,
@@ -35,7 +33,7 @@ export function useIslandHover({ settings, navigation, quiet, hasMessagePreview,
     // second time; a cursor that leaves and comes back opens it as usual. Treating
     // a peeking island as still tucked left hover-open dead after the first tuck until a click.
     isTucked,
-    onExpand: openCurrentPage,
+    onExpand: expandIsland,
     onCollapse: collapseIsland,
   });
   const hoverTucked = useTuckedHoverOpen({
@@ -43,7 +41,7 @@ export function useIslandHover({ settings, navigation, quiet, hasMessagePreview,
     delayMs: settings.hoverExpandDelayMs,
     isPeeking: isPeeking && mode === "collapsed",
     onPeek: peekIsland,
-    onOpen: openCurrentPage,
+    onOpen: expandIsland,
     blocked: quiet,
     retractsAfterPeek,
     resumePeek,

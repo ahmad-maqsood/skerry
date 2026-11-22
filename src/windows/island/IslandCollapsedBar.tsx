@@ -26,7 +26,6 @@ type IslandCollapsedBarProps = {
   preview: MessagePreview | null;
   /** The adaptive preview's reader (sender, then the whole text) in place of the bar, or null. */
   noticeReader?: { scrolls: boolean } | null;
-  page: IslandPage;
   isExpanded: boolean;
   isTucked: boolean;
   positionLocked: boolean;
@@ -50,6 +49,8 @@ type IslandCollapsedBarProps = {
   /** Files on the shelf, or null when the count is not shown. */
   shelfCount: number | null;
   onOpenPage: (page: IslandPage) => void;
+  /** Opens the island on its first page; a click on the bar itself, not on a button for one page. */
+  onExpand: () => void;
   onWindowDragStart: () => void;
   /** False when the minimize button tucks the island to the top edge instead of the tray. */
   minimizesToTray: boolean;
@@ -61,7 +62,6 @@ export function IslandCollapsedBar({
   systemNotifications,
   preview,
   noticeReader = null,
-  page,
   isExpanded,
   isTucked,
   positionLocked,
@@ -80,6 +80,7 @@ export function IslandCollapsedBar({
   showMusic,
   shelfCount,
   onOpenPage,
+  onExpand,
   onWindowDragStart,
   minimizesToTray,
   onMinimize,
@@ -108,7 +109,7 @@ export function IslandCollapsedBar({
 
   // The text and the status icons, placed in the order Settings → Appearance arranged.
   const slots: Record<CollapsedSlot, ReactNode> = {
-    // The status light opens the message being previewed, or the last page.
+    // The status light opens the message being previewed, or the first page.
     pulse: (
       <button
         className="island__light"
@@ -121,7 +122,7 @@ export function IslandCollapsedBar({
         onClick={(event) => {
           if (event.detail !== 0 && didDragRef.current) return;
           event.stopPropagation();
-          if (preview) openPreview(preview); else onOpenPage(page);
+          if (preview) openPreview(preview); else onExpand();
         }}
       >
         <span className="island__pulse" />
@@ -156,7 +157,7 @@ export function IslandCollapsedBar({
               if (preview) {
                 openPreview(preview);
               } else {
-                onOpenPage(page);
+                onExpand();
               }
             }
           }}
@@ -223,7 +224,7 @@ export function IslandCollapsedBar({
       inert={isExpanded}
       onClick={(event) => {
         if (event.target === event.currentTarget) {
-          onOpenPage(page);
+          onExpand();
         }
       }}
     >

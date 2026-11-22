@@ -105,6 +105,12 @@ export function IslandApp() {
     setPage,
     openIslandPage,
   });
+  // The island pages in the header's order; expanding the island always opens the first of them.
+  const tabOrder = useMemo(
+    () => wheelPageOrder(settings.pageOrder, features, settings.clipboardDetached),
+    [features, settings.clipboardDetached, settings.pageOrder],
+  );
+  const expandIsland = useCallback(() => openEnabledPage(tabOrder[0] ?? page), [openEnabledPage, page, tabOrder]);
   const { fileShelf, isShelfDropping } = useIslandShelf(settings, navigation);
   const pickerOpen = useIslandPickerOpen();
   const expandedIslandHeight = Math.max(pickerOpen && page === "todo" ? TODO_DATE_PICKER_EXPANDED_ISLAND_HEIGHT : 0, getExpandedIslandHeight({
@@ -155,7 +161,7 @@ export function IslandApp() {
     navigation,
     quiet: game.quiet,
     hasMessagePreview,
-    openEnabledPage,
+    expandIsland,
   });
 
   useIslandKeyboard(
@@ -169,7 +175,7 @@ export function IslandApp() {
     enabled: settings.ctrlWheelPages,
     mode,
     page,
-    pages: wheelPageOrder(settings.pageOrder, features, settings.clipboardDetached),
+    pages: tabOrder,
     onPageChange: setPage,
   });
 
@@ -217,6 +223,7 @@ export function IslandApp() {
         features={features}
         shelfCount={settings.shelfEnabled && settings.shelfShowCount ? fileShelf.items.length : null}
         onOpenPage={openEnabledPage}
+        onExpand={expandIsland}
         onWindowDragStart={startIslandDrag}
         onCollapse={collapseIsland}
         onResetPosition={resetIslandPosition}

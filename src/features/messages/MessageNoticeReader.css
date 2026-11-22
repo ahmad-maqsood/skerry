@@ -77,8 +77,19 @@
   cursor: text;
   user-select: text;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-white-a16) transparent;
+}
+
+.message-notice__body::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.message-notice__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.message-notice__body::-webkit-scrollbar-thumb {
+  background: var(--color-white-a16);
+  border-radius: var(--radius-pill);
 }
 
 .message-notice__body--scrolls {

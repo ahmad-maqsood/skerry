@@ -56,15 +56,9 @@
 }
 
 /* Thin, track-less scrollbars like the notebook's, instead of the white system ones. */
-.translation-panel__source textarea,
-.translation-panel__result {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-white-a18) transparent;
-}
-
 .translation-panel__source textarea::-webkit-scrollbar,
 .translation-panel__result::-webkit-scrollbar {
-  width: 6px;
+  width: var(--scrollbar-width);
 }
 
 .translation-panel__source textarea::-webkit-scrollbar-thumb,

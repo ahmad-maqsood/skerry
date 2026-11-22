@@ -36,9 +36,20 @@
   display: grid;
   align-content: start;
   overflow-y: auto;
-  scrollbar-color: rgba(var(--ink-rgb), 0.24) transparent;
-  scrollbar-width: thin;
   transition: opacity 160ms ease, filter 160ms ease;
+}
+
+.shelf-list::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.shelf-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shelf-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--ink-rgb), 0.24);
+  border-radius: var(--radius-pill);
 }
 
 /* A few files: one row of large tiles, then an open slot. */

@@ -100,6 +100,8 @@
   /* Deep panels inside the island (translation, the file shelf) and floating tips and menus. */
   --panel-deep-rgb: 20, 20, 25;
   --float-rgb: 30, 30, 35;
+  /* How wide the island's scrollbars are (see the ::-webkit-scrollbar rules beside each scrolling list). */
+  --scrollbar-width: 4px;
   /* Native form controls and scrollbars where a page asks for them. */
   --color-scheme: dark;
   /* Error text: soft pink on dark, a deeper red on light. */

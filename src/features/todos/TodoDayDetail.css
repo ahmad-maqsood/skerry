@@ -49,9 +49,20 @@
   flex: 1 1 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: var(--color-white-a18) transparent;
-  scrollbar-width: thin;
   animation: todo-day-appear 140ms ease-out;
+}
+
+.todo-day-detail__body::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.todo-day-detail__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.todo-day-detail__body::-webkit-scrollbar-thumb {
+  background: var(--color-white-a18);
+  border-radius: var(--radius-pill);
 }
 
 .todo-day-detail__body:focus-visible {

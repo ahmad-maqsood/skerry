@@ -18,12 +18,10 @@
   gap: var(--space-sm);
   overflow-y: auto;
   padding-right: 4px;
-  scrollbar-color: rgba(var(--ink-rgb), 0.28) transparent;
-  scrollbar-width: thin;
 }
 
 .clipboard-list::-webkit-scrollbar {
-  width: 7px;
+  width: var(--scrollbar-width);
 }
 
 .clipboard-list::-webkit-scrollbar-track {

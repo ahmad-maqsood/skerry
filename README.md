@@ -352,6 +352,8 @@ For instructions on reporting security vulnerabilities, please refer to [SECURIT
 
 ## Licence and Credits
 
-Skerry is a modified derivative of Fly Island by flyl1u and is distributed under the [GNU General Public License v3.0](LICENSE). The project-origin and modification notice is recorded in [NOTICE.md](NOTICE.md).
+Skerry's main application is a modified derivative of [Fly Island](https://github.com/flyl1u/fly-island) and is distributed under [GNU GPL-3.0-only](LICENSE). The project-origin and modification history are recorded in [NOTICE.md](NOTICE.md).
 
-The full GPL-3.0 license text is also included in the Windows installer packages. For third-party attributions and other notices, see [NOTICE.md](NOTICE.md).
+The optional plugin workspace crates under `plugins/` declare the MIT License; see [plugins/LICENSE-MIT](plugins/LICENSE-MIT). Third-party dependency license details and the current scope of the license inventory are explained in [NOTICE.md](NOTICE.md).
+
+The full GPL license text is configured for inclusion in the Windows installer bundles.

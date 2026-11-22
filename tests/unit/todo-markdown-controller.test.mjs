@@ -126,6 +126,23 @@ test("title/note editing defers both import and writes, then merges the committe
   assert.equal(h.local().todos[0].completed, true);
 });
 
+test("a focused note editor still saves local edits to disk without waiting for blur", async () => {
+  const h = harness();
+  await h.stable();
+  h.setEditing(true);
+  h.edit(document(["a", "b"], "typed note"));
+  h.advance(700);
+  await h.sync.poll();
+  assert.equal(h.writes.length, 1);
+  assert.match(h.disk().content, /typed note/);
+  assert.equal(h.applied.length, 0);
+  h.setEditing(false);
+  h.advance();
+  await h.sync.poll();
+  assert.equal(h.applied.length, 0);
+  assert.equal(h.local().dailyNote, "typed note");
+});
+
 test("conflicts choose the newer side and write recovery before applying", async () => {
   for (const newer of ["island", "file"]) {
     const h = harness(document(["a"], "base"), "- a\n\nbase");

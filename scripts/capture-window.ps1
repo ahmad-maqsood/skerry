@@ -1,7 +1,8 @@
 param(
   [Parameter(Mandatory=$true)][string]$WindowTitle,
   [Parameter(Mandatory=$true)][string]$OutputPath,
-  [int]$ReadyDelaySeconds = 10
+  [int]$ReadyDelaySeconds = 10,
+  [int]$TimeoutSeconds = 600
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -14,13 +15,19 @@ public static class NativeShot {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
 }
 '@
-$deadline = (Get-Date).AddMinutes(2)
+Write-Output "Waiting up to $TimeoutSeconds seconds for the native '$WindowTitle' window..."
+$deadline = (Get-Date).AddSeconds($TimeoutSeconds)
 $target = $null
 while ((Get-Date) -lt $deadline -and $null -eq $target) {
   $target = Get-Process | Where-Object { $_.MainWindowTitle -eq $WindowTitle -and $_.MainWindowHandle -ne 0 } | Select-Object -First 1
   if ($null -eq $target) { Start-Sleep -Milliseconds 500 }
 }
-if ($null -eq $target) { throw "Could not find the visible '$WindowTitle' desktop window within two minutes." }
+if ($null -eq $target) {
+  $visibleWindows = Get-Process | Where-Object { $_.MainWindowHandle -ne 0 } | ForEach-Object { "$($_.ProcessName): '$($_.MainWindowTitle)'" }
+  if ($visibleWindows) { Write-Output ("Visible windows at timeout: " + ($visibleWindows -join "; ")) }
+  throw "Could not find the visible '$WindowTitle' desktop window within $TimeoutSeconds seconds. Review the Tauri startup output above for the underlying launch or build error."
+}
+Write-Output "Found native window in process '$($target.ProcessName)' (PID $($target.Id))."
 [NativeShot]::SetForegroundWindow($target.MainWindowHandle) | Out-Null
 Start-Sleep -Seconds $ReadyDelaySeconds
 $rect = New-Object NativeShot+RECT

@@ -83,9 +83,11 @@
   white-space: nowrap;
 }
 
+/* Title and body each take the room their text needs and only shrink (together, in proportion to
+   their length) once the row really overflows. A fixed share for the title cut "Charger unplugged"
+   to "Charger unplug…" beside a body as short as "59%", with the rest of the bar empty. */
 .island-message-preview__sender {
   flex: 0 1 auto;
-  max-width: 42%;
   color: var(--color-fg-strong);
   font-weight: 600;
 }
@@ -96,7 +98,7 @@
 }
 
 .island-message-preview__body {
-  flex: 1;
+  flex: 0 1 auto;
 }
 
 @keyframes islandSummaryEnter {

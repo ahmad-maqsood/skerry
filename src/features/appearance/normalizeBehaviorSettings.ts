@@ -2,7 +2,8 @@
 import { normalizeLyricsSettings } from "../media/lyrics/lyricsSettings.ts";
 import { DEFAULT_SETTINGS } from "./settingsDefaults.ts";
 import { normalizeOrder } from "../../utils/order.ts";
-import { AUTO_COLLAPSE_SECONDS, TUCK_DELAY_SECONDS, TUCK_EDGE_HEIGHT, COLLAPSED_ITEMS, PAGE_DOTS, SHELF_CLEANUP_DAYS, oneOf } from "./settingsLimits.ts";
+import { clamp } from "../../utils/number.ts";
+import { AUTO_COLLAPSE_SECONDS, MARGIN_Y, TUCK_DELAY_SECONDS, TUCK_EDGE_HEIGHT, COLLAPSED_ITEMS, PAGE_DOTS, SHELF_CLEANUP_DAYS, oneOf } from "./settingsLimits.ts";
 import type { IslandSettings, LegacyIslandSettings } from "./types";
 import { normalizeCollapsedHidden, normalizeCollapsedLayout } from "./collapsedLayout.ts";
 import { TODO_ROTATION_SECONDS, TODO_SCROLL_SPEED, MESSAGE_PREVIEW_SECONDS, MESSAGE_EXPAND_MAX_WIDTH, MESSAGE_EXPAND_MAX_HEIGHT, MESSAGE_EXPAND_SECONDS, GAME_NOTICE_SECONDS } from "./settingsLimits.ts";
@@ -23,6 +24,11 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     messageExpandMaxWidth: wholeSeconds(settings?.messageExpandMaxWidth, MESSAGE_EXPAND_MAX_WIDTH, MESSAGE_EXPAND_MAX_WIDTH.default),
     messageExpandMaxHeight: wholeSeconds(settings?.messageExpandMaxHeight, MESSAGE_EXPAND_MAX_HEIGHT, MESSAGE_EXPAND_MAX_HEIGHT.default),
     messageExpandSeconds: wholeSeconds(settings?.messageExpandSeconds, MESSAGE_EXPAND_SECONDS, MESSAGE_EXPAND_SECONDS.default),
+    // Which kinds of preview expand: all on unless turned off, so saved settings keep expanding everything.
+    messageExpandApps: settings?.messageExpandApps !== false,
+    messageExpandClipboard: settings?.messageExpandClipboard !== false,
+    messageExpandMusic: settings?.messageExpandMusic !== false,
+    messageExpandCharger: settings?.messageExpandCharger !== false,
     gameShowNotices: settings?.gameShowNotices === true,
     // On unless turned off.
     clipboardPopup: settings?.clipboardPopup !== false,
@@ -52,6 +58,9 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     gameDoNotDisturb: settings?.gameDoNotDisturb !== false,
     // New in 3.2.6 and off unless switched on.
     ctrlWheelPages: settings?.ctrlWheelPages === true,
+    // Back in Settings → General → Position (2026-11-23): whole pixels under the top of the screen.
+    marginY: typeof settings?.marginY === "number" && Number.isFinite(settings.marginY)
+      ? clamp(Math.round(settings.marginY), MARGIN_Y.min, MARGIN_Y.max) : MARGIN_Y.default,
     expandTrigger: settings?.expandTrigger === "hover" ? "hover" : "click",
     // Module switches: anything but an explicit false keeps the module on.
     todoEnabled: settings?.todoEnabled !== false,
@@ -61,7 +70,6 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     translationEnabled: settings?.translationEnabled !== false,
     shelfAutoCleanupDays: oneOf(SHELF_CLEANUP_DAYS, settings?.shelfAutoCleanupDays, DEFAULT_SETTINGS.shelfAutoCleanupDays),
     ...normalizeLyricsSettings(settings),
-    mailEnabled: settings?.mailEnabled !== false,
     autoCopyOtp: typeof settings?.autoCopyOtp === "boolean" ? settings.autoCopyOtp : DEFAULT_SETTINGS.autoCopyOtp,
     collapsedPriority: normalizeOrder(settings?.collapsedPriority, COLLAPSED_ITEMS),
     collapsedShowCover: settings?.collapsedShowCover !== false,

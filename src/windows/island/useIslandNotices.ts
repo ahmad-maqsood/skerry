@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import { useSystemNotifications } from "../../features/messages/system-notifications/useSystemNotifications";
 import type { IslandSettings } from "../../features/appearance/types";
+import type { PreviewKind } from "../../features/messages/messagePreview";
 import type { IslandMode } from "./types";
-import { canPreviewNotice, previewSecondsFor } from "./noticeRules";
+import { canPreviewNotice, expandsPreview, previewSecondsFor } from "./noticeRules";
 import { useHeldPreview } from "./useHeldPreview";
 
 /** What can pop up on the collapsed island: generic system notifications. */
@@ -11,7 +12,8 @@ export function useIslandNotices(
   { mode, isTucked, quiet }: { mode: IslandMode; isTucked: boolean; quiet: boolean },
 ) {
   const canPreviewMessages = canPreviewNotice(settings, quiet, mode, isTucked);
-  const previewSeconds = previewSecondsFor(settings, quiet);
+  // A preview that expands stays for the expanded duration, any other for the normal one.
+  const previewSeconds = (shown: { kind?: PreviewKind }) => previewSecondsFor(settings, quiet, expandsPreview(settings, shown.kind));
   const systemNotifications = useSystemNotifications(canPreviewMessages, previewSeconds);
 
   const heldPreview = useHeldPreview(systemNotifications.preview, !quiet);

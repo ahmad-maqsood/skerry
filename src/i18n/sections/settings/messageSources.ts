@@ -6,6 +6,11 @@ export type SettingsMessageSourcesText = {
   expandMaxWidth: string;
   expandMaxHeight: string;
   expandSeconds: string;
+  /** Which kinds of notification expand; the others show as the normal one-line preview. */
+  expandApps: string;
+  expandClipboard: string;
+  expandMusic: string;
+  expandCharger: string;
   gameNotices: string;
   gameNoticesHint: string;
   gameNoticeSeconds: string;
@@ -40,6 +45,10 @@ export const en: SettingsMessageSourcesText = {
   expandMaxWidth: "Maximum width",
   expandMaxHeight: "Maximum height",
   expandSeconds: "Expanded duration",
+  expandApps: "Expand app notifications",
+  expandClipboard: "Expand copied text",
+  expandMusic: "Expand new songs",
+  expandCharger: "Expand charger changes",
   gameNotices: "Still show notifications",
   gameNoticesHint: "Shows notifications on the island during full-screen games, for display only: it never takes the focus, and clicks pass through to the game.",
   gameNoticeSeconds: "Notification duration",

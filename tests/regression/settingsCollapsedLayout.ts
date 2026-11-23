@@ -16,7 +16,7 @@ export async function checkCollapsedLayout(check: (condition: unknown, message: 
     "The built-in clock and weather add the two draggable slots");
   const order = () => [...island().children].map((node) => (node as HTMLElement).dataset.slot).join();
   const hiddenOrder = () => [...box().querySelectorAll<HTMLElement>("[data-slot]")].map((node) => node.dataset.slot).join();
-  check(order().startsWith("pulse,text,mail") && !island().querySelector(".collapsed-layout__slot--text .collapsed-layout__pulse"),
+  check(order().startsWith("pulse,text,shelf") && !island().querySelector(".collapsed-layout__slot--text .collapsed-layout__pulse"),
     `The status light is its own slot, left of the text (${order()})`);
   check(hiddenOrder() === "" && box().textContent?.includes("Drag an icon here"), "The empty box under the island says what it is for");
 
@@ -39,7 +39,7 @@ export async function checkCollapsedLayout(check: (condition: unknown, message: 
   await drag("pulse", [islandBox.right - 2, islandBox.top + islandBox.height / 2], false);
   check(order().endsWith(",pulse") && slot("pulse").classList.contains("collapsed-layout__slot--placeholder")
     && editor.querySelector(".collapsed-layout__ghost"), `Dragged right, the slot passes several neighbours at once and a copy follows the pointer (${order()})`);
-  check(reduced || slot("mail").getAnimations().length > 0, "Slots giving way slide to their new places");
+  check(reduced || slot("shelf").getAnimations().length > 0, "Slots giving way slide to their new places");
   check(saved().collapsedLayout?.[0] !== "text", "Nothing is saved before the drop");
   await act(async () => { pointer(editor, "pointerup", islandBox.right - 2, islandBox.top + islandBox.height / 2); });
   // Saved with the slots the editor does not show (an uninstalled plugin's) in their old places.
@@ -65,12 +65,12 @@ export async function checkCollapsedLayout(check: (condition: unknown, message: 
     `Dragged back, the slot returns where it is dropped (${order()})`);
 
   // The keys do the same: down takes a slot off, up puts it back.
-  await act(async () => { slot("mail").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })); });
-  check(hiddenOrder() === "mail" && document.activeElement === slot("mail"), "The down arrow takes a slot off the island and keeps it focused");
-  await act(async () => { slot("mail").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); });
-  check(hiddenOrder() === "" && order().includes("mail"), "The up arrow puts it back on the island");
+  await act(async () => { slot("shelf").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })); });
+  check(hiddenOrder() === "shelf" && document.activeElement === slot("shelf"), "The down arrow takes a slot off the island and keeps it focused");
+  await act(async () => { slot("shelf").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })); });
+  check(hiddenOrder() === "" && order().includes("shelf"), "The up arrow puts it back on the island");
 
   const reset = editor.closest(".settings-group")!.querySelector<HTMLButtonElement>(".settings-link-button, .settings-link");
   await act(async () => { reset?.click(); });
-  check(order().startsWith("pulse,text,mail") && hiddenOrder() === "", "Reset puts every slot back on the island in the default order");
+  check(order().startsWith("pulse,text,shelf") && hiddenOrder() === "", "Reset puts every slot back on the island in the default order");
 }

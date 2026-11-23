@@ -67,9 +67,12 @@ export type SystemNotificationsController = {
   openSettings: (access: boolean) => Promise<void>;
 };
 
+/** Seconds a preview stays: one number for all, or chosen per preview (its kind decides whether it expands). */
+export type PreviewSeconds = number | ((preview: SystemNotificationPreview) => number);
+
 export function useSystemNotifications(
   canPreview = true,
-  previewSeconds = 5,
+  previewSeconds: PreviewSeconds = 5,
 ): SystemNotificationsController {
   const [snapshot, setSnapshot] = useState<SystemNotificationSnapshot>(EMPTY_SNAPSHOT);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -171,7 +174,8 @@ export function useSystemNotifications(
   // Handle preview expiration
   useEffect(() => {
     if (!preview) return;
-    const durationMs = Math.max(1000, previewSecondsRef.current * 1000);
+    const seconds = previewSecondsRef.current;
+    const durationMs = Math.max(1000, (typeof seconds === "function" ? seconds(preview) : seconds) * 1000);
     const timer = window.setTimeout(() => setPreview(null), durationMs);
     return () => window.clearTimeout(timer);
   }, [preview]);

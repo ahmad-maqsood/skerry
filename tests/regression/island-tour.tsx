@@ -342,7 +342,7 @@ if (!automated) {
       });
     }
     const savedLayout = JSON.parse(localStorage.getItem("skerry-settings") ?? "{}").collapsedLayout as string[] | undefined;
-    check(savedLayout?.join() === "music,pulse,text,mail,shelf,clock,weather,system" && barOrder().startsWith("music-wave-button,island__light,island__text-slot"),
+    check(savedLayout?.join() === "music,pulse,text,shelf,clock,weather,system" && barOrder().startsWith("music-wave-button,island__light,island__text-slot"),
       `Island arrangement: the music waveform moves left of the text and the collapsed island follows (${barOrder()})`);
     await click(".settings-sidebar__item[data-category='general']");
     const lockSwitch = () => [...document.querySelectorAll<HTMLElement>(".settings-row")]

@@ -6,7 +6,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
     VIRTUAL_KEY, VK_MEDIA_NEXT_TRACK, VK_MEDIA_PLAY_PAUSE, VK_MEDIA_PREV_TRACK,
 };
 
-use super::audio::{read_system_audio_peak, set_master_volume, AUDIO_ACTIVE_THRESHOLD};
+use super::audio::{read_master_volume, read_system_audio_peak, set_master_volume, AUDIO_ACTIVE_THRESHOLD};
 use super::session::*;
 use super::timeline;
 
@@ -182,6 +182,22 @@ pub(crate) fn seek(position_ms: i64, target: Option<String>) -> Result<MediaStat
         }
         thread::sleep(Duration::from_millis(40));
         read_media_state_from_manager(&manager, target.as_deref())
+    })
+}
+
+/// The master volume of the default output, from 0.0 to 1.0.
+pub(crate) fn read_volume() -> Result<f32, String> {
+    on_media_thread(|| {
+        read_master_volume().ok_or_else(|| "The system volume could not be read.".to_string())
+    })
+}
+
+/// Sets the master volume and returns what it is afterwards, without reading the whole media
+/// state (cover art included) the way `set_volume` does.
+pub(crate) fn change_volume(level: f32) -> Result<f32, String> {
+    on_media_thread(move || {
+        set_master_volume(level)?;
+        read_master_volume().ok_or_else(|| "The system volume could not be read.".to_string())
     })
 }
 

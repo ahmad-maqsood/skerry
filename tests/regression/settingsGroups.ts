@@ -33,7 +33,7 @@ export async function checkGroups(category: string, panel: HTMLElement, check: (
     const tuck = rowsOf(panel, "Tuck to the edge");
     check(titles(tuck).join() === "Tuck to the edge when idle,Tuck the collapsed island,Stay out while lyrics show,Stay out while a to-do is timed"
       && tuck.slice(1).every((row) => row.classList.contains("settings-row--indent")), "General: auto-tuck with its delay and when not to tuck, all indented under it");
-    check(titles(rowsOf(panel, "Position")).join() === "Back to the default position,Lock island position", "General: the position rows come last");
+    check(titles(rowsOf(panel, "Position")).join() === "Distance from top,Back to the default position,Lock island position", "General: the position rows come last");
   } else if (category === "todos") {
     check(titles(rowsOf(panel, "Tasks")).join() === "Carry unfinished tasks to next day,Drag to reorder,Visible rows", "Todos: the list options share a group");
     check(titles(rowsOf(panel, "Focus timer")).join() === "Use the focus timer", "Todos: the focus timer has its own group (reminders hidden while it is off)");

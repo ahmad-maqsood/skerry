@@ -1,0 +1,55 @@
+.quick-controls {
+  gap: 10px;
+}
+
+.quick-controls__row {
+  display: grid;
+  grid-template-columns: 14px 1fr 34px;
+  align-items: center;
+  gap: 10px;
+  color: var(--island-card-title, rgba(255, 255, 255, 0.75));
+  font-size: 11px;
+}
+
+.quick-controls__value {
+  text-align: right;
+  color: var(--island-card-sub, rgba(255, 255, 255, 0.6));
+  font-variant-numeric: tabular-nums;
+}
+
+/* The bar fills up to the thumb through --quick-controls-fill, set from the value. */
+.quick-controls__slider {
+  width: 100%;
+  height: 14px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.quick-controls__slider::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    var(--island-accent, #3b82f6) var(--quick-controls-fill, 0%),
+    rgba(255, 255, 255, 0.12) var(--quick-controls-fill, 0%)
+  );
+  border-radius: 999px;
+}
+
+.quick-controls__slider::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  background: #fff;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  appearance: none;
+}
+
+.quick-controls__slider:focus-visible {
+  outline: 2px solid var(--island-accent, #3b82f6);
+  outline-offset: 3px;
+  border-radius: 999px;
+}

@@ -39,6 +39,7 @@ export function normalizeSystemSettings(raw: unknown): SystemSettings {
     showDisk: record.showDisk !== false,
     showNetwork: record.showNetwork !== false,
     showWifi: record.showWifi !== false,
+    showQuickControls: record.showQuickControls !== false,
   };
 }
 

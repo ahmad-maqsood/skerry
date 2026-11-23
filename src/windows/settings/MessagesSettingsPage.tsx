@@ -224,6 +224,30 @@ function NoticeRows({
               onSettingsChange({ ...settings, messageExpandSeconds })
             }
           />
+          <SettingsToggleRow
+            indent
+            title={labels.expandApps}
+            checked={settings.messageExpandApps}
+            onChange={(messageExpandApps) => onSettingsChange({ ...settings, messageExpandApps })}
+          />
+          <SettingsToggleRow
+            indent
+            title={labels.expandClipboard}
+            checked={settings.messageExpandClipboard}
+            onChange={(messageExpandClipboard) => onSettingsChange({ ...settings, messageExpandClipboard })}
+          />
+          <SettingsToggleRow
+            indent
+            title={labels.expandMusic}
+            checked={settings.messageExpandMusic}
+            onChange={(messageExpandMusic) => onSettingsChange({ ...settings, messageExpandMusic })}
+          />
+          <SettingsToggleRow
+            indent
+            title={labels.expandCharger}
+            checked={settings.messageExpandCharger}
+            onChange={(messageExpandCharger) => onSettingsChange({ ...settings, messageExpandCharger })}
+          />
         </>
       )}
     </>

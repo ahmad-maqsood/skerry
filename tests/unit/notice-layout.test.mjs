@@ -74,6 +74,25 @@ test("preview seconds: game mode's own while quiet, the adaptive preview's, else
   assert.equal(noticePassesClicks(false, true, "collapsed"), false);
 });
 
+test("each kind of preview expands only when the switch for its kind is on", async () => {
+  const { expandsPreview, previewSecondsFor } = await import("../../src/windows/island/noticeRules.ts");
+  const all = { messageAutoExpand: true, messageExpandApps: true, messageExpandClipboard: true, messageExpandMusic: true, messageExpandCharger: true };
+  for (const kind of [undefined, "clipboard", "music", "battery"]) {
+    assert.equal(expandsPreview(all, kind), true, String(kind));
+    assert.equal(expandsPreview({ ...all, messageAutoExpand: false }, kind), false, `${kind} with the master switch off`);
+  }
+  assert.equal(expandsPreview({ ...all, messageExpandMusic: false }, "music"), false);
+  assert.equal(expandsPreview({ ...all, messageExpandMusic: false }, "clipboard"), true);
+  assert.equal(expandsPreview({ ...all, messageExpandApps: false }, undefined), false);
+  assert.equal(expandsPreview({ ...all, messageExpandApps: false }, "battery"), true);
+  assert.equal(expandsPreview({ ...all, messageExpandClipboard: false }, "clipboard"), false);
+  assert.equal(expandsPreview({ ...all, messageExpandCharger: false }, "battery"), false);
+  // A preview that does not expand stays for the usual seconds, not the expanded ones.
+  const seconds = { messagePreviewSeconds: 5, messageAutoExpand: true, messageExpandSeconds: 12, gameShowNotices: false, gameNoticeSeconds: 3 };
+  assert.equal(previewSecondsFor(seconds, false, true), 12);
+  assert.equal(previewSecondsFor(seconds, false, false), 5);
+});
+
 test("game mode previews only when asked to; otherwise a tucked island needs reveal-on-message", async () => {
   const { canPreviewNotice } = await import("../../src/windows/island/noticeRules.ts");
   const on = { gameShowNotices: true, revealOnMessage: false };

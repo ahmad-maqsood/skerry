@@ -10,6 +10,7 @@ import * as todo from "../sections/todo.ts";
 import * as clipboard from "../sections/clipboard.ts";
 import * as fileShelf from "../sections/fileShelf.ts";
 import * as systemMonitor from "../sections/systemMonitor.ts";
+import * as privacy from "../sections/privacy.ts";
 import * as settings from "../sections/settings/index.ts";
 
 const en: Translations = {
@@ -36,6 +37,8 @@ const en: Translations = {
   fileShelf: fileShelf.en,
 
   systemMonitor: systemMonitor.en,
+
+  privacy: privacy.en,
 
   settings: settings.en,
 };

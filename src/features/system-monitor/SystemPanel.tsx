@@ -23,6 +23,7 @@ import {
   formatRate,
   formatUptime,
 } from "./formatters.ts";
+import { QuickControls } from "../quick-controls";
 import { Sparkline } from "./Sparkline.tsx";
 import { useSystemMonitor } from "./useSystemMonitor.ts";
 import "./SystemPanel.css";
@@ -54,6 +55,8 @@ export function SystemPanel(): ReactNode {
   return (
     <div className="system-panel">
       <div className="system-panel__grid">
+        {settings.showQuickControls && <QuickControls />}
+
         {/* 1. CPU Card */}
         {settings.showCpu && (
           <div className="system-card">

@@ -23,3 +23,12 @@ test("notice size and duration settings clamp and recover from invalid values", 
     assert.equal(normalizeSettings({ [key]: 1000 })[key], max, key);
   }
 });
+
+test("the per-kind expand switches default on and only an explicit false turns one off", () => {
+  for (const key of ["messageExpandApps", "messageExpandClipboard", "messageExpandMusic", "messageExpandCharger"]) {
+    for (const value of [undefined, null, "false", 0, {}, true]) {
+      assert.equal(normalizeSettings({ [key]: value })[key], true, key);
+    }
+    assert.equal(normalizeSettings({ [key]: false })[key], false, key);
+  }
+});

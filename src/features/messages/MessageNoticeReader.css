@@ -38,7 +38,7 @@
   cursor: text;
 }
 
-.message-notice__open {
+.message-notice__minimize {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -53,12 +53,12 @@
   cursor: pointer;
 }
 
-.message-notice__open:hover {
+.message-notice__minimize:hover {
   color: var(--color-fg-strong);
   background: rgba(var(--overlay-rgb), 0.12);
 }
 
-.message-notice__open:focus-visible,
+.message-notice__minimize:focus-visible,
 .message-notice__body:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;

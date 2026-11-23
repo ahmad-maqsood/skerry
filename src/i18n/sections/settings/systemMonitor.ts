@@ -23,6 +23,12 @@ export type SettingsSystemMonitorText = {
   showDisk: string;
   showNetwork: string;
   showWifi: string;
+  showQuickControls: string;
+  showQuickControlsDesc: string;
+  privacyGroup: string;
+  privacyHint: string;
+  privacyIndicator: string;
+  privacyIndicatorDesc: string;
 };
 
 export const en: SettingsSystemMonitorText = {
@@ -50,4 +56,10 @@ export const en: SettingsSystemMonitorText = {
   showDisk: "Storage (Drives & I/O)",
   showNetwork: "Network Throughput",
   showWifi: "Wi-Fi & Connection",
+  showQuickControls: "Volume & Brightness",
+  showQuickControlsDesc: "Sliders at the top of the System page. Brightness shows only on a laptop's built-in screen.",
+  privacyGroup: "Privacy",
+  privacyHint: "Read from the Windows privacy settings on this PC. Nothing is recorded or sent anywhere.",
+  privacyIndicator: "Microphone & Camera Indicator",
+  privacyIndicatorDesc: "Show a dot on the collapsed island while an app is using your microphone or camera.",
 };

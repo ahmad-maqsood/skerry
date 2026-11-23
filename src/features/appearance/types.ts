@@ -30,9 +30,9 @@ export type CollapsedItem = "lyrics" | "todo";
 /**
  * What sits on the collapsed island, in the order the user arranged it (Appearance -> Collapsed
  * island): the text (pulse, cover and the lyric or todo line) and the status icons:
- * the new-mail badge, files on the shelf, the music waveform, the tuck dot. Icons before the text sit on its left.
+ * files on the shelf, the music waveform, the tuck dot. Icons before the text sit on its left.
  */
-export type CollapsedSlot = "pulse" | "text" | "mail" | "shelf" | "music" | "clock" | "weather" | "system";
+export type CollapsedSlot = "pulse" | "text" | "shelf" | "music" | "clock" | "weather" | "system";
 /** The page dots in the expanded island's header, which the user can drag into any order. */
 export type PageDot = "todo" | "music" | "clipboard" | "shelf" | "translation" | "system";
 
@@ -94,6 +94,11 @@ export type IslandSettings = {
   /** Largest width and height (before the collapsed scale) of an adaptive preview. */
   messageExpandMaxWidth: number;
   messageExpandMaxHeight: number;
+  /** Which kinds of preview grow when `messageAutoExpand` is on; the others show as the normal one-line preview. */
+  messageExpandApps: boolean;
+  messageExpandClipboard: boolean;
+  messageExpandMusic: boolean;
+  messageExpandCharger: boolean;
   /** Seconds an adaptive preview stays (instead of `messagePreviewSeconds`). */
   messageExpandSeconds: number;
   /** Game mode still shows message previews, for `gameNoticeSeconds`, without taking clicks. */
@@ -167,7 +172,6 @@ export type IslandSettings = {
   lyricWordFill: boolean;
   /** Lyrics shown this many ms later (positive) or earlier than the position Windows reports. */
   lyricsOffsetMs: number;
-  mailEnabled: boolean;
   /** Copy a newly arrived mail verification code without adding it to clipboard history. */
   autoCopyOtp: boolean;
   /** Which of the lyric line and a todo the collapsed island shows first when several could. */

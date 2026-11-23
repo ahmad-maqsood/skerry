@@ -65,7 +65,7 @@ export type SettingsAppearanceText = {
       title: string;
       footer: string;
       reset: string;
-      slots: Record<"pulse" | "text" | "mail" | "shelf" | "music" | "clock" | "weather" | "system", string>;
+      slots: Record<"pulse" | "text" | "shelf" | "music" | "clock" | "weather" | "system", string>;
       textSample: string;
       moveLabel: (name: string) => string;
       /** The box under the island for what is dragged off it. */
@@ -135,7 +135,7 @@ export const en: SettingsAppearanceText = {
       title: "On the island",
       footer: "Hold an icon and drag it left or right; icons left of the text sit on the island's left. Drop one in the box below to take it off the island. Grey ones are switched off and keep their place.",
       reset: "Reset",
-      slots: { pulse: "Status light", text: "Text", mail: "New mail", shelf: "Shelf files", music: "Music waveform", clock: "Time", weather: "Weather", system: "System" },
+      slots: { pulse: "Status light", text: "Text", shelf: "Shelf files", music: "Music waveform", clock: "Time", weather: "Weather", system: "System" },
       textSample: "Collapsed text",
       moveLabel: (name) => `Move "${name}": drag, or press the left and right arrow keys; the down arrow takes it off the island`,
       hidden: "Not on the island",

@@ -70,6 +70,22 @@ pub async fn media_seek(
         .map_err(|error| format!("Failed to join the media seek task: {error}"))?
 }
 
+/// The system volume as 0.0 to 1.0, for the island's volume slider.
+#[tauri::command]
+pub async fn get_system_volume() -> Result<f32, String> {
+    tauri::async_runtime::spawn_blocking(service::read_volume)
+        .await
+        .map_err(|error| format!("Failed to join the media volume task: {error}"))?
+}
+
+/// Sets the system volume (0.0 to 1.0) and returns the level now in effect.
+#[tauri::command]
+pub async fn set_system_volume(level: f32) -> Result<f32, String> {
+    tauri::async_runtime::spawn_blocking(move || service::change_volume(level))
+        .await
+        .map_err(|error| format!("Failed to join the media volume task: {error}"))?
+}
+
 #[tauri::command]
 pub async fn media_set_volume(level: f32) -> Result<service::MediaState, String> {
     tauri::async_runtime::spawn_blocking(move || service::set_volume(level))
@@ -103,6 +119,8 @@ macro_rules! tauri_commands {
             crate::media_control::media_cycle_repeat,
             crate::media_control::media_seek,
             crate::media_control::media_set_volume,
+            crate::media_control::get_system_volume,
+            crate::media_control::set_system_volume,
         ] $($rest)*)
     };
 }

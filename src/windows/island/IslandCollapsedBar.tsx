@@ -12,11 +12,13 @@ import type { MessagePreview } from "../../features/messages/messagePreview";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { CollapsedClock, CollapsedWeather, useClockWeather, useCurrentWeather } from "../../features/weather";
 import { CollapsedSystemChip } from "../../features/system-monitor/CollapsedSystemChip.tsx";
+import { PrivacyIndicator } from "../../features/privacy";
 import { useTranslation } from "../../i18n";
 import { TodoCountdown } from "../../features/todos/TodoCountdown";
 import { useUpdatePending } from "../../features/updater/useUpdatePending";
 import { isTodoTimerEndingSoon, type TodoTimer } from "../../features/todos/timer";
 import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoContent";
+import { isCollapsedFocused, focusedCollapsedSlots } from "./collapsedFocus.ts";
 import type { IslandPage } from "./types";
 import { useWindowDragGesture } from "./useWindowDragGesture";
 import "./IslandCollapsedBar.css";
@@ -102,10 +104,19 @@ export function IslandCollapsedBar({
 
   if (noticeReader && preview && !isExpanded && !isTucked) return (
     <div className="island__collapsed island__collapsed--notice">
-      <MessageNoticeReader preview={preview} scrolls={noticeReader.scrolls} onOpen={() => openPreview(preview)}
+      <MessageNoticeReader preview={preview} scrolls={noticeReader.scrolls} onMinimize={onMinimize}
+        minimizeLabel={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
         drag={{ onPointerDown: prepareWindowDrag, onPointerMove: handleWindowDragMove, onPointerUp: cancelWindowDrag, onPointerCancel: cancelWindowDrag }} />
     </div>
   );
+
+  // An alert (notification, new song, reminder) gets the whole bar: only the text and minimize stay.
+  const focused = !isExpanded && !isTucked && isCollapsedFocused({
+    hasPreview: preview !== null,
+    todoTimer,
+    showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
+    layout: collapsedLayout,
+  });
 
   // The text and the status icons, placed in the order Settings → Appearance arranged.
   const slots: Record<CollapsedSlot, ReactNode> = {
@@ -193,7 +204,6 @@ export function IslandCollapsedBar({
         </button>
       </div>
     ),
-    mail: null,
     shelf: shelfCount !== null && shelfCount > 0 && (
       <button className="island-shelf-count" type="button" aria-label={t.island.shelfCount(shelfCount)} onClick={() => onOpenPage("shelf")}>
         <Inbox size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
@@ -228,7 +238,9 @@ export function IslandCollapsedBar({
         }
       }}
     >
-      {collapsedLayout.map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
+      {focusedCollapsedSlots(collapsedLayout, focused).map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
+      {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot, and it stays during an alert. */}
+      <PrivacyIndicator active={!isExpanded && !isTucked} />
       {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}
       <button
         className="island-collapsed-minimize"

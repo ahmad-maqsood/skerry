@@ -1,8 +1,14 @@
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"><title>Skerry screenshot host</title></head>
+  <head>
+    <meta charset="utf-8">
+    <title>Skerry screenshot host</title>
+  </head>
   <body style="margin:0">
-    <iframe id="scene" style="border:0;width:100vw;height:100vh"
-            src="scene.html" + location.search></iframe>
+    <iframe id="scene" style="border:0;width:100vw;height:100vh"></iframe>
+    <script>
+      // Keep the capture parameters (scene, token, and signal port) when loading the iframe.
+      document.getElementById("scene").src = `scene.html${window.location.search}`;
+    </script>
   </body>
 </html>

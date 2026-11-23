@@ -78,7 +78,9 @@ function createSceneSignalServer(token) {
     response.setHeader("Access-Control-Allow-Private-Network", "true");
     response.writeHead(204);
     response.end();
-    if (url.pathname !== "/scene-signal" || url.searchParams.get("token") !== token) return;
+    // A browser may send an OPTIONS preflight for loopback access. Only the actual GET
+    // from the scene page is allowed to release the capture wait.
+    if (request.method !== "GET" || url.pathname !== "/scene-signal" || url.searchParams.get("token") !== token) return;
     if (url.searchParams.get("status") === "ready") resolveSignal();
     if (url.searchParams.get("status") === "error") {
       rejectSignal(new Error(`Screenshot scene failed to render: ${url.searchParams.get("message") ?? "Unknown scene error"}`));

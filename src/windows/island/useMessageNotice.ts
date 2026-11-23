@@ -3,7 +3,7 @@ import type { IslandSettings } from "../../features/appearance/types";
 import { noticeText, type MessagePreview } from "../../features/messages/messagePreview";
 import { useTranslation } from "../../i18n";
 import { getNoticeSize } from "./noticeLayout";
-import { noticePassesClicks } from "./noticeRules";
+import { expandsPreview, noticePassesClicks } from "./noticeRules";
 import type { IslandMode } from "./types";
 import type { IslandNotice } from "./useIslandWindow";
 
@@ -16,7 +16,7 @@ type MessageNoticeOptions = { mode: IslandMode; isTucked: boolean; quiet: boolea
  */
 export function useMessageNotice(preview: MessagePreview | null, settings: IslandSettings, { mode, isTucked, quiet, collapsedIslandWidth }: MessageNoticeOptions) {
   const t = useTranslation();
-  const grows = settings.messageAutoExpand && preview !== null && mode === "collapsed" && !isTucked;
+  const grows = preview !== null && expandsPreview(settings, preview.kind) && mode === "collapsed" && !isTucked;
   // What the laid-out one-line preview still overflowed by, for this preview; see measuredOverflow.
   const [measured, setMeasured] = useState({ at: -1, overflow: 0, tries: 0 });
   const measuredOverflow = preview && measured.at === preview.receivedAt ? measured.overflow : 0;

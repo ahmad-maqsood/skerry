@@ -24,6 +24,11 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     messageExpandMaxWidth: wholeSeconds(settings?.messageExpandMaxWidth, MESSAGE_EXPAND_MAX_WIDTH, MESSAGE_EXPAND_MAX_WIDTH.default),
     messageExpandMaxHeight: wholeSeconds(settings?.messageExpandMaxHeight, MESSAGE_EXPAND_MAX_HEIGHT, MESSAGE_EXPAND_MAX_HEIGHT.default),
     messageExpandSeconds: wholeSeconds(settings?.messageExpandSeconds, MESSAGE_EXPAND_SECONDS, MESSAGE_EXPAND_SECONDS.default),
+    // Which kinds of preview expand: all on unless turned off, so saved settings keep expanding everything.
+    messageExpandApps: settings?.messageExpandApps !== false,
+    messageExpandClipboard: settings?.messageExpandClipboard !== false,
+    messageExpandMusic: settings?.messageExpandMusic !== false,
+    messageExpandCharger: settings?.messageExpandCharger !== false,
     gameShowNotices: settings?.gameShowNotices === true,
     // On unless turned off.
     clipboardPopup: settings?.clipboardPopup !== false,

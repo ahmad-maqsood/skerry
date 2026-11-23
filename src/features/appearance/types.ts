@@ -94,6 +94,11 @@ export type IslandSettings = {
   /** Largest width and height (before the collapsed scale) of an adaptive preview. */
   messageExpandMaxWidth: number;
   messageExpandMaxHeight: number;
+  /** Which kinds of preview grow when `messageAutoExpand` is on; the others show as the normal one-line preview. */
+  messageExpandApps: boolean;
+  messageExpandClipboard: boolean;
+  messageExpandMusic: boolean;
+  messageExpandCharger: boolean;
   /** Seconds an adaptive preview stays (instead of `messagePreviewSeconds`). */
   messageExpandSeconds: number;
   /** Game mode still shows message previews, for `gameNoticeSeconds`, without taking clicks. */

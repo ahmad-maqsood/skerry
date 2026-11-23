@@ -2,7 +2,8 @@ param(
   [Parameter(Mandatory=$true)][string]$WindowTitle,
   [Parameter(Mandatory=$true)][string]$OutputPath,
   [int]$ReadyDelaySeconds = 10,
-  [int]$TimeoutSeconds = 600
+  [int]$TimeoutSeconds = 600,
+  [int]$LauncherProcessId = 0
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -19,6 +20,9 @@ Write-Output "Waiting up to $TimeoutSeconds seconds for the native '$WindowTitle
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
 $target = $null
 while ((Get-Date) -lt $deadline -and $null -eq $target) {
+  if ($LauncherProcessId -gt 0 -and $null -eq (Get-Process -Id $LauncherProcessId -ErrorAction SilentlyContinue)) {
+    throw "The Tauri launcher process (PID $LauncherProcessId) exited before the '$WindowTitle' window appeared. Check the Tauri/Cargo output above for the launch error."
+  }
   $target = Get-Process | Where-Object { $_.MainWindowTitle -eq $WindowTitle -and $_.MainWindowHandle -ne 0 } | Select-Object -First 1
   if ($null -eq $target) { Start-Sleep -Milliseconds 500 }
 }

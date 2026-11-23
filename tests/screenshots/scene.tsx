@@ -9,7 +9,7 @@
 // Open it under `pnpm dev` to look at a scene by eye; `pnpm screenshots` captures all of them.
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
-import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
+import { mockIPC, mockWindows } from "./tauriMocks";
 import { emit } from "@tauri-apps/api/event";
 import "../../src/styles/tokens.css";
 import "../../src/styles/fonts.css";

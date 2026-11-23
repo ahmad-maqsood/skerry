@@ -69,7 +69,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 
 ## Screenshots
 
-<!-- Note: Screenshot assets are captured following the shot list in docs/SCREENSHOTS.md and stored in docs/assets/screenshots/ -->
+<!-- Note: Screenshot assets are captured automatically (`pnpm screenshots`, see docs/SCREENSHOTS.md) and stored in docs/assets/screenshots/ -->
 
 ### Collapsed Island and Clock
 

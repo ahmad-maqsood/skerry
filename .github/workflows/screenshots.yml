@@ -1,0 +1,80 @@
+name: Screenshots
+
+# Re-captures the README / documentation screenshots (docs/SCREENSHOTS.md) with
+# scripts/capture-screenshots.mjs: the real windows over mocked Windows APIs and fictional demo
+# data, in the Chrome on the runner. Runs on Windows so the text is drawn in Segoe UI, as users see it.
+#
+#   - Push to main that changes the UI (or the capture itself): captures, and commits the images
+#     if they changed. The commit touches only docs/assets/, which CI ignores, and says [skip ci].
+#   - Manual run: captures and uploads the images; tick "commit" to also commit them to the branch.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/screenshots/**'
+      - 'scripts/capture-screenshots.mjs'
+      - 'scripts/run-regression.mjs'
+      - '.github/workflows/screenshots.yml'
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit the refreshed screenshots to this branch'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Capture screenshots
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Capture screenshots
+        shell: bash
+        run: node scripts/capture-screenshots.mjs
+
+      # The images are kept for a month even when nothing is committed, to look at or download.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: docs/assets/screenshots/*.png
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit refreshed screenshots
+        if: github.event_name == 'push' || inputs.commit
+        shell: bash
+        # A protected branch may refuse the push; the artifact above still has the images.
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/assets/screenshots
+          if git diff --cached --quiet; then
+            echo "The screenshots did not change."
+            exit 0
+          fi
+          git commit -m "docs: refresh screenshots [skip ci]"
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"

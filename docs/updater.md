@@ -24,8 +24,17 @@ Releases are built, signed, and published entirely via GitHub Actions. Maintaine
 Either way the workflow checks the signing secrets first. Clippy and the Rust tests are not run here: CI runs them on every push to `main`, so check that CI is green for the commit you release.
 
 - **Unticked** (trial): builds and signs only the NSIS installer (`.exe` and its `.sig`, plus `SHA256SUMS.txt`) and attaches them to the workflow run as a `skerry-installers` download (kept 7 days). There is no MSI and no `latest.json`, so a trial build cannot be published. Nothing is published and no tag is created. Locally: `node scripts/release/release.mjs --no-upload --nsis-only`.
-- **Ticked**: runs `pnpm check`, builds signed NSIS and MSI installers with their `.sig` files, `latest.json` and `SHA256SUMS.txt`, then creates tag and release `vX.Y.Z` with generated notes. A version containing `-` (for example `0.1.0-beta.1`) is published as a pre-release that the in-app updater ignores. An existing release is never overwritten; bump the version instead.
+- **Ticked**: runs `pnpm check`, builds signed NSIS and MSI installers with their `.sig` files, `latest.json` and `SHA256SUMS.txt`, then creates tag and release `vX.Y.Z` with an automatic description (see below). A version containing `-` (for example `0.1.0-beta.1`) is published as a pre-release that the in-app updater ignores. An existing release is never overwritten; bump the version instead.
 
+### The release description
+
+The description of a published release is written automatically by `scripts/release/release-notes.mjs`; nobody edits it by hand:
+
+- **What's new**: the commits since the previous release tag, grouped into *Added*, *Fixed*, *Changed* and *Maintenance* (from the first word of the commit message, or a `feat:` / `fix:` / `docs:` / `chore:` prefix), each linking to its commit. Merge, version-bump and screenshot-refresh commits are left out. The same text is the notes the in-app update dialog shows (`latest.json`). A stable release covers everything since the last stable release; a pre-release since the last tag.
+- **Downloads**: the NSIS and MSI installers with their SHA-256 checksums, how to verify them, and a reminder that installed copies update themselves.
+- **Full changelog**: a link comparing the previous tag with this one.
+- To write the first part yourself, commit `docs/releases/vX.Y.Z.md` before releasing; its text replaces the generated list. Preview the description for the current version with `node scripts/release/release-notes.mjs`.
+- The release workflow checks out the full history and tags so the commit list is complete.
 
 ### Troubleshooting Releases
 

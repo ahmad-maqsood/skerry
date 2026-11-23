@@ -5,6 +5,10 @@ name: Release
 #                     run as a download. No MSI and no update manifest, so it cannot be published.
 #   publish ticked:   the full release: runs the frontend checks, builds and signs both the NSIS and
 #                     MSI installers, then publishes a GitHub release that in-app updates pick up.
+#                     The release description is written for you (scripts/release/release-notes.mjs):
+#                     what changed since the last release, the installers with their checksums, and
+#                     a changelog link. Put your own text in docs/releases/vX.Y.Z.md to replace the
+#                     "What's new" part.
 # Clippy and the Rust tests are not repeated here: CI runs them on every push to main.
 # The version comes from package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json
 # (they must match). Change it with: node scripts/release/bump-version.mjs patch
@@ -33,7 +37,10 @@ jobs:
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       TAURI_UPDATER_PUBKEY: ${{ secrets.TAURI_UPDATER_PUBKEY }}
     steps:
+      # Full history and tags: the release description lists the commits since the last release.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check the signing secrets exist
         shell: bash

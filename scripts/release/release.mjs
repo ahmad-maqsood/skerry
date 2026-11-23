@@ -10,10 +10,11 @@
 //   TAURI_UPDATER_PUBKEY                public key matching the private key
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { msiNames, msiVersion } from "./msi-version.mjs";
+import { changesFor, descriptionMarkdown } from "./release-notes.mjs";
 
 const CONFIG = "src-tauri/tauri.conf.json";
 const OVERLAY = "src-tauri/tauri.release.conf.json";
@@ -106,7 +107,11 @@ export function runRelease() {
   }
 
   const tag = `v${version}`;
-  const notesFile = `docs/releases/${tag}.md`;
+  // What's new: docs/releases/vX.Y.Z.md if someone wrote it, otherwise the commits since the last
+  // release. It is the update dialog's notes (latest.json) and the top of the release description.
+  const { changes, previous } = nsisOnly ? { changes: "", previous: null } : changesFor(tag);
+  const changesFile = `${RELEASE_DIR}/release-changes.md`;
+  const descriptionFile = `${RELEASE_DIR}/release-notes.md`;
 
   if (upload) {
     const existing = run("gh", ["release", "view", tag, "--repo", REPO], { capture: true, allowFailure: true });
@@ -132,8 +137,8 @@ export function runRelease() {
   run("pnpm", ["tauri", "build", "--ci", ...configs, "--bundles", nsisOnly ? "nsis" : "nsis,msi"]);
 
   if (!nsisOnly) {
-    const latestArgs = ["scripts/release/make-latest-json.mjs"];
-    if (existsSync(notesFile)) latestArgs.push("--notes-file", notesFile);
+    writeFileSync(changesFile, `${changes}\n`);
+    const latestArgs = ["scripts/release/make-latest-json.mjs", "--notes-file", changesFile];
     if (baseUrl) latestArgs.push("--base-url", baseUrl);
     run("node", latestArgs);
   }
@@ -179,7 +184,10 @@ export function runRelease() {
   const assets = [...installers, ...installers.map((path) => `${path}.sig`), `${BUNDLE_DIR}/latest.json`, checksumPath, ...pluginAssets];
   const revision = run("git", ["rev-parse", "HEAD"], { capture: true }).stdout.trim();
   const prerelease = version.includes("-");
-  const notesArg = existsSync(notesFile) ? ["--notes-file", notesFile] : ["--generate-notes"];
+  // The release description: what's new, the installers with their checksums, how to verify them.
+  const described = installers.map((path) => ({ name: path.split("/").pop(), sha256: createHash("sha256").update(readFileSync(path)).digest("hex") }));
+  writeFileSync(descriptionFile, descriptionMarkdown({ tag, changes, assets: described, previous }));
+  console.log(`\nRelease description (${descriptionFile}):\n\n${readFileSync(descriptionFile, "utf8")}`);
 
   run("gh", [
     "release",
@@ -193,7 +201,8 @@ export function runRelease() {
     ...(prerelease ? ["--prerelease"] : []),
     "--title",
     tag,
-    ...notesArg,
+    "--notes-file",
+    descriptionFile,
     ...assets,
   ]);
 

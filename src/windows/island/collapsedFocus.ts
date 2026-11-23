@@ -24,6 +24,6 @@ export function isCollapsedFocused({
 }
 
 /** While focused only the text stays; the minimize button is outside the slots and always stays. */
-export function visibleCollapsedSlots(layout: readonly CollapsedSlot[], focused: boolean): readonly CollapsedSlot[] {
+export function focusedCollapsedSlots(layout: readonly CollapsedSlot[], focused: boolean): readonly CollapsedSlot[] {
   return focused ? layout.filter((slot) => slot === "text") : layout;
 }

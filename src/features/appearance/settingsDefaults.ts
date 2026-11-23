@@ -104,7 +104,6 @@ export const DEFAULT_SETTINGS: IslandSettings = {
   shelfDoubleClick: "open",
   shelfShowCount: true,
   ...DEFAULT_LYRICS_SETTINGS,
-  mailEnabled: true,
   autoCopyOtp: DEFAULT_AUTO_COPY_OTP,
   gameDoNotDisturb: true,
   gameAutoTuck: false,

@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { AudioLines, Inbox, Mail } from "lucide-react";
+import { AudioLines, Inbox } from "lucide-react";
 import { SettingsGroup } from "../../components/settings/SettingsGroup";
 import { SettingsLinkButton } from "../../components/settings/SettingsLinkButton";
 import { useTranslation } from "../../i18n";
@@ -22,7 +22,6 @@ function slotsOn(settings: IslandSettings): Record<CollapsedSlot, boolean> {
   return {
     pulse: true,
     text: true,
-    mail: settings.mailEnabled,
     shelf: settings.shelfEnabled && settings.shelfShowCount,
     music: settings.musicEnabled,
     clock: false, weather: false, system: false,
@@ -97,7 +96,6 @@ export function CollapsedLayoutEditor({
   const content: Record<CollapsedSlot, ReactNode> = {
     pulse: <span className="collapsed-layout__pulse" />,
     text: text.textSample,
-    mail: <Mail size={15} strokeWidth={1.6} absoluteStrokeWidth />,
     shelf: <><Inbox size={13} strokeWidth={1.6} absoluteStrokeWidth />2</>,
     music: <AudioLines size={15} strokeWidth={1.6} absoluteStrokeWidth />,
     clock: "12:34",

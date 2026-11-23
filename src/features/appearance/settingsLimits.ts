@@ -79,7 +79,7 @@ export function normalizeExpandedScale(value: unknown) {
 /** The collapsed island's items, in their default order: lyrics, then todos. */
 export const COLLAPSED_ITEMS: readonly CollapsedItem[] = ["lyrics", "todo"];
 /** The collapsed island's layout as it always was: the light and the text, then the icons on its right. */
-export const COLLAPSED_SLOTS: readonly CollapsedSlot[] = ["pulse", "text", "mail", "shelf", "music", "clock", "weather", "system"];
+export const COLLAPSED_SLOTS: readonly CollapsedSlot[] = ["pulse", "text", "shelf", "music", "clock", "weather", "system"];
 /** The header's page dots in their default order; translation joined last (2026-11-11). */
 export const PAGE_DOTS: readonly PageDot[] = ["todo", "music", "clipboard", "shelf", "translation", "system"];
 

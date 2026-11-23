@@ -18,7 +18,7 @@ import { TodoCountdown } from "../../features/todos/TodoCountdown";
 import { useUpdatePending } from "../../features/updater/useUpdatePending";
 import { isTodoTimerEndingSoon, type TodoTimer } from "../../features/todos/timer";
 import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoContent";
-import { isCollapsedFocused, visibleCollapsedSlots } from "./collapsedFocus.ts";
+import { isCollapsedFocused, focusedCollapsedSlots } from "./collapsedFocus.ts";
 import type { IslandPage } from "./types";
 import { useWindowDragGesture } from "./useWindowDragGesture";
 import "./IslandCollapsedBar.css";
@@ -203,7 +203,6 @@ export function IslandCollapsedBar({
         </button>
       </div>
     ),
-    mail: null,
     shelf: shelfCount !== null && shelfCount > 0 && (
       <button className="island-shelf-count" type="button" aria-label={t.island.shelfCount(shelfCount)} onClick={() => onOpenPage("shelf")}>
         <Inbox size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
@@ -238,7 +237,7 @@ export function IslandCollapsedBar({
         }
       }}
     >
-      {visibleCollapsedSlots(collapsedLayout, focused).map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
+      {focusedCollapsedSlots(collapsedLayout, focused).map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
       {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot, and it stays during an alert. */}
       <PrivacyIndicator active={!isExpanded && !isTucked} />
       {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}

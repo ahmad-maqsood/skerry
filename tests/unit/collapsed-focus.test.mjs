@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isCollapsedFocused, visibleCollapsedSlots } from "../../src/windows/island/collapsedFocus.ts";
+import { isCollapsedFocused, focusedCollapsedSlots } from "../../src/windows/island/collapsedFocus.ts";
 
 const layout = ["pulse", "clock", "text", "shelf", "music", "system"];
 const timer = (over = {}) => ({ todoId: "a", endsAt: 1, durationMinutes: 15, notified: false, ...over });
@@ -26,6 +26,6 @@ test("a layout without the text never focuses, since nothing would show the aler
 });
 
 test("focused keeps only the text; otherwise the whole layout", () => {
-  assert.deepEqual(visibleCollapsedSlots(layout, true), ["text"]);
-  assert.deepEqual(visibleCollapsedSlots(layout, false), layout);
+  assert.deepEqual(focusedCollapsedSlots(layout, true), ["text"]);
+  assert.deepEqual(focusedCollapsedSlots(layout, false), layout);
 });

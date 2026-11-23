@@ -20,8 +20,14 @@ import { isTodoTimerEndingSoon, type TodoTimer } from "../../features/todos/time
 import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoContent";
 import { isCollapsedFocused, focusedCollapsedSlots } from "./collapsedFocus.ts";
 import type { IslandPage } from "./types";
+import { useLingeringFlag } from "./useLingeringFlag";
 import { useWindowDragGesture } from "./useWindowDragGesture";
 import "./IslandCollapsedBar.css";
+
+/** How long a message preview takes to slide out of the text (CollapsedMessageContent's outgoing layer). */
+const FOCUS_RELEASE_MS = 720;
+
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 type IslandCollapsedBarProps = {
   systemNotifications: SystemNotificationsController;
@@ -102,6 +108,17 @@ export function IslandCollapsedBar({
     else void systemNotifications.openApp(shown.appId);
   };
 
+  // An alert (notification, new song, reminder) gets the whole bar: only the text and minimize stay.
+  // The layout is held until the alert has slid out of the text (FOCUS_RELEASE_MS), so the status
+  // icons, the light first on the left, do not pop back in beside text that is still leaving.
+  const alerting = !isExpanded && !isTucked && isCollapsedFocused({
+    hasPreview: preview !== null,
+    todoTimer,
+    showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
+    layout: collapsedLayout,
+  });
+  const focused = useLingeringFlag(alerting, prefersReducedMotion() ? 0 : FOCUS_RELEASE_MS) && !isExpanded && !isTucked && collapsedLayout.includes("text");
+
   if (noticeReader && preview && !isExpanded && !isTucked) return (
     <div className="island__collapsed island__collapsed--notice">
       <MessageNoticeReader preview={preview} scrolls={noticeReader.scrolls} onMinimize={onMinimize}
@@ -109,14 +126,6 @@ export function IslandCollapsedBar({
         drag={{ onPointerDown: prepareWindowDrag, onPointerMove: handleWindowDragMove, onPointerUp: cancelWindowDrag, onPointerCancel: cancelWindowDrag }} />
     </div>
   );
-
-  // An alert (notification, new song, reminder) gets the whole bar: only the text and minimize stay.
-  const focused = !isExpanded && !isTucked && isCollapsedFocused({
-    hasPreview: preview !== null,
-    todoTimer,
-    showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
-    layout: collapsedLayout,
-  });
 
   // The text and the status icons, placed in the order Settings → Appearance arranged.
   const slots: Record<CollapsedSlot, ReactNode> = {

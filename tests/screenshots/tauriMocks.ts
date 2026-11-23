@@ -32,7 +32,15 @@ export function mockIPC(
   options: { shouldMockEvents?: boolean } = {},
 ): void {
   const tauri = internals("__TAURI_INTERNALS__");
-  const eventInternals = internals("__TAURI_EVENT_PLUGIN_INTERNALS__");
+  const eventWindow = window as unknown as Record<string, unknown>;
+  let eventInternals = eventWindow.__TAURI_EVENT_PLUGIN_INTERNALS__ as Record<string, unknown> | undefined;
+  if (!eventInternals || typeof eventInternals !== "object") {
+    eventInternals = {};
+    Object.defineProperty(eventWindow, "__TAURI_EVENT_PLUGIN_INTERNALS__", {
+      value: eventInternals,
+      configurable: true,
+    });
+  }
   const callbacks = new Map<number, (data: unknown) => void>();
   const listeners = new Map<string, number[]>();
 
@@ -80,5 +88,5 @@ export function mockIPC(
   tauri.unregisterCallback = unregisterCallback;
   tauri.runCallback = runCallback;
   tauri.callbacks = callbacks;
-  eventInternals.unregisterListener = unregisterCallback;
+  eventInternals.unregisterListener = (_event: string, eventId: number) => unregisterCallback(eventId);
 }

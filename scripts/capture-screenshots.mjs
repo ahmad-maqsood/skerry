@@ -136,11 +136,13 @@ async function main() {
         await captureScene(`messages&material=${material}`, part);
         themeParts.push(part);
       }
-      // PowerShell's -File argument binder does not reliably collect several following
-      // command-line values into a string[] parameter. Pass the paths as one JSON argument.
+      // Pass each theme image as its own named parameter. This avoids PowerShell
+      // array/JSON argument binding differences when launched from Node on Windows.
       runPowerShell([
         "-File", path.join(root, "scripts", "compose-screenshot-themes.ps1"),
-        "-InputPathsJson", JSON.stringify(themeParts),
+        "-ClassicPath", themeParts[0],
+        "-LiquidGlassPath", themeParts[1],
+        "-FrostedGlassPath", themeParts[2],
         "-OutputPath", target,
       ]);
     } else {

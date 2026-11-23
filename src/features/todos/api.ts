@@ -26,6 +26,23 @@ export function listTodoMarkdownFiles(directory: string) {
   return invoke<TodoMarkdownFileEntry[]>("list_todo_markdown_files", { directory });
 }
 
+// Corresponds to SavedNoteImage in src-tauri/src/system/todo_images.rs.
+export type SavedNoteImage = {
+  /** Where the note refers to it, relative to the markdown file: `assets/<name>`. */
+  relativePath: string;
+  filePath: string;
+};
+
+/** Saves an image pasted into the note (base64) next to the day's markdown file. */
+export function saveTodoNoteImage(directory: string, date: string, data: string) {
+  return invoke<SavedNoteImage>("save_todo_note_image", { directory, date, data });
+}
+
+/** A saved note image as a data URL. */
+export function readTodoNoteImage(directory: string, relativePath: string) {
+  return invoke<string>("read_todo_note_image", { directory, relativePath });
+}
+
 // Corresponds to TodoMarkdownSnapshot / ConditionalTodoSaveResult in src-tauri/src/system/todo_sync.rs.
 export type TodoMarkdownSnapshot = {
   filePath: string;

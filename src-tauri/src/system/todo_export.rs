@@ -11,8 +11,12 @@ pub struct SaveTodoMarkdownResult {
     pub(super) file_path: String,
 }
 
-/// The file a day is saved to: `<directory>/<date>.md`. The date becomes part of the
-/// file name, so it may only hold digits and dashes.
+/// A day's date goes into file names, so it may only hold digits and dashes.
+pub(super) fn is_todo_date(date: &str) -> bool {
+    !date.is_empty() && date.chars().all(|ch| ch.is_ascii_digit() || ch == '-')
+}
+
+/// The file a day is saved to: `<directory>/<date>.md`.
 fn todo_markdown_path(directory: &str, date: &str) -> Result<PathBuf, String> {
     let directory = directory.trim();
 
@@ -20,7 +24,7 @@ fn todo_markdown_path(directory: &str, date: &str) -> Result<PathBuf, String> {
         return Err("Todo save path is empty.".to_string());
     }
 
-    if date.is_empty() || !date.chars().all(|ch| ch.is_ascii_digit() || ch == '-') {
+    if !is_todo_date(date) {
         return Err("Todo date contains invalid filename characters.".to_string());
     }
 

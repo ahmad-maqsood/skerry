@@ -7,6 +7,7 @@ pub(crate) mod theme_file;
 pub(crate) mod startup;
 pub(crate) mod todo_export;
 pub(crate) mod todo_history;
+pub(crate) mod todo_images;
 pub(crate) mod todo_sync;
 pub(crate) mod updater;
 pub(crate) mod window_focus;
@@ -39,6 +40,8 @@ macro_rules! tauri_commands {
             crate::system::todo_export::save_todo_markdown,
             crate::system::todo_export::open_todo_markdown,
             crate::system::todo_history::list_todo_markdown_files,
+            crate::system::todo_images::save_todo_note_image,
+            crate::system::todo_images::read_todo_note_image,
             crate::system::todo_export::get_default_todo_save_directory,
             crate::system::todo_sync::read_todo_markdown,
             crate::system::todo_sync::save_todo_markdown_if_unchanged,

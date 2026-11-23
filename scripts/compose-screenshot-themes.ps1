@@ -1,21 +1,21 @@
 param(
-  [Parameter(Mandatory=$true)][string]$InputPathsJson,
+  [Parameter(Mandatory=$true)][string]$ClassicPath,
+  [Parameter(Mandatory=$true)][string]$LiquidGlassPath,
+  [Parameter(Mandatory=$true)][string]$FrostedGlassPath,
   [Parameter(Mandatory=$true)][string]$OutputPath
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
-# Receive the input paths as one JSON value so PowerShell's -File argument binder
-# cannot mistake the second and third paths for unexpected positional parameters.
-$Inputs = @(ConvertFrom-Json -InputObject $InputPathsJson)
-if ($Inputs.Count -ne 3) {
-  throw "Expected exactly three theme screenshot paths, received $($Inputs.Count)."
-}
+# Keep the three theme inputs explicit. This avoids array binding and JSON parsing
+# differences when this script is invoked through Node's spawnSync on Windows.
+$Inputs = @($ClassicPath, $LiquidGlassPath, $FrostedGlassPath)
 foreach ($inputPath in $Inputs) {
   if (-not (Test-Path -LiteralPath $inputPath -PathType Leaf)) {
     throw "Theme screenshot does not exist: $inputPath"
   }
 }
+
 $images = @($Inputs | ForEach-Object { [System.Drawing.Image]::FromFile($_) })
 try {
   $gap = 24; $labelHeight = 42; $cardWidth = 420
@@ -35,6 +35,8 @@ try {
       $g.DrawImage($images[$i], $x, $gap, $w, $h)
       $g.DrawString($labels[$i], $font, $brush, [single]$x, [single]($gap + $cardHeight + 8))
     }
+    $folder = Split-Path -Parent $OutputPath
+    if ($folder) { New-Item -ItemType Directory -Force -Path $folder | Out-Null }
     $canvas.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
-  } finally { $g.Dispose(); $canvas.Dispose() }
+  } finally { $g.Dispose(); $canvas.Dispose(); $font.Dispose(); $brush.Dispose() }
 } finally { $images | ForEach-Object { $_.Dispose() } }

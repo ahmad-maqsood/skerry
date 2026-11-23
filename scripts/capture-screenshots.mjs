@@ -1,20 +1,16 @@
-// Captures the documentation screenshots listed in docs/SCREENSHOTS.md, automatically.
+// Captures the actual Skerry Tauri desktop window on Windows.
+// The React screens are the production components; only OS-facing commands and user data are
+// replaced by the fictional fixtures in tests/screenshots/demoData.ts.
 //
-//   pnpm screenshots                    every shot, into docs/assets/screenshots/
-//   pnpm screenshots music settings     only the shots whose name contains a word
-//   pnpm screenshots --out=./out        another folder
-//   pnpm screenshots --scale=2          sharper images (device scale factor, default 1 = 100% DPI)
-//
-// Each shot is a scene of tests/screenshots/scene.tsx: the real island, clipboard or settings
-// window over mocked Windows APIs and fictional demo data, in headless Chrome or Edge. It reuses
-// the regression runner's Vite server and browser (scripts/run-regression.mjs), so it needs
-// nothing beyond `pnpm install`. Run it on Windows (CI does) so the text is drawn in Segoe UI.
-import { mkdirSync, statSync, writeFileSync } from "node:fs";
+//   pnpm screenshots
+//   pnpm screenshots music settings
+//   pnpm screenshots --out=./out
+import { spawn, spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, rmSync, statSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { withRegressionBrowser } from "./run-regression.mjs";
 
-/** The shot list. `file` names match the README and docs/SCREENSHOTS.md. */
 export const SHOTS = [
   { file: "screenshot-collapsed-clock.png", scene: "clock" },
   { file: "screenshot-collapsed-notification.png", scene: "notification" },
@@ -25,24 +21,11 @@ export const SHOTS = [
   { file: "screenshot-file-shelf.png", scene: "shelf" },
   { file: "screenshot-system.png", scene: "system" },
   { file: "screenshot-settings.png", scene: "settings" },
-  // Three materials of the same page, side by side; see captureThemes.
-  { file: "screenshot-themes.png", scene: "messages", themes: ["classic", "liquidGlass", "frostedGlass"] },
+  { file: "screenshot-themes.png", scene: "themes" },
 ];
 
-export const MAX_BYTES = 250 * 1024;
-const VIEWPORT = { width: 1280, height: 800 };
-const SCENE_TIMEOUT_MS = 30_000;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** The shots a command line asks for: all of them, or those whose name contains a given word. */
-export function selectShots(shots, words) {
-  if (words.length === 0) return shots;
-  const picked = shots.filter((shot) => words.some((word) => shot.file.includes(word) || shot.scene === word));
-  if (picked.length === 0) throw new Error(`No shot matches ${words.join(", ")}. Shots: ${shots.map((shot) => shot.scene).join(", ")}.`);
-  return picked;
-}
-
-/** "--name=value" arguments as an object, and the rest as plain words. */
 export function parseArgs(argv) {
   const options = {};
   const words = [];
@@ -55,105 +38,93 @@ export function parseArgs(argv) {
 }
 
 export function sceneUrl(base, shot, extra = {}) {
-  const query = new URLSearchParams({ scene: shot.scene, ...extra });
-  return `${base}../screenshots/scene.html?${query}`;
+  const url = new URL("../screenshots/scene.html", base);
+  url.search = new URLSearchParams({ scene: shot.scene, ...extra }).toString();
+  return url.toString();
+}
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const powershell = process.env.POWERSHELL_PATH ?? "powershell.exe";
+
+export function selectShots(shots, words) {
+  if (!words.length) return shots;
+  const selected = shots.filter((shot) => words.some((word) => shot.file.includes(word) || shot.scene === word));
+  if (!selected.length) throw new Error(`No shot matches ${words.join(", ")}. Shots: ${shots.map((shot) => shot.scene).join(", ")}.`);
+  return selected;
 }
 
-async function evaluate(session, expression) {
-  const { result, exceptionDetails } = await session.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
-  if (exceptionDetails) throw new Error(exceptionDetails.exception?.description ?? exceptionDetails.text);
-  return result?.value;
-}
-
-/** Opens a scene and waits until it has put the UI into its state; returns where to crop. */
-async function openScene(session, url, scale) {
-  await session.send("Emulation.setDeviceMetricsOverride", { ...VIEWPORT, deviceScaleFactor: scale, mobile: false });
-  await session.send("Page.navigate", { url });
-  const deadline = Date.now() + SCENE_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    await sleep(250);
-    const state = await evaluate(session, `JSON.stringify({ ready: document.documentElement.dataset.sceneReady ?? "", error: document.documentElement.dataset.sceneError ?? "", capture: document.documentElement.dataset.capture ?? "" })`).catch(() => "{}");
-    const { ready, error, capture } = JSON.parse(state || "{}");
-    if (error) throw new Error(`Scene failed: ${error}`);
-    if (ready && capture) return JSON.parse(capture);
-  }
-  throw new Error(`Scene did not get ready within ${SCENE_TIMEOUT_MS / 1000}s: ${url}`);
-}
-
-async function screenshot(session, clip) {
-  // Let the last animation frame finish and fonts settle before the picture is taken.
-  await evaluate(session, "document.fonts.ready.then(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))");
-  const { data } = await session.send("Page.captureScreenshot", {
-    format: "png",
-    clip: { x: Math.floor(clip.x), y: Math.floor(clip.y), width: Math.ceil(clip.width), height: Math.ceil(clip.height), scale: 1 },
-    captureBeyondViewport: false,
-    fromSurface: true,
+function runPowerShell(args) {
+  const result = spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", ...args], {
+    cwd: root, encoding: "utf8", timeout: 300_000, maxBuffer: 2 * 1024 * 1024,
   });
-  return Buffer.from(data, "base64");
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(result.stderr || result.stdout || `PowerShell exited with ${result.status}.`);
+  return result.stdout;
 }
 
-/**
- * The themes picture: the same page in each material, captured one after the other and laid out
- * side by side on one page, which is then captured again. No image library is needed.
- */
-async function captureThemes(session, base, shot, scale) {
-  const parts = [];
-  for (const material of shot.themes) {
-    const clip = await openScene(session, sceneUrl(base, shot, { material, wallpaper: "1" }), scale);
-    parts.push({ material, clip, png: (await screenshot(session, clip)).toString("base64") });
+async function captureScene(scene, output) {
+  const temp = mkdtempSync(path.join(os.tmpdir(), "skerry-native-shot-"));
+  const config = path.join(temp, "tauri.screenshot.json");
+  const [sceneName, ...extraParts] = scene.split("&");
+  const query = new URLSearchParams({ scene: sceneName });
+  for (const part of extraParts) {
+    const [key, value = ""] = part.split("=");
+    query.set(key, value);
   }
-  const gap = 24;
-  // Shown at 65% so the collage stays near the 250 KB the shot list asks for.
-  const shrink = 0.65;
-  const width = Math.round(Math.max(...parts.map((part) => part.clip.width)) * shrink);
-  const height = Math.round(Math.max(...parts.map((part) => part.clip.height)) * shrink) + 32;
-  const total = { width: parts.length * width + (parts.length + 1) * gap, height: height + 2 * gap };
-  await session.send("Emulation.setDeviceMetricsOverride", { width: total.width, height: total.height, deviceScaleFactor: scale, mobile: false });
-  await session.send("Page.navigate", { url: "about:blank" });
-  await sleep(300);
-  await evaluate(session, `(async () => {
-    document.body.style.cssText = "margin:0;display:flex;gap:${gap}px;padding:${gap}px;align-items:flex-start;background:#0f172a";
-    document.body.innerHTML = ${JSON.stringify(parts.map((part) => `<figure style="margin:0;font:600 13px 'Segoe UI',system-ui,sans-serif;color:#cbd5e1;text-align:center"><img style="display:block;width:${width}px;border-radius:14px" src="data:image/png;base64,${part.png}"><figcaption style="margin-top:10px">${{ classic: "Classic", liquidGlass: "Liquid Glass", frostedGlass: "Frosted Glass" }[part.material]}</figcaption></figure>`).join(""))};
-    await Promise.all([...document.images].map((image) => image.decode()));
-  })()`);
-  const bounds = await evaluate(session, "JSON.stringify({ width: document.body.scrollWidth, height: document.body.scrollHeight })");
-  return screenshot(session, { x: 0, y: 0, ...JSON.parse(bounds) });
-}
+  const url = `screenshot.html?${query}`;
+  const overlay = {
+    app: { windows: [{ label: "main", title: "Skerry", url, width: 1280, height: 800, center: true, visible: true, alwaysOnTop: true }] },
+  };
+  await import("node:fs/promises").then(({ writeFile }) => writeFile(config, JSON.stringify(overlay)));
 
-export async function captureAll({ root, out, words = [], scale = 1 }) {
-  const shots = selectShots(SHOTS, words);
-  mkdirSync(out, { recursive: true });
-  const written = [];
-  await withRegressionBrowser(root, "island-tour.html", async ({ session, base }) => {
-    for (const shot of shots) {
-      const started = Date.now();
-      const png = shot.themes
-        ? await captureThemes(session, base, shot, scale)
-        : await screenshot(session, await openScene(session, sceneUrl(base, shot), scale));
-      const target = path.join(out, shot.file);
-      writeFileSync(target, png);
-      const kilobytes = Math.round(statSync(target).size / 1024);
-      const note = statSync(target).size > MAX_BYTES ? `  (over ${MAX_BYTES / 1024} KB; optimize it, see docs/SCREENSHOTS.md)` : "";
-      console.log(`✓ ${shot.file}  ${kilobytes} KB, ${((Date.now() - started) / 1000).toFixed(1)}s${note}`);
-      written.push(target);
-    }
-  });
-  return written;
+  // Tauri dev launches the real Windows desktop window and its WebView2 runtime. The screenshot
+  // harness mounts the same production React components inside that native window (not Chrome).
+  const command = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "pnpm";
+  const args = process.platform === "win32"
+    ? ["/d", "/s", "/c", `pnpm tauri dev --config "${config}"`]
+    : ["tauri", "dev", "--config", config];
+  const app = spawn(command, args, { cwd: root, stdio: "ignore", windowsHide: true });
+  try {
+    await sleep(1_500);
+    const captureScript = path.join(root, "scripts", "capture-window.ps1");
+    runPowerShell(["-File", captureScript, "-WindowTitle", "Skerry", "-OutputPath", output, "-ReadyDelaySeconds", "10"]);
+    if (app.exitCode !== null && app.exitCode !== 0) throw new Error(`Tauri exited with code ${app.exitCode} while capturing ${scene}.`);
+  } finally {
+    if (app.pid && process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });
+    else app.kill("SIGTERM");
+    await sleep(700);
+    rmSync(temp, { recursive: true, force: true });
+  }
 }
 
 async function main() {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const { options, words } = parseArgs(process.argv.slice(2));
-  const scale = Number(options.scale ?? 1);
-  if (!(scale >= 1 && scale <= 4)) throw new Error(`--scale expects 1 to 4, got "${options.scale}".`);
-  const out = path.resolve(root, options.out ?? "docs/assets/screenshots");
-  const written = await captureAll({ root, out, words, scale });
-  console.log(`Captured ${written.length} screenshot${written.length === 1 ? "" : "s"} into ${path.relative(root, out) || "."}.`);
+  if (process.platform !== "win32") throw new Error("Native Skerry screenshots must run on Windows (GitHub Actions uses windows-latest).");
+  const argv = process.argv.slice(2);
+  const outArg = argv.find((arg) => arg.startsWith("--out="));
+  const words = argv.filter((arg) => !arg.startsWith("--"));
+  const out = path.resolve(root, outArg?.slice("--out=".length) ?? "docs/assets/screenshots");
+  mkdirSync(out, { recursive: true });
+  const shots = selectShots(SHOTS, words);
+  const themeParts = [];
+  for (const shot of shots) {
+    const target = path.join(out, shot.file);
+    const started = Date.now();
+    if (shot.scene === "themes") {
+      for (const material of ["classic", "liquidGlass", "frostedGlass"]) {
+        const part = path.join(os.tmpdir(), `skerry-theme-${material}.png`);
+        await captureScene(`messages&material=${material}`, part);
+        themeParts.push(part);
+      }
+      runPowerShell(["-File", path.join(root, "scripts", "compose-screenshot-themes.ps1"), "-Inputs", ...themeParts, "-OutputPath", target]);
+    } else {
+      await captureScene(shot.scene, target);
+    }
+    const size = Math.round(statSync(target).size / 1024);
+    console.log(`✓ ${shot.file}  ${size} KB  ${((Date.now() - started) / 1000).toFixed(1)}s`);
+  }
+  for (const part of themeParts) rmSync(part, { force: true });
+  console.log(`Captured ${shots.length} screenshot(s) from the native Skerry window into ${path.relative(root, out)}.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().then(() => process.exit(0), (error) => {
-    console.error(error instanceof Error ? error.message : error);
-    process.exit(1);
-  });
+  main().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; });
 }

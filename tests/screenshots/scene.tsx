@@ -74,7 +74,7 @@ if (todosScene) {
   localStorage.setItem("skerry-todo-durations", JSON.stringify({ t2: 25 }));
 }
 
-Object.assign(globalThis, { isTauri: true });
+// mockIPC/mockWindows provide the Tauri test environment; isTauri is read-only.
 const root = createRoot(document.getElementById("root")!);
 const element = (selector: string) => {
   const found = document.querySelector<HTMLElement>(selector);

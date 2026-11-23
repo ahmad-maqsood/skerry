@@ -28,12 +28,18 @@ if (-not [NativeShot]::GetWindowRect($target.MainWindowHandle, [ref]$rect)) { th
 $width = $rect.Right - $rect.Left
 $height = $rect.Bottom - $rect.Top
 if ($width -lt 300 -or $height -lt 200) { throw "Unexpected Skerry window size: ${width}x${height}." }
-$bitmap = New-Object System.Drawing.Bitmap($width, $height)
+$cropX = 0; $cropY = 0; $cropWidth = $width; $cropHeight = $height
+# Main island window is deliberately wider than the pill; trim desktop-like empty margins.
+if ($width -ge 1200 -and $height -ge 750) {
+  $cropWidth = 1000; $cropHeight = [Math]::Min(650, $height)
+  $cropX = [int](($width - $cropWidth) / 2)
+}
+$bitmap = New-Object System.Drawing.Bitmap($cropWidth, $cropHeight)
 $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
 try {
-  $graphics.CopyFromScreen($rect.Left, $rect.Top, 0, 0, $bitmap.Size)
+  $graphics.CopyFromScreen(($rect.Left + $cropX), ($rect.Top + $cropY), 0, 0, $bitmap.Size)
   $folder = Split-Path -Parent $OutputPath
   if ($folder) { New-Item -ItemType Directory -Force -Path $folder | Out-Null }
   $bitmap.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
 } finally { $graphics.Dispose(); $bitmap.Dispose() }
-Write-Output "Captured native window '$WindowTitle' ($width x $height) to $OutputPath"
+Write-Output "Captured native window '$WindowTitle' ($cropWidth x $cropHeight) to $OutputPath"

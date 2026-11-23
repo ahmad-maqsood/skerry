@@ -25,6 +25,23 @@ export const SHOTS = [
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export function parseArgs(argv) {
+  const options = {};
+  const words = [];
+  for (const arg of argv) {
+    const match = /^--([a-z-]+)=(.*)$/.exec(arg);
+    if (match) options[match[1]] = match[2];
+    else if (!arg.startsWith("--")) words.push(arg);
+  }
+  return { options, words };
+}
+
+export function sceneUrl(base, shot, extra = {}) {
+  const url = new URL("../screenshots/scene.html", base);
+  url.search = new URLSearchParams({ scene: shot.scene, ...extra }).toString();
+  return url.toString();
+}
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const powershell = process.env.POWERSHELL_PATH ?? "powershell.exe";
 
@@ -37,7 +54,7 @@ export function selectShots(shots, words) {
 
 function runPowerShell(args) {
   const result = spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", ...args], {
-    cwd: root, encoding: "utf8", timeout: 150_000, maxBuffer: 2 * 1024 * 1024,
+    cwd: root, encoding: "utf8", timeout: 300_000, maxBuffer: 2 * 1024 * 1024,
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || `PowerShell exited with ${result.status}.`);
@@ -47,7 +64,13 @@ function runPowerShell(args) {
 async function captureScene(scene, output) {
   const temp = mkdtempSync(path.join(os.tmpdir(), "skerry-native-shot-"));
   const config = path.join(temp, "tauri.screenshot.json");
-  const url = `screenshot.html?scene=${encodeURIComponent(scene)}`;
+  const [sceneName, ...extraParts] = scene.split("&");
+  const query = new URLSearchParams({ scene: sceneName });
+  for (const part of extraParts) {
+    const [key, value = ""] = part.split("=");
+    query.set(key, value);
+  }
+  const url = `screenshot.html?${query}`;
   const overlay = {
     app: { windows: [{ label: "main", title: "Skerry", url, width: 1280, height: 800, center: true, visible: true, alwaysOnTop: true }] },
   };

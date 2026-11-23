@@ -12,12 +12,19 @@ import {
 } from "./quickControls.ts";
 
 /**
+ * The last readings, kept across the System page closing and opening again. The brightness read is
+ * a PowerShell call, so without these the sliders vanished on every visit and popped back in later.
+ */
+const lastKnown: { volume: number | null; brightness: number | null } = { volume: null, brightness: null };
+
+/**
  * The system volume and the built-in display's brightness as slider percentages. A value is null
- * until it has been read, and stays null where it cannot be (no audio output, no laptop panel).
+ * until it has been read for the first time, and stays null where it cannot be (no audio output, no
+ * laptop panel); after that the last reading shows at once while a fresh one is fetched.
  */
 export function useQuickControls() {
-  const [volume, setVolume] = useState<number | null>(null);
-  const [brightness, setBrightnessState] = useState<number | null>(null);
+  const [volume, setVolumeState] = useState<number | null>(lastKnown.volume);
+  const [brightness, setBrightnessState] = useState<number | null>(lastKnown.brightness);
 
   const volumeRunner = useMemo(() => createLatestRunner((percent) => setSystemVolume(percentToVolume(percent)), VOLUME_DELAY_MS), []);
   const brightnessRunner = useMemo(() => createLatestRunner((percent) => setBrightness(percent), BRIGHTNESS_DELAY_MS), []);
@@ -26,12 +33,16 @@ export function useQuickControls() {
     let cancelled = false;
     void getSystemVolume()
       .then((level) => {
-        if (!cancelled) setVolume(volumeToPercent(level));
+        if (cancelled) return;
+        lastKnown.volume = volumeToPercent(level);
+        setVolumeState(lastKnown.volume);
       })
       .catch(() => {});
     void getBrightness()
       .then((reading) => {
-        if (!cancelled) setBrightnessState(brightnessToPercent(reading));
+        if (cancelled) return;
+        lastKnown.brightness = brightnessToPercent(reading);
+        setBrightnessState(lastKnown.brightness);
       })
       .catch(() => {});
     return () => {
@@ -45,7 +56,8 @@ export function useQuickControls() {
   const changeVolume = useCallback(
     (percent: number) => {
       const next = clampPercent(percent);
-      setVolume(next);
+      lastKnown.volume = next;
+      setVolumeState(next);
       volumeRunner.push(next);
     },
     [volumeRunner],
@@ -54,6 +66,7 @@ export function useQuickControls() {
   const changeBrightness = useCallback(
     (percent: number) => {
       const next = clampPercent(percent, MIN_BRIGHTNESS_PERCENT);
+      lastKnown.brightness = next;
       setBrightnessState(next);
       brightnessRunner.push(next);
     },

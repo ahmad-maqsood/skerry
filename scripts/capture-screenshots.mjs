@@ -6,6 +6,8 @@
 //   pnpm screenshots music settings
 //   pnpm screenshots --out=./out
 import { spawn, spawnSync } from "node:child_process";
+import { createServer } from "node:http";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync, mkdirSync, rmSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -61,6 +63,53 @@ function runPowerShell(args) {
   return result.stdout;
 }
 
+function createSceneSignalServer(token) {
+  let resolveSignal;
+  let rejectSignal;
+  const signal = new Promise((resolve, reject) => {
+    resolveSignal = resolve;
+    rejectSignal = reject;
+  });
+  const server = createServer((request, response) => {
+    const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Private-Network", "true");
+    response.writeHead(204);
+    response.end();
+    if (url.pathname !== "/scene-signal" || url.searchParams.get("token") !== token) return;
+    if (url.searchParams.get("status") === "ready") resolveSignal();
+    if (url.searchParams.get("status") === "error") {
+      rejectSignal(new Error(`Screenshot scene failed to render: ${url.searchParams.get("message") ?? "Unknown scene error"}`));
+    }
+  });
+  const listening = new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  return {
+    async start() {
+      await listening;
+      return server.address().port;
+    },
+    async wait(timeoutMs = 90_000) {
+      let timer;
+      try {
+        await Promise.race([
+          signal,
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(`Screenshot scene did not report ready within ${timeoutMs / 1000} seconds. The WebView may have failed to load tests/screenshots/scene.html or its React entry point.`)), timeoutMs);
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+    close() {
+      server.close();
+    },
+  };
+}
+
 async function captureScene(scene, output) {
   const temp = mkdtempSync(path.join(os.tmpdir(), "skerry-native-shot-"));
   const config = path.join(temp, "tauri.screenshot.json");
@@ -70,7 +119,13 @@ async function captureScene(scene, output) {
     const [key, value = ""] = part.split("=");
     query.set(key, value);
   }
-  const url = `screenshot.html?${query}`;
+  const captureToken = randomUUID();
+  const signalServer = createSceneSignalServer(captureToken);
+  const capturePort = await signalServer.start();
+  query.set("capturePort", String(capturePort));
+  query.set("captureToken", captureToken);
+  // Use the maintained screenshot scene page (not the stale root-level screenshot.html).
+  const url = `tests/screenshots/scene.html?${query}`;
   const overlay = {
     app: { windows: [{ label: "main", title: "Skerry", url, width: 1280, height: 800, center: true, visible: true, alwaysOnTop: true }] },
   };
@@ -99,16 +154,23 @@ async function captureScene(scene, output) {
     if (app.exitCode !== null) {
       throw new Error(`Tauri launcher exited before the window appeared (exit code ${app.exitCode}) while capturing ${scene}.`);
     }
+
+    // Do not capture a native window just because it exists. Wait until the screenshot page has
+    // mounted the requested React scene and completed its scripted interactions.
+    await signalServer.wait();
+    console.log(`✓ Scene "${sceneName}" rendered and reported ready.`);
+
     const captureScript = path.join(root, "scripts", "capture-window.ps1");
     runPowerShell([
       "-File", captureScript,
       "-WindowTitle", "Skerry",
       "-OutputPath", output,
-      "-ReadyDelaySeconds", "10",
-      "-TimeoutSeconds", "600",
+      "-ReadyDelaySeconds", "2",
+      "-TimeoutSeconds", "60",
       "-LauncherProcessId", String(app.pid),
     ]);
   } finally {
+    signalServer.close();
     if (app.pid && app.exitCode === null) {
       if (process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });
       else app.kill("SIGTERM");

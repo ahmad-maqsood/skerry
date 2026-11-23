@@ -18,6 +18,7 @@ import { TodoCountdown } from "../../features/todos/TodoCountdown";
 import { useUpdatePending } from "../../features/updater/useUpdatePending";
 import { isTodoTimerEndingSoon, type TodoTimer } from "../../features/todos/timer";
 import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoContent";
+import { isCollapsedFocused, visibleCollapsedSlots } from "./collapsedFocus.ts";
 import type { IslandPage } from "./types";
 import { useWindowDragGesture } from "./useWindowDragGesture";
 import "./IslandCollapsedBar.css";
@@ -107,6 +108,14 @@ export function IslandCollapsedBar({
         drag={{ onPointerDown: prepareWindowDrag, onPointerMove: handleWindowDragMove, onPointerUp: cancelWindowDrag, onPointerCancel: cancelWindowDrag }} />
     </div>
   );
+
+  // An alert (notification, new song, reminder) gets the whole bar: only the text and minimize stay.
+  const focused = !isExpanded && !isTucked && isCollapsedFocused({
+    hasPreview: preview !== null,
+    todoTimer,
+    showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
+    layout: collapsedLayout,
+  });
 
   // The text and the status icons, placed in the order Settings → Appearance arranged.
   const slots: Record<CollapsedSlot, ReactNode> = {
@@ -229,8 +238,8 @@ export function IslandCollapsedBar({
         }
       }}
     >
-      {collapsedLayout.map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
-      {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot. */}
+      {visibleCollapsedSlots(collapsedLayout, focused).map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
+      {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot, and it stays during an alert. */}
       <PrivacyIndicator active={!isExpanded && !isTucked} />
       {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}
       <button

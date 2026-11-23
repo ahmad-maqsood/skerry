@@ -1,5 +1,5 @@
 import type { PointerEventHandler } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { Minus } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import { MessageSourceIcon } from "./MessageSourceIcon";
 import { noticeText, type MessagePreview } from "./messagePreview";
@@ -16,12 +16,15 @@ export function MessageNoticeReader({
   preview,
   scrolls,
   drag,
-  onOpen,
+  minimizeLabel,
+  onMinimize,
 }: {
   preview: MessagePreview;
   scrolls: boolean;
   drag: DragHandlers;
-  onOpen: () => void;
+  /** Names the minimize button: it tucks the island to the tray or the top edge, per the user's setting. */
+  minimizeLabel: string;
+  onMinimize: () => void;
 }) {
   const t = useTranslation();
   const { sender, body } = noticeText(preview, t.messages);
@@ -40,17 +43,17 @@ export function MessageNoticeReader({
         </span>
         <strong className="message-notice__sender">{sender}</strong>
         <button
-          className="message-notice__open"
+          className="message-notice__minimize"
           type="button"
-          aria-label={t.messages.noticeOpen(appName)}
-          title={t.messages.noticeOpen(appName)}
+          aria-label={minimizeLabel}
+          title={minimizeLabel}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => {
             event.stopPropagation();
-            onOpen();
+            onMinimize();
           }}
         >
-          <ArrowUpRight size={14} strokeWidth={1.8} aria-hidden="true" />
+          <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
         </button>
       </div>
       <div

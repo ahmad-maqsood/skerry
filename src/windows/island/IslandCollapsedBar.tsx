@@ -104,7 +104,8 @@ export function IslandCollapsedBar({
 
   if (noticeReader && preview && !isExpanded && !isTucked) return (
     <div className="island__collapsed island__collapsed--notice">
-      <MessageNoticeReader preview={preview} scrolls={noticeReader.scrolls} onOpen={() => openPreview(preview)}
+      <MessageNoticeReader preview={preview} scrolls={noticeReader.scrolls} onMinimize={onMinimize}
+        minimizeLabel={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
         drag={{ onPointerDown: prepareWindowDrag, onPointerMove: handleWindowDragMove, onPointerUp: cancelWindowDrag, onPointerCancel: cancelWindowDrag }} />
     </div>
   );

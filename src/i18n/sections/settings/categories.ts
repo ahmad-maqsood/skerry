@@ -32,7 +32,7 @@ export const en: SettingsCategoriesText = {
   general: "General",
   appearance: "Appearance",
   shortcuts: "Shortcuts",
-  messages: "Messages",
+  messages: "Notifications",
   mail: "Mail",
   todos: "Todos",
   music: "Music",

@@ -37,8 +37,6 @@
 
 ---
 
----
-
 > **Project origin and modification notice — 2026-11-22:** Skerry is a modified version of [Fly Island](https://github.com/flyl1u/fly-island), originally created by **flyl1u** and licensed under GPL-3.0. Skerry has been redesigned and extended, and is maintained as a separate project. It is not an official continuation of, or endorsed by, the upstream project.
 
 ## Overview
@@ -61,7 +59,8 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 - **Today's To-Dos and Focus Timer**: Fast daily task management, Markdown file sync, and built-in Pomodoro timers.
 - **Searchable Clipboard History**: Standalone hotkey-activated window (`Ctrl + Shift + W` by default, changeable in Settings) storing text, images, and file paths in a local history file.
 - **Drag-and-Drop File Shelf**: Temporary staging area to drop files on the island and drag them into destination windows.
-- **Live PC Health**: Real-time CPU usage with sparklines, memory consumption, disk storage, and network speed cards on the island.
+- **Live PC Health**: Real-time CPU usage with sparklines, memory consumption, disk storage, and network speed cards on the island, plus volume and (on laptops) brightness sliders at the top of the System page.
+- **Microphone and Camera Indicator**: A small dot on the collapsed island while an app is using the microphone or camera (on by default, switchable under Settings -> System).
 - **Instant Translation**: Dedicated fast translation window (`Ctrl + Shift + F`) supporting free providers and custom OpenAI-compatible endpoints.
 - **Fluid Visual Styles**: Refined Classic, Liquid Glass, and Frosted Glass materials with adaptive dark and light themes.
 
@@ -101,7 +100,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 <!-- screenshot-todos.png and screenshot-clipboard.png placeholders -->
 | To-Dos and Focus Timer | Searchable Clipboard History |
 | :---: | :---: |
-| <img src="docs/assets/screenshots/screenshot-todos.png" alt="To-dos and focus timer" width="460"><br><b>Tasks &amp; Focus</b>: Daily checklist with timers and local Markdown sync. | <img src="docs/assets/screenshots/screenshot-clipboard.png" alt="Independent clipboard history window" width="460"><br><b>Clipboard Window</b>: Hotkey-driven (`Ctrl+Shift+V`) SQLite history with search and favorites. |
+| <img src="docs/assets/screenshots/screenshot-todos.png" alt="To-dos and focus timer" width="460"><br><b>Tasks &amp; Focus</b>: Daily checklist with timers and local Markdown sync. | <img src="docs/assets/screenshots/screenshot-clipboard.png" alt="Independent clipboard history window" width="460"><br><b>Clipboard Window</b>: Hotkey-driven (`Ctrl+Shift+W` by default) history with search, favorites, and type filters. |
 
 <!-- screenshot-file-shelf.png and screenshot-system.png placeholders -->
 | Drag-and-Drop File Shelf | Live PC Health Monitor |
@@ -221,7 +220,12 @@ Each published GitHub Release page also provides GitHub-generated source archive
 
 - **Quick Translation**
   - **Instant Hotkey**: Press `Ctrl + Shift + F` to open a lightweight translation card.
-  - **Flexible Providers**: Built-in free translation engine with support for custom OpenAI-compatible API endpoints.
+  - **Flexible Providers**: Keyless Google Translate and MyMemory, plus OpenAI and custom OpenAI-compatible API endpoints (keys are kept in Windows Credential Manager).
+
+- **Privacy, Backup and Extensibility**
+  - **Mic and Camera Indicator**: Reads the Windows privacy consent store, locally and read-only.
+  - **Backup and Transfer**: Export and import your settings (clipboard history only if you opt in) from Settings -> General.
+  - **Plugin Host**: A stdio plugin API (Plugin API v1) for quota, session and notification plugins. It ships switched off; see [docs/plugins/README.md](docs/plugins/README.md).
 
 ---
 
@@ -248,13 +252,15 @@ flowchart TD
     MediaService["Media & Lyrics Controller"]
     ClipService["Clipboard History Store"]
     ShelfService["File Shelf Service"]
+    IslandService["Island Window Service (geometry, glass capture)"]
     UpdaterService["Signed Update Validator"]
   end
 
   subgraph WindowsOS ["Windows Operating System APIs"]
     WinRTToast["WinRT UserNotificationListener"]
     WinRTGSMTC["WinRT Media Transport (GSMTC)"]
-    Win32DWM["Win32 DWM & Mica/Acrylic Window Vibrancy"]
+    Win32DWM["Win32 Desktop Duplication & DWM (glass blur, title bar)"]
+    GitHubReleases["GitHub Releases (latest.json)"]
     WinCred["Windows Credential Manager"]
     HistoryFile["Local History File (clipboard-history.json)"]
   end
@@ -271,7 +277,8 @@ flowchart TD
   NotifService --> WinRTToast
   MediaService --> WinRTGSMTC
   ClipService --> HistoryFile
-  UpdaterService --> Win32DWM
+  IslandService --> Win32DWM
+  UpdaterService --> GitHubReleases
 ```
 
 ### Technology Stack
@@ -279,30 +286,37 @@ flowchart TD
 | Layer | Technologies | Role |
 | --- | --- | --- |
 | **Frontend Framework** | React 19, TypeScript (Strict), Vite 7 | Fast reactive UI, zero bundle bloat |
-| **Desktop Shell** | Tauri 2 (`@tauri-apps/api`, updater, opener) | Native window management and secure IPC |
+| **Desktop Shell** | Tauri 2 (`@tauri-apps/api`, updater, opener, single-instance) | Native window management and secure IPC |
 | **Native Backend** | Rust 2021, `windows` crate (Win32 &amp; WinRT) | System integrations, low memory footprint |
 | **Local Storage** | JSON history file plus image cache | Clipboard history kept on this PC |
-| **UI Components** | Lucide React, DOMPurify | Consistent icon set, safe content sanitization |
+| **UI Components** | Lucide React | Consistent icon set |
 
 ### Project Directory Structure
 
 ```text
 .
-├── src/                      # React 19 frontend codebase
+├── src/                      # React 19 frontend codebase (rules in src/AGENTS.md)
 │   ├── components/           # Reusable UI widgets and settings rows
-│   ├── features/             # Domain modules (messages, media, todos, system, etc.)
-│   ├── i18n/                 # Localization and internationalization strings
-│   └── styles/               # Glassmorphism, animations, and theme CSS
-├── src-tauri/                # Rust desktop backend
-│   ├── src/                  # Native commands, background monitors, and system APIs
-│   │   ├── system/           # Startup, updater, and system configuration
-│   │   ├── win32/            # Isolated unsafe Win32 hooks and window styling
-│   │   └── system_notifications/ # Generic WinRT toast notification listener
+│   ├── features/             # Domain modules (todos, media, clipboard, file-shelf, messages, system-monitor, plugins, ...)
+│   ├── windows/              # One directory per window: island, settings, clipboard, translation
+│   ├── i18n/                 # UI strings, organised by section
+│   └── styles/               # Design tokens, base styles, fonts
+├── src-tauri/                # Rust desktop backend (rules in src-tauri/AGENTS.md)
+│   ├── src/                  # Native commands, background services, and system APIs
+│   │   ├── island/           # Main window geometry, tucking, glass capture, click-through
+│   │   ├── system/           # Startup, updater, todo Markdown sync, fullscreen detection
+│   │   ├── system_notifications/ # Generic WinRT toast notification listener
+│   │   ├── plugin_host/      # Plugin API v1 host (manifest, protocol, packages, processes)
+│   │   └── win32/            # The only place with unsafe Win32 / COM code
 │   ├── capabilities/         # Tauri security permission definitions
 │   └── tauri.conf.json       # App configuration, window descriptors, and updater endpoint
-├── scripts/                  # Release automation, size checks, and regression scripts
-├── tests/                    # Frontend unit tests and browser regression suites
-├── docs/                     # Specialized architecture guides and screenshot shot list
+├── plugins/                  # Example plugin crates and the plugin SDK (separate Cargo workspace)
+├── scripts/                  # Release automation, size checks, screenshots, and regression runner
+├── tests/                    # Unit tests, script tests, browser regression pages, screenshot scenes
+├── docs/                     # Architecture, design notes, updater/release guide, plugin guide, screenshot shot list
+├── .github/workflows/        # CI, Release, and Screenshots workflows
+├── release-features.json     # Release feature flags shared by the frontend and Rust
+├── AGENTS.md / DESIGN.md     # Contributor and AI-agent rules; confirmed UI design conventions
 ├── SECURITY.md               # Vulnerability reporting process
 ├── NOTICE.md                 # Open source attribution and credits
 └── LICENSE                   # GNU General Public License v3.0
@@ -314,11 +328,13 @@ flowchart TD
 
 Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a run takes as long as its slowest job:
 
-- **Continuous Integration (`.github/workflows/ci.yml`)**, on every push to `main` (and on a manual run from any branch):
+- **Continuous Integration (`.github/workflows/ci.yml`)**, on every push to `main`, on every pull request, and on a manual run from any branch (changes that only touch Markdown, `docs/` or issue templates skip it):
   - **Frontend checks** (`ubuntu-latest`): `pnpm check` (type check, test type check, ESLint, file size limits, Node unit tests) and a production Vite build.
   - **Browser pages** (`windows-latest`, three shards): the headless Chrome regression pages, which need Windows fonts, split across three runners with `scripts/run-regression.mjs --shard=i/3`.
-  - **Clippy** and **Rust tests** (`windows-latest`, one job each): `cargo clippy --all-targets -D warnings` and `cargo test --lib` for the app and the plugins, each with its own Rust cache.
+  - **Clippy** and **Rust tests** (`windows-latest`, one job each): `cargo clippy --all-targets -- -D warnings` for the app and the plugin workspace, and `cargo test --lib` for the app plus `cargo test --workspace` for the plugins, each with its own Rust cache.
   - **Gate Check**: a lightweight `CI passed` status check that needs all of the above, for branch protection.
+
+- **Screenshots (`.github/workflows/screenshots.yml`)**: re-captures the README screenshots on a Windows runner when the UI changes on `main`, and commits them if they changed; see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
 
 - **Releases (`.github/workflows/release.yml`)**, started by hand with **Run workflow**:
   - **Publish unticked**: a quick trial that builds and signs only the NSIS installer and attaches it to the run.
@@ -335,12 +351,20 @@ Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a r
 | **Notification Listener** | Captures incoming toast alerts to display on the island. | In-memory only; cleared upon quitting the application. |
 | **Clipboard History** | Stores copied text, images, and file paths when enabled. | The app data folder (`clipboard-history.json` and a `clipboard-images` folder). Stored unencrypted. |
 | **API Keys &amp; Secrets** | Optional custom translation API keys and credentials. | Windows Credential Manager (OS-level secure vault). |
-| **Network Requests** | Limited strictly to: in-app update checks (`github.com`), weather forecast queries (`open-meteo.com`), lyrics queries (`lrclib.net`), and user-initiated translation. | No external analytics or tracking servers are ever contacted. |
+| **Network Requests** | Limited strictly to: in-app update checks (`github.com`), weather forecast queries (`open-meteo.com`), lyrics queries (`lrclib.net`), user-initiated translation, and the plugin catalog and package downloads (`github.com`) when the plugin host is switched on. | No external analytics or tracking servers are ever contacted. |
 
 ### Known Limitations
 
 - **VS Code In-Editor Notifications**: Notifications rendered internally inside VS Code editors do not generate Windows toast notifications and therefore cannot be captured by the OS notification listener.
 - **Full-Screen Exclusive Games**: Skerry automatically respects full-screen exclusive applications and suppresses idle installations during active gaming sessions.
+
+---
+
+## Contributing
+
+- Contributor and AI-agent rules: [AGENTS.md](AGENTS.md) (with [src/AGENTS.md](src/AGENTS.md) and [src-tauri/AGENTS.md](src-tauri/AGENTS.md)); UI conventions: [DESIGN.md](DESIGN.md).
+- Run `pnpm check` (and `cargo test --manifest-path src-tauri/Cargo.toml` for Rust changes) before opening a pull request.
+- Plugin authors: see the [Plugin Development Guide](docs/plugins/README.md).
 
 ---
 

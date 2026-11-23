@@ -79,7 +79,7 @@ pnpm dlx sharp-cli -i input.png -o docs/assets/screenshots/screenshot-name.png -
 
 ### 4. Music Player with Synced Lyrics
 - **File Name**: `screenshot-music.png`
-- **Window / State**: Main window, expanded state, Media tab selected.
+- **Window / State**: Main window, expanded state, Music tab selected.
 - **What to Show**: Album art cover, playback timeline progress bar, transport controls (play/pause, track skip), and live synced lyrics highlighting the current verse.
 - **Demo Data**:
   - Track: `Midnight Horizon`
@@ -99,7 +99,7 @@ pnpm dlx sharp-cli -i input.png -o docs/assets/screenshots/screenshot-name.png -
 
 ### 6. Clipboard History Window
 - **File Name**: `screenshot-clipboard.png`
-- **Window / State**: Independent Clipboard window (`?window=clipboard`), invoked via `Ctrl + Shift + V`.
+- **Window / State**: Independent Clipboard window (`?window=clipboard`), invoked via `Ctrl + Shift + W` (the default clipboard shortcut).
 - **What to Show**: Search input box at the top, list of text entries, JSON code snippets, and favorited items marked with a star.
 - **Demo Data**:
   - Entry 1 (Pinned): `https://github.com/ahmad-maqsood/skerry/releases`
@@ -129,7 +129,7 @@ pnpm dlx sharp-cli -i input.png -o docs/assets/screenshots/screenshot-name.png -
 ### 9. Settings Window
 - **File Name**: `screenshot-settings.png`
 - **Window / State**: Standalone Settings window (`?window=settings`).
-- **What to Show**: Clean sidebar navigation (Appearance, Behaviors, Notifications, Media, System, About) with modern toggle switches and sliders.
+- **What to Show**: Clean sidebar navigation (General, Appearance, Todos, Music, Translation, Clipboard & files, Notifications, System, Plugins, About) with modern toggle switches and sliders.
 
 ### 10. Appearance Themes Collage
 - **File Name**: `screenshot-themes.png`

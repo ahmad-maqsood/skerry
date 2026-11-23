@@ -10,7 +10,7 @@ Subdirectory rules are more specific than this file. In case of conflict, subdir
 
 ## Project Overview
 
-**Skerry** (repository name and installer package name `skerry`) is a Windows-first desktop productivity tool running as a transparent, borderless, always-on-top Tauri floating island. Core features include: todos, daily notes and archiving, appearance settings and presets, media controls, clipboard history, quick translation, system notifications, AI agent status, and automatic updates.
+**Skerry** (repository name and installer package name `skerry`) is a Windows-first desktop productivity tool running as a transparent, borderless, always-on-top Tauri floating island. Core features include: todos, daily notes and archiving, appearance settings and presets, media controls, clipboard history, file shelf, quick translation, system notifications, system monitor, configuration backup / transfer, a plugin host (switched off in releases), and automatic updates.
 
 The application has four windows, dispatched on the frontend via the `?window=` parameter at the single entry point:
 
@@ -25,10 +25,10 @@ Code is organized according to the target structure: Rust-side `unsafe` blocks o
 
 ## Tech Stack
 
-- Frontend: React 19, TypeScript (strict), Vite 7, icons via lucide-react, HTML sanitization via dompurify
+- Frontend: React 19, TypeScript (strict), Vite 7, icons via lucide-react
 - Desktop Shell: Tauri 2 (opener, updater, single-instance plugins)
 - Native Capabilities: Rust 2021, `windows` crate (Win32 / WinRT)
-- Package Manager: pnpm; frontend unit tests use Node built-in `node:test`
+- Package Manager: pnpm 11; frontend unit tests use Node built-in `node:test`
 
 ## Directory Map
 
@@ -40,9 +40,12 @@ Code is organized according to the target structure: Rust-side `unsafe` blocks o
 │   ├── capabilities/    # Tauri permission capability configs
 │   ├── nsis/            # NSIS installer hooks
 │   └── tauri.conf.json  # Window, updater, and packaging configurations
-├── tests/               # unit/ frontend unit tests, scripts/ script tests; regression/ browser regression pages
-├── scripts/             # release/ packaging, signing, and latest.json generation; root scripts
-├── docs/                # Specialized documentation, architecture/, design/
+├── plugins/             # Plugin API v1: sdk/ and example plugin crates (separate Cargo workspace, not part of src-tauri)
+├── tests/               # unit/ frontend unit tests, scripts/ script tests; regression/ browser regression pages; screenshots/ screenshot scenes
+├── scripts/             # release/ packaging, signing, and latest.json generation; root scripts (regression runner, screenshots, size check)
+├── docs/                # Specialized documentation: architecture/, design/, plugins/, updater.md, SCREENSHOTS.md
+├── .github/workflows/   # ci.yml, release.yml, screenshots.yml
+├── release-features.json # Release feature flags shared by the frontend and Rust (currently only `plugins`)
 ├── DESIGN.md            # Confirmed UI design conventions
 └── README.md            # Project documentation
 ```
@@ -61,7 +64,10 @@ Code is organized according to the target structure: Rust-side `unsafe` blocks o
 | Regression test typecheck | `pnpm check:tests-types` |
 | Browser regression tests | `pnpm test:regression [filter keyword]` |
 | Pre-commit check | `pnpm check` |
-| Rust unit tests | `cargo test --manifest-path src-tauri/Cargo.toml` |
+| Rust unit tests | `cargo test --manifest-path src-tauri/Cargo.toml` (CI runs `--lib`) |
+| Rust lints | `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings` |
+| Plugin crates | `cargo test --manifest-path plugins/Cargo.toml --workspace` (and the same for clippy) |
+| Refresh README screenshots | `pnpm screenshots` (see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)) |
 | Generate release binary only | `pnpm tauri build --no-bundle` |
 | Full package build | `pnpm tauri build` |
 | Release | `pnpm release` |
@@ -77,7 +83,7 @@ Upper limit on physical line count per file:
 | `.rs` | 800 lines (excluding inline test modules) |
 | `.ps1` / `.cmd` | 400 lines |
 
-- `pnpm check:size` (`scripts/check-file-size.mjs`) checks these rules.
+- `pnpm check:size` (`scripts/check-file-size.mjs`) checks these rules. i18n dictionaries (`src/i18n/`) and extracted Rust `tests.rs` files are exempt; files already over a limit may only be listed in `scripts/file-size-allowlist.json` and may only shrink.
 - Each file serves a single responsibility.
 
 ## External Contracts
@@ -87,7 +93,7 @@ The following identifiers are referenced by existing user data, configurations, 
 - `localStorage` keys (`skerry-*`, full list in [contracts.md](docs/architecture/contracts.md))
 - Tauri command names (Rust function names), parameter names, and event names
 - Window labels (`main` / `translation` / `settings` / `clipboard`) and `?window=` parameter values
-- App identifier `com.ahmad-maqsood.skerry` and startup registry value `Skerry`
+- App identifier `com.ahmad-maqsood.skerry`, startup registry value `Skerry`, and Credential Manager service names `skerry.translation` / `skerry.plugins`
 - Update endpoints and `latest.json` format
 
 ## General Development Conventions
@@ -106,3 +112,4 @@ The following identifiers are referenced by existing user data, configurations, 
 | Frontend logic, styles, dependencies, or scripts | `pnpm check` + `pnpm build` |
 | Rust, Tauri commands, windows, tray, registry, Windows API | `cargo test --manifest-path src-tauri/Cargo.toml` + `pnpm tauri build --no-bundle` |
 | Release-related | Complete `pnpm tauri build` |
+| Plugin crates or `plugin_host/` | `cargo test --manifest-path plugins/Cargo.toml --workspace` + the Rust row above |

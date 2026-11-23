@@ -1,6 +1,6 @@
 # Frontend Rules (src/)
 
-Applies to all files under `src/`, supplementing the root [AGENTS.md](../AGENTS.md) with frontend-specific details. For mappings of files moved from legacy locations to new locations, see [docs/architecture/migration-map.md](../docs/architecture/migration-map.md).
+Applies to all files under `src/`, supplementing the root [AGENTS.md](../AGENTS.md) with frontend-specific details.
 
 ## Target Architecture
 
@@ -8,7 +8,7 @@ Applies to all files under `src/`, supplementing the root [AGENTS.md](../AGENTS.
 src/
 ├── main.tsx                 # Sole entry point: dispatches via ?window= to root components under windows/
 ├── windows/                 # One directory per Tauri window, responsible only for composition and window-level behavior
-│   ├── island/              # Main window: IslandApp (composition only), IslandShell, expanded panel views (IslandPages), feature wiring hooks (useIslandNotices / Todos / Tucking / Shelf / Hover, useAgentIndicator; wire new features here, not in IslandApp), window dimension/drag/tuck hooks, automation hooks
+│   ├── island/              # Main window: IslandApp (composition only), IslandShell, expanded panel views (IslandPages), feature wiring hooks (useIslandNotices / Todos / Tucking / Shelf / Hover / Translation / Navigation; wire new features here, not in IslandApp), window dimension/drag/tuck hooks, automation hooks
 │   ├── settings/            # Settings window
 │   ├── clipboard/           # Clipboard history standalone window: custom titlebar (drag, pin on top, close), reuses panel from features/clipboard
 │   └── translation/         # Quick translation window
@@ -18,17 +18,22 @@ src/
 │   ├── clipboard/           # Clipboard history, shortcuts
 │   ├── config-transfer/     # Configuration backup / transfer: format validation, prefix filtering, batch storage restoration, native dialogs, and startup restore
 │   ├── file-shelf/          # File shelf: files dragged to the island (stores paths only), drag-out, copy, open
-│   ├── messages/            # Message navigation and previews; system-notifications/ subdirectory
+│   ├── messages/            # Notification cards, previews, and reader; system-notifications/ holds the Windows toast listener hook (useSystemNotifications.ts), api.ts, storage.ts, and types
 │   ├── appearance/          # Appearance settings, layout editor, presets; island settings (skerry-settings) limits in settingsLimits.ts, initial launch values in settingsDefaults.ts, domain-specific loading in normalizeLayout / BehaviorSettings.ts; add new settings across these files with settings.ts acting solely as the entry point
 │   ├── translation/         # Quick translation: typed wrappers for services, model settings, credentials, shortcuts; request and auto-translate hooks, in-island translation page
-│   ├── weather/             # Time and weather built-in plugin: city settings/cache, Open-Meteo IPC, WMO mapping, leaf time and weather, shared low-frequency refresh
+│   ├── weather/             # Built-in time and weather: city settings/cache, Open-Meteo IPC, WMO mapping, leaf time and weather, shared low-frequency refresh
+│   ├── system-monitor/      # System page: CPU / memory / disk / network / battery sampling, sparklines, collapsed chip; quick-controls/ (volume and brightness sliders) is a separate feature directory
+│   ├── privacy/             # Microphone and camera indicator on the collapsed island
+│   ├── diagnostics/         # Troubleshooting log settings and frontend error capture
+│   ├── plugins/             # Plugin API v1 frontend: typed IPC, snapshots, usePlugins, plugin setting rows (gated by releaseFlags.ts)
+│   ├── onboarding/          # First-launch welcome content (firstLaunch.ts)
 │   └── updater/             # Auto-updater
-├── components/              # Domain-agnostic generic UI (controls/ switches, number inputs, dropdowns used by plugin page and island; settings/ grouped list for settings window: groups, rows, toggle rows, slider rows, number rows, colors, inputs, segmented controls, dropdowns, text links used across settings pages; markdown/ renders external Markdown into elements without inserting raw HTML)
+├── components/              # Domain-agnostic generic UI (controls/ switches, number inputs, dropdowns used by plugin page and island; settings/ grouped list for settings window: groups, rows, toggle rows, slider rows, number rows, colors, inputs, segmented controls, dropdowns, text links used across settings pages; reorder/ drag-to-reorder list and pointer hook)
 ├── lib/                     # Generic infrastructure with side effects, e.g. safe localStorage read/write
 ├── utils/                   # Pure functions without side effects (text measurement, color, date, numerical)
 ├── i18n/                    # Typed multi-language dictionary and Provider; sections/ organizes copy by section (settings/ sub-divided by settings page), types.ts and locales/ serve only as aggregators
 ├── styles/                  # Global CSS: variables, base styles, typography
-└── assets/                  # Brand icons, fonts, and their licenses
+└── assets/                  # Built-in sound effects (sounds/thumb-piano) and their README
 ```
 
 The appearance color module is located in `features/appearance/`: `HexColorInput` / `hexColor.ts` (color value editing), `colorPalette.ts` (three-color validation), `colorRefresh.ts` (one-off refresh), `colorPresets.ts` / `ColorPresetRow` (color preset logic and UI); safe read/write for new color keys is centralized in `storage.ts` in the same directory.
@@ -46,7 +51,7 @@ features/<domain>/
 └── <Name>.css                     # Stylesheet sharing the component name
 ```
 
-Under `features/messages/`, `system-notifications/SystemNotifications.tsx` follows the "domain hook + panel + control" pattern. Invoke calls and storage keys live in `api.ts` and `storage.ts`.
+Under `features/messages/`, `system-notifications/useSystemNotifications.ts` is the domain hook behind `Messages.tsx` (panel) and `MessageCard.tsx`. Invoke calls and storage keys live in its `api.ts` and `storage.ts`.
 
 ## Layering and Dependency Direction
 
@@ -83,18 +88,18 @@ main.tsx → windows/ → features/ → components/, lib/, utils/, i18n/, styles
 - Each `useEffect` must serve a single responsibility. Subscriptions, timers, and listeners must return cleanup functions.
 - Values that can be derived from existing state should be computed directly or via `useMemo`; do not use effects to synchronize one state variable into another.
 - Share state in the following priority order: props pass-down -> hook lifted to common ancestor -> React Context. Context is reserved for global, low-frequency data such as language and theme. Do not introduce third-party state management libraries.
-- The main window is subject to performance constraints when expanded (see `docs/investigations/expansion-performance-investigation.md`). High-frequency state updates (audio levels, timers, etc.) should reside in leaf components or isolated hooks to avoid triggering full-window re-renders.
+- The main window is subject to performance constraints when expanded. High-frequency state updates (audio levels, timers, etc.) should reside in leaf components or isolated hooks to avoid triggering full-window re-renders.
 - Never use `any` as a type; treat external data as `unknown` until validated or normalized.
 
 ## Styling
 
 - Component styles reside in a co-located `.css` file of the same name and are imported by the component itself.
 - Global styles live strictly under `styles/`: `tokens.css` (CSS variables: colors, corner radii, spacing, font sizes), `base.css` (resets and base elements), and `fonts.css`.
-- Class names use domain prefixes (e.g. `todo-`, `media-`, `clipboard-`, `mail-`); new classes must not collide with existing ones. Maintain existing class names when relocating code.
+- Class names use domain prefixes (e.g. `todo-`, `music-`, `clipboard-`, `shelf-`, `system-`, `message-`); new classes must not collide with existing ones. Maintain existing class names when relocating code.
 - Prioritize CSS variables for colors, corner radii, and spacing; do not introduce scattered hardcoded values.
 - Maintain the established visual design: floating island, compact panels, transparent backgrounds, and clear control states. Refer to `DESIGN.md` for UI direction.
 - Use lucide-react for icons; do not write manual SVGs for icons already available in the icon library.
-- Accessibility: interactive controls reachable by keyboard must provide `:focus-visible` styling (`base.css` hides button focus outlines for mouse interactions); icon-only buttons must include `aria-label`. New `animation` definitions must include `@media (prefers-reduced-motion: reduce)` in the same file to disable or flatten motion (`tests/unit/reduced-motion.test.mjs` verifies this); `transition` is handled globally by `base.css`. Island expand/collapse animations along with panel entry/exit, tab cross-fades, and tuck/slide behaviors are exceptions that always play in full, scoped locally within the island (product decision dated 2026-11-13; see `docs/investigations/accessibility.md`).
+- Accessibility: interactive controls reachable by keyboard must provide `:focus-visible` styling (`base.css` hides button focus outlines for mouse interactions); icon-only buttons must include `aria-label`. New `animation` definitions must include `@media (prefers-reduced-motion: reduce)` in the same file to disable or flatten motion (`tests/unit/reduced-motion.test.mjs` verifies this); `transition` is handled globally by `base.css`. Island expand/collapse animations along with panel entry/exit, tab cross-fades, and tuck/slide behaviors are exceptions that always play in full, scoped locally within the island (product decision dated 2026-11-13; see "Full motion for all users" in [docs/design/island.md](../docs/design/island.md)).
 
 ## Internationalization (i18n)
 
@@ -119,4 +124,4 @@ main.tsx → windows/ → features/ → components/, lib/, utils/, i18n/, styles
 3. If plugin or core permissions are required, update `src-tauri/capabilities/default.json`.
 4. Run `pnpm build` and validations required on the Rust side.
 
-Plugin API v1: `features/plugins/` holds protocol types and shared snapshots, and plugin messages live in messages; new UI continues to reuse SettingsRow and native island components.
+Plugin API v1: `features/plugins/` holds the typed IPC wrappers, protocol types, and shared snapshots; the settings page is `windows/settings/PluginsSettingsPage.tsx`. New UI continues to reuse SettingsRow and native island components. The page is gated by `features/releaseFlags.ts` (`release-features.json`).

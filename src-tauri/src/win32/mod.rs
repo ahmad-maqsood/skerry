@@ -4,6 +4,7 @@
 pub(crate) mod audio;
 pub(crate) mod clipboard;
 pub(crate) mod com;
+pub(crate) mod consent_store;
 pub(crate) mod desktop_duplication;
 pub(crate) mod folder_dialog;
 pub(crate) mod file_dialog;

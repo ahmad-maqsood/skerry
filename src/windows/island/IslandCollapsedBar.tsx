@@ -12,6 +12,7 @@ import type { MessagePreview } from "../../features/messages/messagePreview";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { CollapsedClock, CollapsedWeather, useClockWeather, useCurrentWeather } from "../../features/weather";
 import { CollapsedSystemChip } from "../../features/system-monitor/CollapsedSystemChip.tsx";
+import { PrivacyIndicator } from "../../features/privacy";
 import { useTranslation } from "../../i18n";
 import { TodoCountdown } from "../../features/todos/TodoCountdown";
 import { useUpdatePending } from "../../features/updater/useUpdatePending";
@@ -229,6 +230,8 @@ export function IslandCollapsedBar({
       }}
     >
       {collapsedLayout.map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
+      {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot. */}
+      <PrivacyIndicator active={!isExpanded && !isTucked} />
       {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}
       <button
         className="island-collapsed-minimize"

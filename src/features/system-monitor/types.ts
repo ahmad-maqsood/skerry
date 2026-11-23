@@ -73,6 +73,8 @@ export type SystemSettings = {
   showDisk: boolean;
   showNetwork: boolean;
   showWifi: boolean;
+  /** The volume and brightness sliders at the top of the System page. */
+  showQuickControls: boolean;
 };
 
 export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
@@ -86,4 +88,5 @@ export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   showDisk: true,
   showNetwork: true,
   showWifi: true,
+  showQuickControls: true,
 };

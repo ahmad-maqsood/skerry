@@ -1,0 +1,28 @@
+/* Sits in the collapsed bar's flow before the minimize button, like the app's other status icons. */
+.privacy-indicator {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin: 0 2px;
+  pointer-events: none;
+}
+
+.privacy-indicator__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: #fff;
+  border-radius: 50%;
+}
+
+/* The colours Windows and macOS use for the same two devices, so they read at a glance. */
+.privacy-indicator__dot--microphone {
+  background: #ff9f0a;
+}
+
+.privacy-indicator__dot--camera {
+  background: #30d158;
+}

@@ -1,4 +1,5 @@
 mod app_log;
+mod brightness;
 mod clipboard_history;
 mod clipboard_window;
 mod config_transfer;
@@ -7,6 +8,7 @@ mod island;
 mod lyrics;
 mod media_control;
 mod plugin_host;
+mod privacy_indicator;
 mod release_flags;
 mod settings_window;
 mod system;
@@ -108,6 +110,8 @@ pub fn run() {
             ; config_transfer
             ; weather
             ; system_monitor
+            ; privacy_indicator
+            ; brightness
         ))
         .build(context)
         .map(|app| {

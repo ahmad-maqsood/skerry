@@ -34,6 +34,11 @@ export type SystemMonitorText = {
     charging: string;
     pluggedIn: string;
   };
+  quickControls: {
+    title: string;
+    volume: string;
+    brightness: string;
+  };
   chipTooltip: (percent: string) => string;
 };
 
@@ -72,6 +77,11 @@ export const en: SystemMonitorText = {
     battery: "Battery",
     charging: "Charging",
     pluggedIn: "Plugged in",
+  },
+  quickControls: {
+    title: "Quick controls",
+    volume: "Volume",
+    brightness: "Brightness",
   },
   chipTooltip: (percent: string) => `CPU: ${percent}`,
 };

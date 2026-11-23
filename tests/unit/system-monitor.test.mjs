@@ -79,6 +79,7 @@ test("normalizeSystemSettings normalizes and defaults correctly", () => {
     showDisk: false,
     showNetwork: true,
     showWifi: false,
+    showQuickControls: false,
   };
 
   assert.deepEqual(normalizeSystemSettings(custom), custom);

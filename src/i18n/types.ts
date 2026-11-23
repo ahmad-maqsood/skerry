@@ -9,6 +9,7 @@ import type { TodoText } from "./sections/todo";
 import type { ClipboardText } from "./sections/clipboard";
 import type { FileShelfText } from "./sections/fileShelf";
 import type { SystemMonitorText } from "./sections/systemMonitor";
+import type { PrivacyText } from "./sections/privacy";
 import type { SettingsText } from "./sections/settings/index";
 
 export type LocaleCode = "en";
@@ -39,6 +40,8 @@ export type Translations = {
   fileShelf: FileShelfText;
 
   systemMonitor: SystemMonitorText;
+
+  privacy: PrivacyText;
 
   settings: SettingsText;
 };

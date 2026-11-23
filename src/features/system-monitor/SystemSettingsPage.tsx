@@ -5,6 +5,7 @@ import { SettingsRow } from "../../components/settings/SettingsRow.tsx";
 import { SettingsToggleRow } from "../../components/settings/SettingsToggleRow.tsx";
 import { useTranslation } from "../../i18n";
 import { ModuleSwitchSection } from "../../windows/settings/ModuleSwitchSection.tsx";
+import { usePrivacySettings } from "../privacy";
 import type { IslandSettings } from "../appearance/types.ts";
 import type { CollapsedChipStyle, NetworkSpeedUnit, RefreshIntervalChoice } from "./types.ts";
 import { useSystemMonitor } from "./useSystemMonitor.ts";
@@ -19,6 +20,7 @@ export function SystemSettingsPage({
   const t = useTranslation();
   const text = t.settings.systemMonitor;
   const { settings, updateSettings } = useSystemMonitor(false);
+  const privacy = usePrivacySettings();
 
   const intervalOptions: readonly SettingsChoiceOption<string>[] = [
     { value: "1", label: text.interval1s },
@@ -116,9 +118,25 @@ export function SystemSettingsPage({
               checked={settings.showWifi}
               onChange={(showWifi) => updateSettings({ showWifi })}
             />
+            <SettingsToggleRow
+              title={text.showQuickControls}
+              description={text.showQuickControlsDesc}
+              checked={settings.showQuickControls}
+              onChange={(showQuickControls) => updateSettings({ showQuickControls })}
+            />
           </SettingsGroup>
         </>
       )}
+
+      {/* Outside the System module's switch: the dot belongs to the collapsed island, not the System page. */}
+      <SettingsGroup title={text.privacyGroup} footer={text.privacyHint}>
+        <SettingsToggleRow
+          title={text.privacyIndicator}
+          description={text.privacyIndicatorDesc}
+          checked={privacy.settings.enabled}
+          onChange={(enabled) => privacy.updateSettings({ enabled })}
+        />
+      </SettingsGroup>
     </>
   );
 }

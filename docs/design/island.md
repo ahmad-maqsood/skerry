@@ -153,3 +153,16 @@ Streamlined redundant elements to reduce visual clutter. (Agent inference)
 Installing plugin adds independent draggable clock and weather slots in collapsed state: local 24-hour `HH:mm`, lucide weather icon, and Celsius temperature (e.g. `23°`), with color and font size following the island. Consumes no space when disabled, uninstalled, without selected city, or when observation expires. Notification reader uses full-island reading layout, restoring status slots once dismissed. (Agent inference)
 
 Clock uses fixed tabular digit widths, updating on the minute in leaf components; reserves dedicated space for visible slots, measuring actual occupied width. Narrow widths expand up to 480 as needed to guarantee readability, restoring width on close. (Agent inference) Weather refreshes every 30 minutes, silently retaining valid cache offline, hiding after 3 hours. Defaults to Celsius.
+
+## Microphone and camera indicator
+
+- A small round dot in the collapsed bar's flow, just before the minimize button, not an arrangeable slot: orange with a microphone while an app is using the microphone, green with a camera for the camera, both side by side when both are in use. It is not drawn when neither is, when the island is expanded or tucked, or when switched off.
+- Hover shows a sentence ("An app is using your microphone"); it is also the `role="status"` label. It never takes pointer events.
+- Switched on by default under Settings → System → Privacy, independent of the System module's own switch, since the dot belongs to the collapsed island.
+
+## Quick controls (System page)
+
+- A full-width card at the top of the System page with a volume slider and, only on a laptop's built-in screen, a brightness slider. Each row is an icon, the slider and its percentage; the volume icon follows the level (muted, low, high).
+- Nothing is drawn until a value has been read, and nothing at all where neither can be read. Brightness never goes below 5%.
+- Sliders send their newest value after a short rest (volume 60 ms, brightness 350 ms, since each brightness change costs a PowerShell call), never two calls at once, and a change made just before the page closes still goes through. Shown by default; Settings → System → Visible Cards → Volume & Brightness hides the card.
+

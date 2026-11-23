@@ -52,7 +52,7 @@ export function useIslandTodos({ settings, navigation, quiet }: IslandTodosOptio
     }
   }, [settings.todoTimerReminderSound]);
 
-  const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, notebookProps } = useTodos({
+  const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, notesExpanded, notebookProps } = useTodos({
     carryOverIncompleteTodos: settings.carryOverIncompleteTodos,
     todoTimerEnabled: settings.todoTimerEnabled,
     rotateTodos: settings.rotateTodos,
@@ -62,6 +62,6 @@ export function useIslandTodos({ settings, navigation, quiet }: IslandTodosOptio
     onTimerReminder,
     onMissingSaveDirectory: openSavePathSettings,
   });
-  return { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight,
+  return { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight, notesExpanded,
     notebookProps: { ...notebookProps, onListHeightChange: setTodoListHeight } };
 }

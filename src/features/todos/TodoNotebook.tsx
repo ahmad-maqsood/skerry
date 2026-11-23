@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "../../i18n";
 import { collectCalendarTodos } from "./calendar";
+import { DailyNoteEditor } from "./DailyNoteEditor";
 import { TodoCalendar } from "./TodoCalendar";
 import { ScheduledTodoList } from "./ScheduledTodoList";
 import { TodoNotebookTasks } from "./TodoNotebookTasks";
@@ -45,6 +46,8 @@ export function TodoNotebook({
   onShowDaily,
   onShowToday,
   onDailyNoteChange,
+  notesExpanded = false,
+  onToggleNotesExpanded = () => {},
 }: {
   todos: TodoItem[];
   dailyNote: string;
@@ -84,6 +87,9 @@ export function TodoNotebook({
   onShowDaily: () => void;
   onShowToday: () => void;
   onDailyNoteChange: (value: string) => void;
+  /** The Notes tab is shown taller; the island grows with it (expandedHeight.ts). */
+  notesExpanded?: boolean;
+  onToggleNotesExpanded?: () => void;
 }) {
   const t = useTranslation();
   const calendarTodos = useMemo(
@@ -134,13 +140,11 @@ export function TodoNotebook({
       )}
 
       {pageMode === "daily" ? (
-        <textarea
-          className="daily-note"
+        <DailyNoteEditor
           value={dailyNote}
-          placeholder={t.notebook.dailyPlaceholder}
-          aria-label={t.notebook.dailyNoteLabel}
-          spellCheck={false}
-          onChange={(event) => onDailyNoteChange(event.currentTarget.value)}
+          expanded={notesExpanded}
+          onChange={onDailyNoteChange}
+          onToggleExpanded={onToggleNotesExpanded}
         />
       ) : pageMode === "upcoming" ? (
         <ScheduledTodoList todos={scheduledTodos} onDelete={onDeleteScheduledTodo} />

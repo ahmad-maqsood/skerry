@@ -12,6 +12,9 @@ export type NotebookText = {
   addTaskHint: string;
   dailyPlaceholder: string;
   dailyNoteLabel: string;
+  notesActions: string;
+  expandNotes: string;
+  collapseNotes: string;
   pickDate: string;
   clearDate: string;
   dateToday: string;
@@ -56,6 +59,9 @@ export const en: NotebookText = {
   addTaskHint: "Add a task, press Enter to save",
   dailyPlaceholder: "Write today's notes...",
   dailyNoteLabel: "Daily note",
+  notesActions: "Note actions",
+  expandNotes: "Make the notes taller",
+  collapseNotes: "Make the notes smaller",
   pickDate: "Pick a date",
   clearDate: "Clear date",
   dateToday: "Today",

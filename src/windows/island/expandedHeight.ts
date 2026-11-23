@@ -1,6 +1,6 @@
 import { messagePanelHeight } from "../../features/messages/Messages";
 import type { TodoItem, TodoPageMode } from "../../features/todos/types";
-import { BASE_EXPANDED_ISLAND_HEIGHT, DAILY_NOTE_EXPANDED_ISLAND_HEIGHT, MUSIC_EXPANDED_ISLAND_HEIGHT, TODO_ARCHIVE_EXPANDED_ISLAND_HEIGHT, TODO_CALENDAR_EXPANDED_ISLAND_HEIGHT, TODO_GROW_START_ROWS, TODO_ROW_HEIGHT, getClipboardExpandedHeight, getTodoScrollStartRows, getTodoVisualRows } from "./layout";
+import { BASE_EXPANDED_ISLAND_HEIGHT, DAILY_NOTE_EXPANDED_ISLAND_HEIGHT, DAILY_NOTE_LARGE_ISLAND_HEIGHT, MUSIC_EXPANDED_ISLAND_HEIGHT, TODO_ARCHIVE_EXPANDED_ISLAND_HEIGHT, TODO_CALENDAR_EXPANDED_ISLAND_HEIGHT, TODO_GROW_START_ROWS, TODO_ROW_HEIGHT, getClipboardExpandedHeight, getTodoScrollStartRows, getTodoVisualRows } from "./layout";
 import { getShelfLayout } from "../../features/file-shelf/fileShelf";
 import type { IslandPage } from "./types";
 
@@ -58,6 +58,8 @@ type ExpandedHeightInput = {
   settingsContentHeight?: number | null;
   /** Entries on the file shelf; its page fits their rows of tiles. */
   shelfItems?: number;
+  /** The Notes tab's expand button is on: a taller island for writing. */
+  notesExpanded?: boolean;
 };
 
 /**
@@ -78,6 +80,7 @@ export function getExpandedIslandHeight({
   todoVisibleRows = 8,
   settingsContentHeight = null,
   shelfItems = 0,
+  notesExpanded = false,
 }: ExpandedHeightInput) {
   // The upcoming list and calendar each scroll inside their fixed height.
   const isTodoArchivePage =
@@ -104,7 +107,9 @@ export function getExpandedIslandHeight({
       : isTodoArchivePage
       ? TODO_ARCHIVE_EXPANDED_ISLAND_HEIGHT
       : todoPageMode === "daily"
-        ? DAILY_NOTE_EXPANDED_ISLAND_HEIGHT
+        ? notesExpanded
+          ? Math.max(DAILY_NOTE_EXPANDED_ISLAND_HEIGHT, Math.min(DAILY_NOTE_LARGE_ISLAND_HEIGHT, maxPanelHeight))
+          : DAILY_NOTE_EXPANDED_ISLAND_HEIGHT
       : Math.min(todoListMax, BASE_EXPANDED_ISLAND_HEIGHT + (todoListHeight === null
         ? Math.max(0, visibleTodoRows - TODO_GROW_START_ROWS) * TODO_ROW_HEIGHT
         : Math.max(0, todoListHeight - (TODO_GROW_START_ROWS * TODO_ROW_HEIGHT - 6))))

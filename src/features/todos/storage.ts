@@ -29,6 +29,8 @@ export const TODO_REMIND_MINUTES_STORAGE_KEY = "skerry-todo-remind-minutes";
 export const TODO_DATE_STORAGE_KEY = "skerry-current-date";
 export const TODO_ARCHIVE_STORAGE_KEY = "skerry-archives";
 export const DAILY_NOTE_STORAGE_KEY = "skerry-daily-note";
+// Whether the Notes tab is shown taller ("true"); anything else is the normal size.
+export const NOTES_EXPANDED_STORAGE_KEY = "skerry-notes-expanded";
 // Settings for exporting archives; they stay in localStorage.
 export const TODO_SAVE_DIRECTORY_STORAGE_KEY = "skerry-save-directory";
 export const TODO_SAVE_DIRECTORY_CHANGED_EVENT = "skerry-todo-save-directory-changed";
@@ -134,6 +136,14 @@ export function saveTodoFileSync(enabled: boolean) {
 
 export function loadDailyNote() {
   return readString(DAILY_NOTE_STORAGE_KEY) ?? "";
+}
+
+export function loadNotesExpanded() {
+  return readString(NOTES_EXPANDED_STORAGE_KEY) === "true";
+}
+
+export function saveNotesExpanded(expanded: boolean) {
+  writeString(NOTES_EXPANDED_STORAGE_KEY, String(expanded));
 }
 
 /** Returns false when the value could not be stored. */

@@ -36,6 +36,16 @@ async function pointer(id: string, type: string, y: number) {
 async function frame() {
   await act(async () => { await new Promise<void>((resolve) => requestAnimationFrame(() => resolve())); });
 }
+async function waitForDropAnimation(row: HTMLElement) {
+  await act(async () => {
+    const deadline = performance.now() + 1000;
+    while (performance.now() < deadline) {
+      const animationsFinished = row.getAnimations().every((animation) => animation.playState === "finished");
+      if (animationsFinished && !row.dataset.todoSettling && !row.style.transform) return;
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+  });
+}
 
 try {
   // This regression page uses its own test data only.
@@ -60,8 +70,8 @@ try {
   await pointer("a", "pointerup", y);
   check(order() === "b,c,a" && JSON.stringify(moves) === '[["a",2]]', "Pointer up commits final index");
   check(JSON.parse(localStorage.getItem("skerry-todos")!).map((item: { id: string }) => item.id).join(",") === "b,c,a", "Released order is persisted");
-  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 220)); });
-  check(!row("a").style.transform && row("a").getAnimations().length === 0, "Transform cleaned up after drop animation");
+  await waitForDropAnimation(row("a"));
+  check(!row("a").style.transform && !row("a").dataset.todoSettling && row("a").getAnimations().every((animation) => animation.playState === "finished"), "Transform cleaned up after drop animation");
   moves = [];
   y = row("a").getBoundingClientRect().top + 16;
   await pointer("a", "pointerdown", y);

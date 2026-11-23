@@ -9,6 +9,11 @@ export function saveTodoMarkdown(directory: string, date: string, content: strin
   return invoke<SaveTodoResult>("save_todo_markdown", { directory, date, content });
 }
 
+/** Opens the day's saved markdown file in the app the system uses for `.md` files. */
+export function openTodoMarkdown(directory: string, date: string) {
+  return invoke<void>("open_todo_markdown", { directory, date });
+}
+
 // Corresponds to TodoMarkdownSnapshot / ConditionalTodoSaveResult in src-tauri/src/system/todo_sync.rs.
 export type TodoMarkdownSnapshot = {
   filePath: string;

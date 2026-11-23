@@ -36,6 +36,7 @@ macro_rules! tauri_commands {
     ($next:ident [$($done:tt)*] $($rest:tt)*) => {
         $next!([$($done)*
             crate::system::todo_export::save_todo_markdown,
+            crate::system::todo_export::open_todo_markdown,
             crate::system::todo_export::get_default_todo_save_directory,
             crate::system::todo_sync::read_todo_markdown,
             crate::system::todo_sync::save_todo_markdown_if_unchanged,

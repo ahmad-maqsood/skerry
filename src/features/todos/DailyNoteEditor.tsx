@@ -1,4 +1,4 @@
-import { Maximize2, Minimize2 } from "lucide-react";
+import { FileText, Maximize2, Minimize2 } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import "./DailyNoteEditor.css";
 
@@ -8,12 +8,14 @@ export function DailyNoteEditor({
   expanded,
   onChange,
   onToggleExpanded,
+  onOpenDayFile,
 }: {
   value: string;
   /** The island is shown taller for writing (the expand button). */
   expanded: boolean;
   onChange: (value: string) => void;
   onToggleExpanded: () => void;
+  onOpenDayFile: () => void;
 }) {
   const t = useTranslation();
   const expandLabel = expanded ? t.notebook.collapseNotes : t.notebook.expandNotes;
@@ -38,6 +40,15 @@ export function DailyNoteEditor({
           onClick={onToggleExpanded}
         >
           {expanded ? <Minimize2 size={14} strokeWidth={2.2} /> : <Maximize2 size={14} strokeWidth={2.2} />}
+        </button>
+        <button
+          className="daily-note-editor__action"
+          type="button"
+          aria-label={t.notebook.openDayFile}
+          title={t.notebook.openDayFile}
+          onClick={onOpenDayFile}
+        >
+          <FileText size={14} strokeWidth={2.2} />
         </button>
       </div>
     </div>

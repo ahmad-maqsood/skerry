@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { saveTodoMarkdown } from "./api";
+import { openTodoMarkdown, saveTodoMarkdown } from "./api";
 import { formatTodoDocumentAsMarkdown, getTodoSignature } from "./markdown";
 import { saveLastSavedSignature } from "./storage";
 import type { SaveState, TodoItem } from "./types";
@@ -110,6 +110,31 @@ export function useTodoSaving({
     todos,
   ]);
 
+  // Saves first, so the file exists and holds what is written here, then opens it.
+  const openTodayFile = useCallback(async () => {
+    const directory = saveDirectory.trim();
+
+    if (!directory) {
+      setSaveState("needs-path");
+      onMissingSaveDirectory();
+      return;
+    }
+
+    try {
+      await saveTodosToDisk(currentTodoDate, todos, dailyNote);
+    } catch (error) {
+      // An earlier save may still have left a file to open.
+      console.error("Failed to save todo markdown before opening it", error);
+    }
+
+    try {
+      await openTodoMarkdown(directory, currentTodoDate);
+    } catch (error) {
+      console.error("Failed to open todo markdown", error);
+      setSaveState("error");
+    }
+  }, [currentTodoDate, dailyNote, onMissingSaveDirectory, saveDirectory, saveTodosToDisk, todos]);
+
   useTodoAutoSave({
     currentTodoDate,
     todos,
@@ -128,5 +153,5 @@ export function useTodoSaving({
     [],
   );
 
-  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, fileSyncEnabled };
+  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, fileSyncEnabled };
 }

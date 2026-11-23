@@ -48,6 +48,7 @@ export function TodoNotebook({
   onDailyNoteChange,
   notesExpanded = false,
   onToggleNotesExpanded = () => {},
+  onOpenDayFile = () => {},
 }: {
   todos: TodoItem[];
   dailyNote: string;
@@ -90,6 +91,8 @@ export function TodoNotebook({
   /** The Notes tab is shown taller; the island grows with it (expandedHeight.ts). */
   notesExpanded?: boolean;
   onToggleNotesExpanded?: () => void;
+  /** Saves today's note and opens its markdown file in the system's editor. */
+  onOpenDayFile?: () => void;
 }) {
   const t = useTranslation();
   const calendarTodos = useMemo(
@@ -145,6 +148,7 @@ export function TodoNotebook({
           expanded={notesExpanded}
           onChange={onDailyNoteChange}
           onToggleExpanded={onToggleNotesExpanded}
+          onOpenDayFile={onOpenDayFile}
         />
       ) : pageMode === "upcoming" ? (
         <ScheduledTodoList todos={scheduledTodos} onDelete={onDeleteScheduledTodo} />

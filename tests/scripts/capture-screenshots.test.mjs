@@ -35,7 +35,7 @@ test("the native window opens the iframe host, never scene.html as its top page"
   assert.match(script, /tests\/screenshots\/native-host\.html\?\$\{query\}/);
   assert.doesNotMatch(script, /const url = `tests\/screenshots\/scene\.html/);
   const host = readFileSync(path.join(root, "tests/screenshots/native-host.html"), "utf8");
-  assert.match(host, /document\\.getElementById\\("scene"\\)\\.src = `scene\\.html\\$\\{window\\.location\\.search\\}`/);
+  assert.match(host, /document\.getElementById\("scene"\)\.src = \`scene\.html\$\{window\.location\.search\}\`/);
 });
 
 test("words pick shots by scene or by file name; no words means all", () => {

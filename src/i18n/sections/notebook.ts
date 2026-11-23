@@ -16,6 +16,12 @@ export type NotebookText = {
   expandNotes: string;
   collapseNotes: string;
   openDayFile: string;
+  showPastNotes: string;
+  hidePastNotes: string;
+  noPastNotes: string;
+  pastNotesNeedFolder: string;
+  pastNotesFailed: string;
+  openPastNote: (date: string) => string;
   pickDate: string;
   clearDate: string;
   dateToday: string;
@@ -64,6 +70,12 @@ export const en: NotebookText = {
   expandNotes: "Make the notes taller",
   collapseNotes: "Make the notes smaller",
   openDayFile: "Open today's markdown file",
+  showPastNotes: "Show saved days",
+  hidePastNotes: "Back to today's note",
+  noPastNotes: "No earlier days saved yet",
+  pastNotesNeedFolder: "Choose a save folder in settings to see saved days",
+  pastNotesFailed: "Could not read the save folder",
+  openPastNote: (date) => `Open the markdown file for ${date}`,
   pickDate: "Pick a date",
   clearDate: "Clear date",
   dateToday: "Today",

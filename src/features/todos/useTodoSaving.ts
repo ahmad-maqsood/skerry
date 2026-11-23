@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { openTodoMarkdown, saveTodoMarkdown } from "./api";
+import { listTodoMarkdownFiles, openTodoMarkdown, saveTodoMarkdown, type TodoMarkdownFileEntry } from "./api";
 import { formatTodoDocumentAsMarkdown, getTodoSignature } from "./markdown";
 import { saveLastSavedSignature } from "./storage";
 import type { SaveState, TodoItem } from "./types";
@@ -110,13 +110,28 @@ export function useTodoSaving({
     todos,
   ]);
 
-  // Saves first, so the file exists and holds what is written here, then opens it.
-  const openTodayFile = useCallback(async () => {
+  // Opens a saved day in the app the system uses for markdown files.
+  const openDayFile = useCallback(async (date: string) => {
     const directory = saveDirectory.trim();
 
     if (!directory) {
       setSaveState("needs-path");
       onMissingSaveDirectory();
+      return;
+    }
+
+    try {
+      await openTodoMarkdown(directory, date);
+    } catch (error) {
+      console.error("Failed to open todo markdown", error);
+      setSaveState("error");
+    }
+  }, [onMissingSaveDirectory, saveDirectory]);
+
+  // Saves first, so the file exists and holds what is written here, then opens it.
+  const openTodayFile = useCallback(async () => {
+    if (!saveDirectory.trim()) {
+      await openDayFile(currentTodoDate);
       return;
     }
 
@@ -127,13 +142,14 @@ export function useTodoSaving({
       console.error("Failed to save todo markdown before opening it", error);
     }
 
-    try {
-      await openTodoMarkdown(directory, currentTodoDate);
-    } catch (error) {
-      console.error("Failed to open todo markdown", error);
-      setSaveState("error");
-    }
-  }, [currentTodoDate, dailyNote, onMissingSaveDirectory, saveDirectory, saveTodosToDisk, todos]);
+    await openDayFile(currentTodoDate);
+  }, [currentTodoDate, dailyNote, openDayFile, saveDirectory, saveTodosToDisk, todos]);
+
+  // The days saved in the folder, or null while no folder is chosen.
+  const listDayFiles = useCallback(async (): Promise<TodoMarkdownFileEntry[] | null> => {
+    const directory = saveDirectory.trim();
+    return directory ? listTodoMarkdownFiles(directory) : null;
+  }, [saveDirectory]);
 
   useTodoAutoSave({
     currentTodoDate,
@@ -153,5 +169,5 @@ export function useTodoSaving({
     [],
   );
 
-  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, fileSyncEnabled };
+  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, openDayFile, listDayFiles, fileSyncEnabled };
 }

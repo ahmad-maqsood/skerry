@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "../../i18n";
 import { collectCalendarTodos } from "./calendar";
+import type { TodoMarkdownFileEntry } from "./api";
 import { DailyNoteEditor } from "./DailyNoteEditor";
 import { TodoCalendar } from "./TodoCalendar";
 import { ScheduledTodoList } from "./ScheduledTodoList";
@@ -10,6 +11,9 @@ import type { ScheduledTodo, TodoArchive, TodoItem, TodoPageMode } from "./types
 import type { TodoDuration, TodoDurations, TodoTimer } from "./timer";
 import { withoutUpdateTodo } from "./updateTodo";
 import "./TodoNotebook.css";
+
+// A stable stand-in, so the saved days are not read again on every render.
+const listNoDayFiles = async () => null;
 
 export function TodoNotebook({
   todos,
@@ -49,6 +53,8 @@ export function TodoNotebook({
   notesExpanded = false,
   onToggleNotesExpanded = () => {},
   onOpenDayFile = () => {},
+  onListDayFiles = listNoDayFiles,
+  onOpenPastDayFile = () => {},
 }: {
   todos: TodoItem[];
   dailyNote: string;
@@ -93,6 +99,10 @@ export function TodoNotebook({
   onToggleNotesExpanded?: () => void;
   /** Saves today's note and opens its markdown file in the system's editor. */
   onOpenDayFile?: () => void;
+  /** The days saved as markdown in the save folder, newest first; null while no folder is chosen. */
+  onListDayFiles?: () => Promise<TodoMarkdownFileEntry[] | null>;
+  /** Opens a saved day's markdown file. */
+  onOpenPastDayFile?: (date: string) => void;
 }) {
   const t = useTranslation();
   const calendarTodos = useMemo(
@@ -145,10 +155,13 @@ export function TodoNotebook({
       {pageMode === "daily" ? (
         <DailyNoteEditor
           value={dailyNote}
+          today={currentDate}
           expanded={notesExpanded}
           onChange={onDailyNoteChange}
           onToggleExpanded={onToggleNotesExpanded}
           onOpenDayFile={onOpenDayFile}
+          onListDayFiles={onListDayFiles}
+          onOpenPastDayFile={onOpenPastDayFile}
         />
       ) : pageMode === "upcoming" ? (
         <ScheduledTodoList todos={scheduledTodos} onDelete={onDeleteScheduledTodo} />

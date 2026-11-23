@@ -14,6 +14,18 @@ export function openTodoMarkdown(directory: string, date: string) {
   return invoke<void>("open_todo_markdown", { directory, date });
 }
 
+// Corresponds to TodoMarkdownFile in src-tauri/src/system/todo_history.rs.
+export type TodoMarkdownFileEntry = {
+  /** Local date, YYYY-MM-DD. */
+  date: string;
+  filePath: string;
+};
+
+/** The days saved in the folder, newest first; a folder that does not exist yet holds none. */
+export function listTodoMarkdownFiles(directory: string) {
+  return invoke<TodoMarkdownFileEntry[]>("list_todo_markdown_files", { directory });
+}
+
 // Corresponds to TodoMarkdownSnapshot / ConditionalTodoSaveResult in src-tauri/src/system/todo_sync.rs.
 export type TodoMarkdownSnapshot = {
   filePath: string;

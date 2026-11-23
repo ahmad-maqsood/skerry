@@ -46,7 +46,7 @@ type IslandCollapsedBarProps = {
   collapsedCover: string | null;
   lyricsSettings: LyricsSettings & { lyricsOffsetMs: number };
   mediaState: MediaState;
-  /** False while music is switched off, which hides the waveform button. */
+  /** False while music is switched off, which hides the waveform button; it also shows only while a song plays. */
   showMusic: boolean;
   /** Files on the shelf, or null when the count is not shown. */
   shelfCount: number | null;
@@ -210,7 +210,8 @@ export function IslandCollapsedBar({
         <span>{shelfCount}</span>
       </button>
       ),
-    music: showMusic && (
+    // Only while a song is playing: an idle or paused player leaves no dotted placeholder on the bar.
+    music: showMusic && isMusicPlaying && (
       <MusicWaveButton
         isAvailable={mediaState.available || mediaState.audioActive}
         isPlaying={isMusicPlaying}

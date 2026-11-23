@@ -136,7 +136,13 @@ async function main() {
         await captureScene(`messages&material=${material}`, part);
         themeParts.push(part);
       }
-      runPowerShell(["-File", path.join(root, "scripts", "compose-screenshot-themes.ps1"), "-Inputs", ...themeParts, "-OutputPath", target]);
+      // PowerShell's -File argument binder does not reliably collect several following
+      // command-line values into a string[] parameter. Pass the paths as one JSON argument.
+      runPowerShell([
+        "-File", path.join(root, "scripts", "compose-screenshot-themes.ps1"),
+        "-InputPathsJson", JSON.stringify(themeParts),
+        "-OutputPath", target,
+      ]);
     } else {
       await captureScene(shot.scene, target);
     }

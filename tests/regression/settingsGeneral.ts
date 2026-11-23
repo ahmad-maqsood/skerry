@@ -8,8 +8,10 @@ export async function checkGeneralControls(
   type: (input: HTMLInputElement, value: string) => Promise<void>,
 ) {
   await checkKeepVisible(panel, check);
-  const timers = [...panel.querySelectorAll<HTMLInputElement>("input[role='spinbutton']")];
-  const labels = timers.map((input) => panel.querySelector(`label[for='${CSS.escape(input.id)}']`)?.textContent ?? "");
+  const labelOf = (input: HTMLInputElement) => panel.querySelector(`label[for='${CSS.escape(input.id)}']`)?.textContent ?? "";
+  // The Position group's "Distance from top" is a number field too; only the two delays are checked here.
+  const timers = [...panel.querySelectorAll<HTMLInputElement>("input[role='spinbutton']")].filter((input) => labelOf(input) !== "Distance from top");
+  const labels = timers.map(labelOf);
   check(timers.length === 2 && timers.every((input) => input.value === "30"),
     `general: the collapse and tuck delays are two number fields at 30 s (${timers.map((input) => input.value).join(", ")})`);
   check(labels.length === 2 && labels.every(Boolean) && labels[0] !== labels[1], `general: the two delays have different labels (${labels.join(" / ")})`);

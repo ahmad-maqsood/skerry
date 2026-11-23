@@ -1,9 +1,21 @@
 param(
-  [Parameter(Mandatory=$true)][string[]]$Inputs,
+  [Parameter(Mandatory=$true)][string]$InputPathsJson,
   [Parameter(Mandatory=$true)][string]$OutputPath
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
+
+# Receive the input paths as one JSON value so PowerShell's -File argument binder
+# cannot mistake the second and third paths for unexpected positional parameters.
+$Inputs = @(ConvertFrom-Json -InputObject $InputPathsJson)
+if ($Inputs.Count -ne 3) {
+  throw "Expected exactly three theme screenshot paths, received $($Inputs.Count)."
+}
+foreach ($inputPath in $Inputs) {
+  if (-not (Test-Path -LiteralPath $inputPath -PathType Leaf)) {
+    throw "Theme screenshot does not exist: $inputPath"
+  }
+}
 $images = @($Inputs | ForEach-Object { [System.Drawing.Image]::FromFile($_) })
 try {
   $gap = 24; $labelHeight = 42; $cardWidth = 420

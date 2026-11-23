@@ -119,9 +119,12 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          # CARGO_TARGET_DIR above puts build output in <repo>/target, not in src-tauri/target or
+          # plugins/target, where rust-cache looks by default. Without the `->` mapping it cached
+          # only the downloaded sources (~150 MB) and every run recompiled all ~420 crates.
           workspaces: |
-            src-tauri
-            plugins
+            src-tauri -> ../target
+            plugins -> ../target
           shared-key: skerry-clippy
 
       - name: Clippy (app)
@@ -153,9 +156,12 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          # CARGO_TARGET_DIR above puts build output in <repo>/target, not in src-tauri/target or
+          # plugins/target, where rust-cache looks by default. Without the `->` mapping it cached
+          # only the downloaded sources (~150 MB) and every run recompiled all ~420 crates.
           workspaces: |
-            src-tauri
-            plugins
+            src-tauri -> ../target
+            plugins -> ../target
           shared-key: skerry-test
 
       # --lib: the app has no doctests or integration tests, and without it Cargo also builds

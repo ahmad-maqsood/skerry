@@ -89,9 +89,21 @@ const rectOf = (target: Element, pad: { x?: number; top?: number; bottom?: numbe
   const top = Math.max(0, box.top - (pad.top ?? 0));
   return { x: Math.max(0, box.left - x), y: top, width: box.width + 2 * x, height: box.bottom + (pad.bottom ?? 0) - top };
 };
-const ready = (capture: { x: number; y: number; width: number; height: number }) => {
+const capturePort = query.get("capturePort");
+const captureToken = query.get("captureToken");
+const reportCaptureStatus = async (status: "ready" | "error", message?: string) => {
+  if (!capturePort || !captureToken) return;
+  const endpoint = new URL(`http://127.0.0.1:${capturePort}/scene-signal`);
+  endpoint.searchParams.set("token", captureToken);
+  endpoint.searchParams.set("status", status);
+  if (message) endpoint.searchParams.set("message", message.slice(0, 500));
+  const response = await fetch(endpoint);
+  if (!response.ok) throw new Error(`Screenshot controller returned HTTP ${response.status}.`);
+};
+const ready = async (capture: { x: number; y: number; width: number; height: number }) => {
   document.documentElement.dataset.capture = JSON.stringify(capture);
   document.documentElement.dataset.sceneReady = "true";
+  await reportCaptureStatus("ready");
 };
 
 async function islandScene() {
@@ -178,7 +190,7 @@ async function clipboardScene() {
   const { ClipboardWindow } = await import("../../src/windows/clipboard/ClipboardWindow");
   root.render(<I18nProvider><ClipboardWindow /></I18nProvider>);
   await sleep(1200);
-  ready(rectOf(element("#root"), { x: 40, top: 40, bottom: 40 }));
+  await ready(rectOf(element("#root"), { x: 40, top: 40, bottom: 40 }));
 }
 
 async function settingsScene() {

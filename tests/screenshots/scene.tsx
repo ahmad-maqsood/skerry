@@ -206,6 +206,10 @@ const scenes: Record<string, () => Promise<void>> = { clipboard: clipboardScene,
 try {
   await (scenes[scene] ?? islandScene)();
 } catch (error) {
-  document.documentElement.dataset.sceneError = String(error);
+  const message = error instanceof Error ? error.stack ?? error.message : String(error);
+  document.documentElement.dataset.sceneError = message;
   console.error(error);
+  await reportCaptureStatus("error", message).catch((reportError) => {
+    console.error("Could not report screenshot scene error:", reportError);
+  });
 }

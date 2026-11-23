@@ -13,6 +13,8 @@ export type SettingsMessageSourcesText = {
   popupClipboardHint: string;
   popupMusic: string;
   popupMusicHint: string;
+  popupCharger: string;
+  popupChargerHint: string;
   masterToggle: string;
   masterToggleHint: string;
   accessStatus: string;
@@ -45,6 +47,8 @@ export const en: SettingsMessageSourcesText = {
   popupClipboardHint: "The island pops out for a moment to show a text as you copy it. Needs clipboard history to be on.",
   popupMusic: "Show new songs",
   popupMusicHint: "The island pops out for a moment to show the song when a new one starts playing.",
+  popupCharger: "Show charger changes",
+  popupChargerHint: "The island pops out for a moment when the charger is plugged in or unplugged. Only on laptops with a battery.",
   masterToggle: "Receive system notifications",
   masterToggleHint: "Listens to incoming Windows toast notifications (WhatsApp, Telegram, Outlook, browsers, etc.) and displays them on the island.",
   accessStatus: "Notification access",

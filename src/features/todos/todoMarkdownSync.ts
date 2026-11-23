@@ -35,8 +35,11 @@ export function createTodoMarkdownSync(ports: SyncPorts) {
     if (disposed) return { filePath: "", deferred: true };
     const snapshot = await ports.read();
     const deferred = { filePath: snapshot.filePath, deferred: true };
-    if (disposed || ports.isEditing()) return deferred;
-    if (pendingImport) {
+    if (disposed) return deferred;
+    // Focus in a title/note editor only holds back changes that would replace what is on screen.
+    // Writing the island's own edits to disk never touches the editor, so it must not wait for blur.
+    const editing = ports.isEditing();
+    if (pendingImport && !editing) {
       const latest = ports.getLocal();
       const rebased = mergeTodoDocuments(pendingImport.before, latest.document, pendingImport.written, true);
       if (rebased.conflicted) pendingRecovery = format(latest.document);
@@ -51,6 +54,7 @@ export function createTodoMarkdownSync(ports: SyncPorts) {
     const external = snapshot.version !== knownVersion;
     const selfWritten = lastWrittenContent !== null && snapshot.content === lastWrittenContent;
     if (external && snapshot.content !== null && !selfWritten) {
+      if (editing) return deferred; // Importing would replace the text being typed.
       // Editors often truncate then rewrite or rename. Accept two equal samples, >= 350ms apart.
       if (candidate?.version !== snapshot.version) {
         candidate = { version: snapshot.version, since: ports.now() };
@@ -75,7 +79,7 @@ export function createTodoMarkdownSync(ports: SyncPorts) {
     const shouldWrite = recovery !== null || (dirty && (explicitSave || ports.now() - local.editedAt >= 700))
       || (snapshot.version === null && Boolean(format(local.document)));
     if (shouldWrite) {
-      if (disposed || ports.isEditing()) return deferred;
+      if (disposed) return deferred;
       const written = await ports.write(format(local.document), snapshot.version, recovery);
       if (disposed) return deferred;
       // Compare failed: leave local and baseline untouched and sample the newer file next time.

@@ -5,10 +5,17 @@ import { SettingsRow } from "../../components/settings/SettingsRow.tsx";
 import { SettingsToggleRow } from "../../components/settings/SettingsToggleRow.tsx";
 import { useTranslation } from "../../i18n";
 import { ModuleSwitchSection } from "../../windows/settings/ModuleSwitchSection.tsx";
+import type { IslandSettings } from "../appearance/types.ts";
 import type { CollapsedChipStyle, NetworkSpeedUnit, RefreshIntervalChoice } from "./types.ts";
 import { useSystemMonitor } from "./useSystemMonitor.ts";
 
-export function SystemSettingsPage(): ReactNode {
+export function SystemSettingsPage({
+  islandSettings,
+  onIslandSettingsChange,
+}: {
+  islandSettings: IslandSettings;
+  onIslandSettingsChange: (settings: IslandSettings) => void;
+}): ReactNode {
   const t = useTranslation();
   const text = t.settings.systemMonitor;
   const { settings, updateSettings } = useSystemMonitor(false);
@@ -33,11 +40,15 @@ export function SystemSettingsPage(): ReactNode {
     <>
       <ModuleSwitchSection
         label={t.settings.modules.system}
-        checked={settings.enabled}
-        onChange={(enabled) => updateSettings({ enabled })}
+        checked={islandSettings.systemMonitorEnabled}
+        onChange={(enabled) => {
+          // The island hides the tab by systemMonitorEnabled; the monitor's own switch stops its sampling.
+          onIslandSettingsChange({ ...islandSettings, systemMonitorEnabled: enabled });
+          updateSettings({ enabled });
+        }}
       />
 
-      {settings.enabled && (
+      {islandSettings.systemMonitorEnabled && settings.enabled && (
         <>
           <SettingsGroup title={text.samplingGroup}>
             <SettingsRow title={text.refreshInterval} description={text.refreshIntervalDesc}>

@@ -59,8 +59,19 @@
   column-gap: 1px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: var(--color-white-a18) transparent;
-  scrollbar-width: thin;
+}
+
+.todo-calendar__grid::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.todo-calendar__grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.todo-calendar__grid::-webkit-scrollbar-thumb {
+  background: var(--color-white-a18);
+  border-radius: var(--radius-pill);
 }
 
 .todo-calendar__weekday {

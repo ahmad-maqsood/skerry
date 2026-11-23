@@ -52,7 +52,7 @@
 
 /* Thin, track-less scrollbar like the todo list's, instead of the white system one with arrows. */
 .messages-list::-webkit-scrollbar {
-  width: 6px;
+  width: var(--scrollbar-width);
 }
 
 .messages-list::-webkit-scrollbar-track {

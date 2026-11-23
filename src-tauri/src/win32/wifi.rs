@@ -30,6 +30,19 @@ impl Drop for WlanHandle {
     }
 }
 
+/// `wlan_interface_state_connected` in `WLAN_INTERFACE_STATE`.
+const WLAN_STATE_CONNECTED: i32 = 1;
+
+/// A connected adapter whose connection details could not be read: no name, signal or speed.
+fn connected_without_details() -> WifiStatus {
+    WifiStatus {
+        ssid: String::new(),
+        signal_percent: 0,
+        link_speed_mbps: 0,
+        phy_type: map_phy_type(0),
+    }
+}
+
 fn map_phy_type(dot11_phy_type: i32) -> String {
     match dot11_phy_type {
         1 | 5 => "Wi-Fi (802.11b)".to_string(),
@@ -92,6 +105,13 @@ pub(crate) fn query_wifi_status() -> Option<WifiStatus> {
     let mut found_status: Option<WifiStatus> = None;
 
     for info in interfaces {
+        // The adapter's own state, from the interface list, is the source of truth for "connected".
+        // The detailed query below can fail or come back empty on a connected adapter (a busy
+        // WLAN service, a privacy setting), and that must not read as "disconnected".
+        if info.isState.0 != WLAN_STATE_CONNECTED {
+            continue;
+        }
+
         let mut data_size = 0u32;
         let mut raw_data: *mut c_void = std::ptr::null_mut();
         let mut opcode_type = WLAN_OPCODE_VALUE_TYPE(0);
@@ -109,41 +129,29 @@ pub(crate) fn query_wifi_status() -> Option<WifiStatus> {
             )
         };
 
+        let mut status = connected_without_details();
         if query_status == 0 && !raw_data.is_null() {
             // SAFETY: raw_data points to a valid WLAN_CONNECTION_ATTRIBUTES struct.
             let attributes = unsafe { &*(raw_data as *const WLAN_CONNECTION_ATTRIBUTES) };
+            let association = &attributes.wlanAssociationAttributes;
 
-            // 1 indicates wlan_interface_state_connected
-            if attributes.isState.0 == 1 {
-                let ssid_len = (attributes.wlanAssociationAttributes.dot11Ssid.uSSIDLength as usize).min(32);
-                let ssid = String::from_utf8_lossy(
-                    &attributes.wlanAssociationAttributes.dot11Ssid.ucSSID[..ssid_len],
-                )
-                .to_string();
-
-                let signal_percent = attributes.wlanAssociationAttributes.wlanSignalQuality.min(100);
-                let rx_rate = attributes.wlanAssociationAttributes.ulRxRate / 1000;
-                let tx_rate = attributes.wlanAssociationAttributes.ulTxRate / 1000;
-                let link_speed_mbps = rx_rate.max(tx_rate);
-                let phy_type = map_phy_type(attributes.wlanAssociationAttributes.dot11PhyType.0);
-
-                found_status = Some(WifiStatus {
-                    ssid,
-                    signal_percent,
-                    link_speed_mbps,
-                    phy_type,
-                });
-            }
-
+            let ssid_len = (association.dot11Ssid.uSSIDLength as usize).min(32);
+            status = WifiStatus {
+                ssid: String::from_utf8_lossy(&association.dot11Ssid.ucSSID[..ssid_len]).to_string(),
+                signal_percent: association.wlanSignalQuality.min(100),
+                link_speed_mbps: (association.ulRxRate / 1000).max(association.ulTxRate / 1000),
+                phy_type: map_phy_type(association.dot11PhyType.0),
+            };
+        }
+        if !raw_data.is_null() {
             // SAFETY: Free the memory allocated by WlanQueryInterface.
             unsafe {
                 WlanFreeMemory(raw_data);
             }
-
-            if found_status.is_some() {
-                break;
-            }
         }
+
+        found_status = Some(status);
+        break;
     }
 
     // SAFETY: Free the interface list allocated by WlanEnumInterfaces.
@@ -152,4 +160,18 @@ pub(crate) fn query_wifi_status() -> Option<WifiStatus> {
     }
 
     found_status
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unreadable_details_still_count_as_connected() {
+        let status = connected_without_details();
+        assert!(status.ssid.is_empty());
+        assert_eq!(status.signal_percent, 0);
+        assert_eq!(status.link_speed_mbps, 0);
+        assert_eq!(status.phy_type, "Wi-Fi");
+    }
 }

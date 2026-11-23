@@ -88,6 +88,7 @@ function Fixture() {
         features={{ todo: true, music: true, clipboard: true, shelf: true, qq: true, translation: false, system: false }}
         shelfCount={null}
         onOpenPage={() => {}}
+        onExpand={() => {}}
         onOpenMessages={() => {}}
         onPageChange={() => {}}
         onWindowDragStart={() => {}}

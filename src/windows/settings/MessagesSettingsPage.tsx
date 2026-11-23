@@ -108,6 +108,12 @@ export function MessagesSettingsPage({
           checked={settings.musicPopup}
           onChange={(musicPopup) => onSettingsChange({ ...settings, musicPopup })}
         />
+        <SettingsToggleRow
+          title={labels.popupCharger}
+          description={labels.popupChargerHint}
+          checked={settings.chargerPopup}
+          onChange={(chargerPopup) => onSettingsChange({ ...settings, chargerPopup })}
+        />
       </SettingsGroup>
 
       {enabled && (

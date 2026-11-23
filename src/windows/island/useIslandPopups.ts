@@ -6,7 +6,10 @@ import { DEFAULT_CLIPBOARD_HISTORY } from "../../features/clipboard/settings";
 import type { MediaState } from "../../features/media/api";
 import { isNewTrack, playingTrackKey } from "../../features/media/trackPopup";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
+import { getBatteryStatus } from "../../features/system-monitor/api";
+import { chargerChange } from "../../features/system-monitor/chargerPopup";
 import { useTranslation } from "../../i18n";
+import type { Translations } from "../../i18n/types";
 
 /** A copy made by the island's own "copy again" is not announced, with room for the change event. */
 const OWN_COPY_QUIET_MS = 2000;
@@ -14,9 +17,11 @@ const OWN_COPY_QUIET_MS = 2000;
 const TRACK_SETTLE_MS = 600;
 /** A song already playing when the app starts is not news. */
 const STARTUP_GRACE_MS = 4000;
+/** How often the charger is looked at; the native check is a single cheap power-status call. */
+const CHARGER_POLL_MS = 2000;
 
 type IslandPopupsOptions = {
-  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled">;
+  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled" | "chargerPopup">;
   showPreview: SystemNotificationsController["showPreview"];
   clipboardHistory: ClipboardHistorySnapshot;
   ownCopyAtRef: MutableRefObject<number>;
@@ -25,13 +30,61 @@ type IslandPopupsOptions = {
 
 /**
  * The island's own pop-ups, shown like a notification (same timing, same slide-out from a tucked
- * island, same game-mode rules, all decided by showPreview): a text just copied, and a song that
- * just started playing.
+ * island, same game-mode rules, all decided by showPreview): a text just copied, a song that
+ * just started playing, and the charger being plugged in or unplugged.
  */
 export function useIslandPopups({ settings, showPreview, clipboardHistory, ownCopyAtRef, mediaState }: IslandPopupsOptions) {
   const t = useTranslation();
   useCopyPopup(settings.clipboardPopup, showPreview, clipboardHistory, ownCopyAtRef, t.messages.copiedToClipboard);
   useTrackPopup(settings.musicEnabled && settings.musicPopup, showPreview, mediaState);
+  useChargerPopup(settings.chargerPopup, showPreview, t.messages);
+}
+
+function useChargerPopup(enabled: boolean, showPreview: IslandPopupsOptions["showPreview"], copy: Translations["messages"]) {
+  // Whether the charger was connected at the last reading; undefined until the first one, so the
+  // state at start (or when the pop-up is switched on) is not announced.
+  const pluggedRef = useRef<boolean | undefined>(undefined);
+  const copyRef = useRef(copy);
+  useEffect(() => {
+    copyRef.current = copy;
+  });
+  useEffect(() => {
+    if (!enabled) {
+      pluggedRef.current = undefined;
+      return;
+    }
+    let cancelled = false;
+    const check = () => {
+      getBatteryStatus()
+        .then((battery) => {
+          // No battery (a desktop PC) or no reading: nothing to announce.
+          if (cancelled || !battery?.hasBattery) return;
+          const change = chargerChange(pluggedRef.current, battery.isPluggedIn);
+          pluggedRef.current = battery.isPluggedIn;
+          if (!change) return;
+          const text = copyRef.current;
+          const now = Date.now();
+          showPreview({
+            id: `battery-${change}-${now}`,
+            appId: "battery",
+            appDisplayName: text.batteryName,
+            title: change === "plugged" ? text.chargerPluggedIn : text.chargerUnplugged,
+            body: text.batteryLevel(battery.percent),
+            timestamp: now,
+            kind: "battery",
+          });
+        })
+        .catch(() => {
+          // Not running in the desktop app, or the power status could not be read: try again next time.
+        });
+    };
+    check();
+    const timer = window.setInterval(check, CHARGER_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [enabled, showPreview]);
 }
 
 function useCopyPopup(

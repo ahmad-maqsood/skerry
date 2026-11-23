@@ -77,9 +77,20 @@
   border-radius: var(--corner-lg);
   corner-shape: var(--corner-shape);
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--overlay-rgb), 0.2) transparent;
   animation: select-control-in 120ms ease-out;
+}
+
+.select-control__menu::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.select-control__menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.select-control__menu::-webkit-scrollbar-thumb {
+  background: rgba(var(--overlay-rgb), 0.2);
+  border-radius: var(--radius-pill);
 }
 
 .select-control__option {

@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { useSystemNotifications } from "../../features/messages/system-notifications/useSystemNotifications";
 import type { IslandSettings } from "../../features/appearance/types";
 import type { IslandMode } from "./types";
@@ -13,8 +14,19 @@ export function useIslandNotices(
   const previewSeconds = previewSecondsFor(settings, quiet);
   const systemNotifications = useSystemNotifications(canPreviewMessages, previewSeconds);
 
-  const preview = useHeldPreview(systemNotifications.preview, !quiet);
-  const hasMessagePreview = Boolean(systemNotifications.preview || preview);
+  const heldPreview = useHeldPreview(systemNotifications.preview, !quiet);
+  // The preview the user sent away (minimize). It stays dismissed: the cursor on the island holds a
+  // preview past its seconds, and a showing preview slides a tucked island back out, so without this
+  // the minimize button only flickered.
+  const [dismissedAt, setDismissedAt] = useState<number | null>(null);
+  const preview = heldPreview && heldPreview.receivedAt !== dismissedAt ? heldPreview : null;
+  const live = systemNotifications.preview;
+  const hasMessagePreview = Boolean((live && live.receivedAt !== dismissedAt) || preview);
 
-  return { systemNotifications, preview, hasMessagePreview };
+  const currentAt = (live ?? heldPreview)?.receivedAt ?? null;
+  const dismissPreview = useCallback(() => {
+    if (currentAt !== null) setDismissedAt(currentAt);
+  }, [currentAt]);
+
+  return { systemNotifications, preview, hasMessagePreview, dismissPreview };
 }

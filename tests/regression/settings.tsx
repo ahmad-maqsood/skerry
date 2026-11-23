@@ -119,7 +119,8 @@ if (!automated) {
       // Clipboard 9 -> 12: pause recording, keep-history-for and the image cache budget joined the "What's saved" group (still 5 rows, the per-group limit in docs/design/settings.md).
       // System 8 -> 9: the system monitor page (sampling, collapsed chip and visible cards) has nine rows.
       // Appearance 29 -> 30: Clock & Weather now has six rows (time format, seconds and the hover date chip join the two switches and the city).
-      const maxRows = category === "general" ? 17 : category === "appearance" ? 30 : category === "clipboard" ? 12 : category === "todos" || category === "system" ? 9 : 8;
+      // General: 14 existing rows + 7 Island tabs switches; the tabs are intentionally one row each.
+      const maxRows = category === "general" ? 21 : category === "appearance" ? 30 : category === "clipboard" ? 12 : category === "todos" || category === "system" ? 9 : 8;
       if (category === "appearance") {
         const row = [...panel.querySelectorAll<HTMLElement>(".settings-row")].find((item) => item.textContent?.includes("Top edge curves"))!;
         const toggle = row.querySelector<HTMLInputElement>("[role='switch']")!;

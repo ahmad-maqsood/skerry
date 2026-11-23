@@ -2,7 +2,34 @@
 
 This guide provides instructions and fictional demo data for capturing official screenshots for the Skerry documentation and repository README.
 
+## Automated Capture
+
+The screenshots are captured automatically; nobody has to arrange windows or retype demo data.
+
+```powershell
+pnpm install
+pnpm screenshots                # all ten, into docs/assets/screenshots/
+pnpm screenshots music settings # only the shots whose scene or file name matches
+pnpm screenshots --scale=2      # sharper images (device scale factor; default 1 = 100% DPI)
+pnpm screenshots --out=./out    # another folder
+```
+
+- **How it works**: `scripts/capture-screenshots.mjs` starts Vite and the same headless Chrome or Edge that the browser regression pages use, opens a scene of `tests/screenshots/scene.tsx` for each shot, and saves a cropped PNG. A scene is the real island, clipboard or settings window over mocked Windows APIs, driven (clicks, timers, incoming notification) into the state the shot needs.
+- **Demo data** lives in `tests/screenshots/demoData.ts` and matches the shot list below. The clock is fixed at `10:42 AM`. The profile starts empty, so nothing from a developer's browser ever shows up.
+- **CI**: the *Screenshots* workflow (`.github/workflows/screenshots.yml`) runs it on a Windows runner (so text is drawn in Segoe UI) when the UI changes on `main`, uploads the images as an artifact, and commits them if they changed. Run it by hand from the *Actions* tab and tick *commit* to refresh a branch.
+- **Run it on Windows** for pictures that match what users see; on other systems the fonts differ.
+- **Size**: the script prints each file's size and flags any over 250 KB. Shrink those with the command under *Capture and Compression Workflow*.
+- **Changing a shot**: edit the demo data or the scene's steps, run `pnpm screenshots <name>`, and look at the result. Open `http://localhost:1420/tests/screenshots/scene.html?scene=music` under `pnpm dev` to see a scene live; `?material=liquidGlass`, `?theme=light` and `?wallpaper=1` work there too.
+
+Where the automated shot differs from the list below:
+
+- **Messages** shows the notifications the island's panel has room for; the rest scroll.
+- **Todos** shows the task list with the running timer badge. The daily note is on the island's Notes view.
+- **Settings** opens the Appearance page (`?page=<name>` picks another).
+
 ## Capture Guidelines
+
+These apply to manual captures. The automated script follows them where it can.
 
 - **Environment**: Windows 11 with 100% display scaling (DPI).
 - **Background**: Clean, dark neutral wallpaper (e.g. solid `#0f172a` or subtle dark gradient) without desktop icons.
@@ -11,7 +38,7 @@ This guide provides instructions and fictional demo data for capturing official 
 - **Image Dimensions**: Recommended canvas width of 1280px (or 1920px for wide desktop captures).
 - **Privacy Rule**: Never capture personal emails, real tokens, actual messages, or work projects. Use the fictional demo data provided below.
 
-## Capture and Compression Workflow
+## Manual Capture and Compression Workflow
 
 1. Use Windows Snipping Tool via `Win + Shift + S` (Window snip mode) or `Alt + PrtScn` to capture the targeted region.
 2. Save raw captures into a temporary folder.

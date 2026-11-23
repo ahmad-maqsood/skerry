@@ -101,8 +101,19 @@
   padding: 0;
   overflow-y: auto;
   list-style: none;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-white-a18, rgba(255, 255, 255, 0.2)) transparent;
+}
+
+.language-picker__list::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.language-picker__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.language-picker__list::-webkit-scrollbar-thumb {
+  background: var(--color-white-a18, rgba(255, 255, 255, 0.2));
+  border-radius: var(--radius-pill);
 }
 
 .language-picker__option {

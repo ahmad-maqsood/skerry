@@ -123,6 +123,8 @@ export type IslandSettings = {
   clipboardPopup: boolean;
   /** The island pops out to show the song when a new one starts playing. */
   musicPopup: boolean;
+  /** The island pops out when the charger is plugged in or unplugged (laptops only). */
+  chargerPopup: boolean;
   expandTrigger: ExpandTrigger;
   /** Pointer rest time (ms) before a hover opens the island. */
   hoverExpandDelayMs: number;

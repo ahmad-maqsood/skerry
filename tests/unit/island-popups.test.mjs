@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { COPY_POPUP_MAX_CHARS, copiedTextSince, copyPopupText, newestCopiedAt } from "../../src/features/clipboard/copyPopup.ts";
 import { isNewTrack, playingTrackKey } from "../../src/features/media/trackPopup.ts";
+import { chargerChange } from "../../src/features/system-monitor/chargerPopup.ts";
 import { normalizeSettings } from "../../src/features/appearance/settings.ts";
 
 const text = (id, copiedAt, body, extra = {}) => ({ id, kind: "text", hash: id, createdAt: copiedAt, copiedAt, preview: body, text: body, ...extra });
@@ -44,10 +45,19 @@ test("a song counts once, and resuming it after a pause is not a new song", () =
 });
 
 test("the pop-ups are on unless switched off", () => {
-  for (const key of ["clipboardPopup", "musicPopup"]) {
+  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup"]) {
     for (const value of [undefined, null, "false", 0, {}, true]) {
       assert.equal(normalizeSettings({ [key]: value })[key], true, key);
     }
     assert.equal(normalizeSettings({ [key]: false })[key], false, key);
   }
+});
+
+test("the charger is announced only when it changes, never for the first reading", () => {
+  assert.equal(chargerChange(undefined, true), null, "already plugged in at start");
+  assert.equal(chargerChange(undefined, false), null, "already on battery at start");
+  assert.equal(chargerChange(true, true), null);
+  assert.equal(chargerChange(false, false), null);
+  assert.equal(chargerChange(false, true), "plugged");
+  assert.equal(chargerChange(true, false), "unplugged");
 });

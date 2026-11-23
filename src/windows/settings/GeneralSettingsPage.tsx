@@ -8,16 +8,19 @@ import { requestIslandPositionReset } from "./storage";
 import { useLaunchAtStartup } from "./useLaunchAtStartup";
 import { ConfigTransferSection } from "../../features/config-transfer/ConfigTransferSection";
 import { TrayIconRow } from "./TrayIconRow";
+import { IslandTabsGroup } from "./IslandTabsGroup";
+import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 
 /**
  * Settings → General: how the island behaves, most used first (docs/design/settings.md): startup
- * and language; opening and closing; the position; tucking to the edge, with when not to under
+ * and language; which tabs the island has; opening and closing; the position; tucking to the edge, with when not to under
  * auto-tuck; game mode; backup and transfer. How it looks, tucked included, is on appearance.
  */
 export function GeneralSettingsPage({
   locale,
   settings,
   detachedSettings,
+  systemNotifications,
   onLocaleChange,
   onSettingsChange,
   onDetachedSettingsChange,
@@ -25,6 +28,7 @@ export function GeneralSettingsPage({
   locale: LocaleCode;
   settings: IslandSettings;
   detachedSettings: boolean;
+  systemNotifications: SystemNotificationsController;
   onLocaleChange: (locale: LocaleCode) => void;
   onSettingsChange: (settings: IslandSettings) => void;
   onDetachedSettingsChange: (detached: boolean) => void;
@@ -45,6 +49,7 @@ export function GeneralSettingsPage({
       >
         <TrayIconRow />
       </BehaviorSettingsSection>
+      <IslandTabsGroup settings={settings} onSettingsChange={onSettingsChange} systemNotifications={systemNotifications} />
       <SettingsGroup title={t.settings.expand.title}>
         <ExpandRows {...rows} />
       </SettingsGroup>

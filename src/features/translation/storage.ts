@@ -1,4 +1,7 @@
 import { AUTO_TARGET_LANGUAGE, isTargetLanguage } from "./languages.ts";
+
+/** Where translations go before the user picks a language. */
+export const DEFAULT_TARGET_LANGUAGE = "en";
 import {
   DEFAULT_TRANSLATION_PROVIDER,
   LEGACY_TRANSLATION_PROVIDER,
@@ -10,7 +13,7 @@ export type TranslationSettings = {
   shortcut: string;
   /** Off releases the global shortcut while translation itself stays on. */
   shortcutEnabled: boolean;
-  /** The language to translate into: a code from languages.ts, or "auto" (Chinese into English, anything else into Chinese). */
+  /** The language to translate into: a code from languages.ts (English by default), or "auto" (Chinese into English, anything else into Chinese). */
   targetLanguage: string;
   provider: TranslationProvider;
   /** Base URL of the OpenAI-compatible service used by the "custom" provider. */
@@ -28,7 +31,7 @@ const LEGACY_DEFAULT_SHORTCUTS = new Set(["Alt+Space", "Alt+C"]);
 export const DEFAULT_SETTINGS: TranslationSettings = {
   shortcut: "Ctrl+Shift+F",
   shortcutEnabled: true,
-  targetLanguage: AUTO_TARGET_LANGUAGE,
+  targetLanguage: DEFAULT_TARGET_LANGUAGE,
   provider: DEFAULT_TRANSLATION_PROVIDER,
   customBaseUrl: "",
   models: {},

@@ -185,7 +185,7 @@
 }
 
 .todo-list::-webkit-scrollbar {
-  width: 6px;
+  width: var(--scrollbar-width);
 }
 
 .todo-list::-webkit-scrollbar-thumb {
@@ -212,7 +212,6 @@
   font-size: calc(14px * var(--island-font-scale, 1));
   font-weight: 400;
   line-height: 28px;
-  scrollbar-color: var(--color-white-a18) transparent;
 }
 
 .daily-note::placeholder {
@@ -224,7 +223,7 @@
 }
 
 .daily-note::-webkit-scrollbar {
-  width: 6px;
+  width: var(--scrollbar-width);
 }
 
 .daily-note::-webkit-scrollbar-thumb {

@@ -7,7 +7,16 @@ on:
       - '**/*.md'
       - 'docs/**'
       - '.github/ISSUE_TEMPLATE/**'
+  # Every pull request is tested when it is opened (or reopened) and again on each new push to it.
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -16,10 +25,9 @@ concurrency:
 # Jobs run side by side, so a run takes as long as its slowest job, not the sum of them.
 # Only work that needs Windows runs on Windows (the Rust app and the browser pages that
 # compare line-wrapping in Windows fonts); the rest runs on Linux, which starts faster.
-# A manual run from another branch runs everything too, to try out changes to this file.
+# Pushes to main, pull requests and manual runs all run everything.
 jobs:
   checks:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     name: Frontend checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -55,7 +63,6 @@ jobs:
           fi
 
   regression:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     name: Browser pages (${{ matrix.shard }}/3)
     # The app's fonts (Segoe UI, Microsoft YaHei) are Windows fonts; line-wrapping checks in the
     # regression pages only match on a Windows runner.
@@ -95,7 +102,6 @@ jobs:
           fi
 
   clippy:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     name: Clippy
     runs-on: windows-latest
     timeout-minutes: 30
@@ -127,7 +133,6 @@ jobs:
         run: cargo clippy --manifest-path plugins/Cargo.toml --workspace --all-targets -- -D warnings
 
   rust-tests:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     name: Rust tests
     runs-on: windows-latest
     timeout-minutes: 30
@@ -167,7 +172,7 @@ jobs:
     name: "CI passed"
     runs-on: ubuntu-latest
     needs: [checks, regression, clippy, rust-tests]
-    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+    if: always()
     steps:
       - name: Check status of parallel jobs
         env:

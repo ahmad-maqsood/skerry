@@ -10,6 +10,18 @@ use super::models::{
     NetworkSnapshot, SystemSnapshot, WifiSnapshot,
 };
 
+/// Current battery and charger state; None on a PC without a battery or when it cannot be read.
+/// Cheap enough to poll, unlike a full `SystemSampler::sample`.
+pub fn battery_snapshot() -> Option<BatterySnapshot> {
+    power::query_battery_status().map(|status| BatterySnapshot {
+        has_battery: status.has_battery,
+        is_charging: status.is_charging,
+        is_plugged_in: status.is_plugged_in,
+        percent: status.percent,
+        remaining_seconds: status.remaining_seconds,
+    })
+}
+
 pub struct SystemSampler {
     sys: System,
     disks: Disks,
@@ -155,7 +167,8 @@ impl SystemSampler {
         let wifi = if let Some(wifi_status) = wifi::query_wifi_status() {
             WifiSnapshot {
                 connected: true,
-                ssid: Some(wifi_status.ssid),
+                // An empty name (details unreadable) shows as plain "Connected" in the panel.
+                ssid: Some(wifi_status.ssid).filter(|name| !name.is_empty()),
                 signal_percent: wifi_status.signal_percent,
                 link_speed_mbps: wifi_status.link_speed_mbps,
                 phy_type: Some(wifi_status.phy_type),
@@ -182,13 +195,7 @@ impl SystemSampler {
         };
 
         // 6. Battery
-        let battery = power::query_battery_status().map(|status| BatterySnapshot {
-            has_battery: status.has_battery,
-            is_charging: status.is_charging,
-            is_plugged_in: status.is_plugged_in,
-            percent: status.percent,
-            remaining_seconds: status.remaining_seconds,
-        });
+        let battery = battery_snapshot();
 
         // 7. Uptime
         let uptime_seconds = System::uptime();

@@ -26,6 +26,11 @@
     </style>
   </head>
   <body>
+    <script>
+      // The scene runs in a child frame of native-host.html, which has no Tauri globals, so
+      // mockIPC() works there. Tell @tauri-apps/api it is inside Tauri, as the top frame would.
+      if (!("isTauri" in window)) Object.defineProperty(window, "isTauri", { value: true, configurable: true });
+    </script>
     <div id="root"></div>
     <script>
       // Report page startup failures even when the screenshot module cannot finish loading.

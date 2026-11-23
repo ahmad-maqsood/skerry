@@ -30,6 +30,14 @@ test("the scene page the shots open exists", () => {
   assert.ok(existsSync(path.join(root, "tests/screenshots/scene.tsx")));
 });
 
+test("the native window opens the iframe host, never scene.html as its top page", () => {
+  const script = readFileSync(path.join(root, "scripts/capture-screenshots.mjs"), "utf8");
+  assert.match(script, /tests\/screenshots\/native-host\.html\?\$\{query\}/);
+  assert.doesNotMatch(script, /const url = `tests\/screenshots\/scene\.html/);
+  const host = readFileSync(path.join(root, "tests/screenshots/native-host.html"), "utf8");
+  assert.match(host, /scene\.html" \+ location\.search/);
+});
+
 test("words pick shots by scene or by file name; no words means all", () => {
   assert.equal(selectShots(SHOTS, []).length, SHOTS.length);
   assert.deepEqual(selectShots(SHOTS, ["music"]).map((shot) => shot.scene), ["music"]);

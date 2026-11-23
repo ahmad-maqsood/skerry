@@ -128,8 +128,10 @@ async function captureScene(scene, output) {
   const capturePort = await signalServer.start();
   query.set("capturePort", String(capturePort));
   query.set("captureToken", captureToken);
-  // Use the maintained screenshot scene page (not the stale root-level screenshot.html).
-  const url = `tests/screenshots/scene.html?${query}`;
+  // The native window opens native-host.html, which embeds the maintained scene page in an iframe
+  // (not the stale root-level screenshot.html). Tauri's read-only __TAURI_INTERNALS__ exists only
+  // in the top frame, so mockIPC() can run in the iframe but throws if scene.html is the top page.
+  const url = `tests/screenshots/native-host.html?${query}`;
   const overlay = {
     app: { windows: [{ label: "main", title: "Skerry", url, width: 1280, height: 800, center: true, visible: true, alwaysOnTop: true }] },
   };

@@ -78,15 +78,27 @@ async function captureScene(scene, output) {
 
   // Tauri dev launches the real Windows desktop window and its WebView2 runtime. The screenshot
   // harness mounts the same production React components inside that native window (not Chrome).
-  const command = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "pnpm";
+  // Use PowerShell as the Windows command host rather than cmd.exe. cmd /s /c was
+  // forwarding the quotes around this path as part of the --config value, so Tauri tried
+  // to open a filename that literally contained quotation marks (Windows error 123).
+  const command = process.platform === "win32" ? powershell : "pnpm";
+  const quotedConfig = config.replace(/'/g, "''");
   const args = process.platform === "win32"
-    ? ["/d", "/s", "/c", `pnpm tauri dev --config "${config}"`]
+    ? [
+      "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+      "-Command", `& pnpm tauri dev --config '${quotedConfig}'`,
+    ]
     : ["tauri", "dev", "--config", config];
-  // Keep Tauri/Cargo output in the Actions log. The previous silent spawn hid startup/build
-  // failures and made the window detector look like the root cause.
+  // Keep Tauri/Cargo output in the Actions log so native startup failures are visible.
   const app = spawn(command, args, { cwd: root, stdio: "inherit", windowsHide: true });
+  let launchError;
+  app.once("error", (error) => { launchError = error; });
   try {
     await sleep(1_500);
+    if (launchError) throw new Error(`Could not start the Tauri launcher: ${launchError.message}`);
+    if (app.exitCode !== null) {
+      throw new Error(`Tauri launcher exited before the window appeared (exit code ${app.exitCode}) while capturing ${scene}.`);
+    }
     const captureScript = path.join(root, "scripts", "capture-window.ps1");
     runPowerShell([
       "-File", captureScript,
@@ -94,11 +106,13 @@ async function captureScene(scene, output) {
       "-OutputPath", output,
       "-ReadyDelaySeconds", "10",
       "-TimeoutSeconds", "600",
+      "-LauncherProcessId", String(app.pid),
     ]);
-    if (app.exitCode !== null && app.exitCode !== 0) throw new Error(`Tauri exited with code ${app.exitCode} while capturing ${scene}.`);
   } finally {
-    if (app.pid && process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });
-    else app.kill("SIGTERM");
+    if (app.pid && app.exitCode === null) {
+      if (process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });
+      else app.kill("SIGTERM");
+    }
     await sleep(700);
     rmSync(temp, { recursive: true, force: true });
   }

@@ -62,7 +62,10 @@ test("clipboard fill stays on and auto-translate off: they are no longer setting
 });
 
 test("a saved direction becomes the matching output language, and a chosen language wins", () => {
-  assert.equal(DEFAULT_SETTINGS.targetLanguage, "auto");
+  assert.equal(DEFAULT_SETTINGS.targetLanguage, "en");
+  assert.equal(normalizeTranslationSettings(null).targetLanguage, "en");
+  // Settings saved before the output language existed keep translating the way they did.
+  assert.equal(normalizeTranslationSettings({ shortcut: "Ctrl+Shift+F" }).targetLanguage, "auto");
   assert.equal(normalizeTranslationSettings({ direction: "zh-en" }).targetLanguage, "en");
   assert.equal(normalizeTranslationSettings({ direction: "en-zh" }).targetLanguage, "zh-CN");
   assert.equal(normalizeTranslationSettings({ direction: "auto" }).targetLanguage, "auto");

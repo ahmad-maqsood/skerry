@@ -20,8 +20,14 @@ import { isTodoTimerEndingSoon, type TodoTimer } from "../../features/todos/time
 import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoContent";
 import { isCollapsedFocused, focusedCollapsedSlots } from "./collapsedFocus.ts";
 import type { IslandPage } from "./types";
+import { useLingeringFlag } from "./useLingeringFlag";
 import { useWindowDragGesture } from "./useWindowDragGesture";
 import "./IslandCollapsedBar.css";
+
+/** How long a message preview takes to slide out of the text (CollapsedMessageContent's outgoing layer). */
+const FOCUS_RELEASE_MS = 720;
+
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 type IslandCollapsedBarProps = {
   systemNotifications: SystemNotificationsController;
@@ -46,7 +52,7 @@ type IslandCollapsedBarProps = {
   collapsedCover: string | null;
   lyricsSettings: LyricsSettings & { lyricsOffsetMs: number };
   mediaState: MediaState;
-  /** False while music is switched off, which hides the waveform button. */
+  /** False while music is switched off, which hides the waveform button; it also shows only while a song plays. */
   showMusic: boolean;
   /** Files on the shelf, or null when the count is not shown. */
   shelfCount: number | null;
@@ -102,6 +108,17 @@ export function IslandCollapsedBar({
     else void systemNotifications.openApp(shown.appId);
   };
 
+  // An alert (notification, new song, reminder) gets the whole bar: only the text and minimize stay.
+  // The layout is held until the alert has slid out of the text (FOCUS_RELEASE_MS), so the status
+  // icons, the light first on the left, do not pop back in beside text that is still leaving.
+  const alerting = !isExpanded && !isTucked && isCollapsedFocused({
+    hasPreview: preview !== null,
+    todoTimer,
+    showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
+    layout: collapsedLayout,
+  });
+  const focused = useLingeringFlag(alerting, prefersReducedMotion() ? 0 : FOCUS_RELEASE_MS) && !isExpanded && !isTucked && collapsedLayout.includes("text");
+
   if (noticeReader && preview && !isExpanded && !isTucked) return (
     <div className="island__collapsed island__collapsed--notice">
       <MessageNoticeReader preview={preview} scrolls={noticeReader.scrolls} onMinimize={onMinimize}
@@ -110,22 +127,17 @@ export function IslandCollapsedBar({
     </div>
   );
 
-  // An alert (notification, new song, reminder) gets the whole bar: only the text and minimize stay.
-  const focused = !isExpanded && !isTucked && isCollapsedFocused({
-    hasPreview: preview !== null,
-    todoTimer,
-    showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
-    layout: collapsedLayout,
-  });
-
   // The text and the status icons, placed in the order Settings → Appearance arranged.
   const slots: Record<CollapsedSlot, ReactNode> = {
-    // The status light opens the message being previewed, or the first page.
+    // The status light always expands the island, even while a notification is previewed; the
+    // preview text beside it is what opens the notification's app.
     pulse: (
       <button
         className="island__light"
         type="button"
-        aria-label={preview ? t.messages.noticeOpen(preview.appDisplayName) : collapsedLabel}
+        aria-label={collapsedLabel}
+        aria-expanded={isExpanded}
+        aria-controls="island-panel"
         onPointerDown={prepareWindowDrag}
         onPointerMove={handleWindowDragMove}
         onPointerUp={cancelWindowDrag}
@@ -133,7 +145,7 @@ export function IslandCollapsedBar({
         onClick={(event) => {
           if (event.detail !== 0 && didDragRef.current) return;
           event.stopPropagation();
-          if (preview) openPreview(preview); else onExpand();
+          onExpand();
         }}
       >
         <span className="island__pulse" />
@@ -210,7 +222,8 @@ export function IslandCollapsedBar({
         <span>{shelfCount}</span>
       </button>
       ),
-    music: showMusic && (
+    // Only while a song is playing: an idle or paused player leaves no dotted placeholder on the bar.
+    music: showMusic && isMusicPlaying && (
       <MusicWaveButton
         isAvailable={mediaState.available || mediaState.audioActive}
         isPlaying={isMusicPlaying}

@@ -12,6 +12,20 @@ export type NotebookText = {
   addTaskHint: string;
   dailyPlaceholder: string;
   dailyNoteLabel: string;
+  notesActions: string;
+  expandNotes: string;
+  collapseNotes: string;
+  openDayFile: string;
+  showPastNotes: string;
+  hidePastNotes: string;
+  noPastNotes: string;
+  pastNotesNeedFolder: string;
+  pastNotesFailed: string;
+  openPastNote: (date: string) => string;
+  openNotesFolder: string;
+  insertTime: string;
+  noteImage: string;
+  noteImageMissing: string;
   pickDate: string;
   clearDate: string;
   dateToday: string;
@@ -56,6 +70,20 @@ export const en: NotebookText = {
   addTaskHint: "Add a task, press Enter to save",
   dailyPlaceholder: "Write today's notes...",
   dailyNoteLabel: "Daily note",
+  notesActions: "Note actions",
+  expandNotes: "Make the notes taller",
+  collapseNotes: "Make the notes smaller",
+  openDayFile: "Open today's markdown file",
+  showPastNotes: "Show saved days",
+  hidePastNotes: "Back to today's note",
+  noPastNotes: "No earlier days saved yet",
+  pastNotesNeedFolder: "Choose a save folder in settings to see saved days",
+  pastNotesFailed: "Could not read the save folder",
+  openPastNote: (date) => `Open the markdown file for ${date}`,
+  openNotesFolder: "Open the notes folder",
+  insertTime: "Insert the current time",
+  noteImage: "Pasted image",
+  noteImageMissing: "Image not found",
   pickDate: "Pick a date",
   clearDate: "Clear date",
   dateToday: "Today",

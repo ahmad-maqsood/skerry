@@ -9,6 +9,45 @@ export function saveTodoMarkdown(directory: string, date: string, content: strin
   return invoke<SaveTodoResult>("save_todo_markdown", { directory, date, content });
 }
 
+/** Opens the day's saved markdown file in the app the system uses for `.md` files. */
+export function openTodoMarkdown(directory: string, date: string) {
+  return invoke<void>("open_todo_markdown", { directory, date });
+}
+
+// Corresponds to TodoMarkdownFile in src-tauri/src/system/todo_history.rs.
+export type TodoMarkdownFileEntry = {
+  /** Local date, YYYY-MM-DD. */
+  date: string;
+  filePath: string;
+};
+
+/** The days saved in the folder, newest first; a folder that does not exist yet holds none. */
+export function listTodoMarkdownFiles(directory: string) {
+  return invoke<TodoMarkdownFileEntry[]>("list_todo_markdown_files", { directory });
+}
+
+/** Opens the save folder in the file manager. */
+export function openTodoFolder(directory: string) {
+  return invoke<void>("open_todo_folder", { directory });
+}
+
+// Corresponds to SavedNoteImage in src-tauri/src/system/todo_images.rs.
+export type SavedNoteImage = {
+  /** Where the note refers to it, relative to the markdown file: `assets/<name>`. */
+  relativePath: string;
+  filePath: string;
+};
+
+/** Saves an image pasted into the note (base64) next to the day's markdown file. */
+export function saveTodoNoteImage(directory: string, date: string, data: string) {
+  return invoke<SavedNoteImage>("save_todo_note_image", { directory, date, data });
+}
+
+/** A saved note image as a data URL. */
+export function readTodoNoteImage(directory: string, relativePath: string) {
+  return invoke<string>("read_todo_note_image", { directory, relativePath });
+}
+
 // Corresponds to TodoMarkdownSnapshot / ConditionalTodoSaveResult in src-tauri/src/system/todo_sync.rs.
 export type TodoMarkdownSnapshot = {
   filePath: string;

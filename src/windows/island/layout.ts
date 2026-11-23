@@ -13,6 +13,8 @@ export const MAX_COLLAPSED_TEXT_UNITS = 12;
 export const BASE_EXPANDED_ISLAND_HEIGHT = 258;
 /** The daily note: a row taller than the list, for a few lines of writing. */
 export const DAILY_NOTE_EXPANDED_ISLAND_HEIGHT = 296;
+/** The daily note after its expand button is pressed: taller, within the panel height limit. */
+export const DAILY_NOTE_LARGE_ISLAND_HEIGHT = 440;
 export const TODO_ARCHIVE_EXPANDED_ISLAND_HEIGHT = 352;
 /**
  * The todo calendar fits a six-week month beside the day's list. Allow for the island chrome,

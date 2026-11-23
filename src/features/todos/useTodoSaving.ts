@@ -6,6 +6,8 @@ import type { SaveState, TodoItem } from "./types";
 import { useTodoAutoSave } from "./useTodoAutoSave";
 import { useTodoSaveDirectory } from "./useTodoSaveDirectory";
 import { useTodoFileSync } from "./useTodoFileSync";
+import { useTodoDayFiles } from "./useTodoDayFiles";
+import { useTodoNoteImages } from "./useTodoNoteImages";
 import type { DailyTodoDocument } from "./mergeDailyMarkdown";
 
 type UpsertArchive = (
@@ -110,6 +112,27 @@ export function useTodoSaving({
     todos,
   ]);
 
+  const onNeedsFolder = useCallback(() => {
+    setSaveState("needs-path");
+    onMissingSaveDirectory();
+  }, [onMissingSaveDirectory]);
+  const onFailed = useCallback(() => setSaveState("error"), []);
+  const { openTodayFile, openDayFile, listDayFiles, openFolder } = useTodoDayFiles({
+    saveDirectory,
+    date: currentTodoDate,
+    todos,
+    dailyNote,
+    saveTodosToDisk,
+    onNeedsFolder,
+    onFailed,
+  });
+  const { saveNoteImage, readNoteImage } = useTodoNoteImages({
+    saveDirectory,
+    date: currentTodoDate,
+    onNeedsFolder,
+    onFailed,
+  });
+
   useTodoAutoSave({
     currentTodoDate,
     todos,
@@ -128,5 +151,5 @@ export function useTodoSaving({
     [],
   );
 
-  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, fileSyncEnabled };
+  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, openDayFile, listDayFiles, openFolder, saveNoteImage, readNoteImage, fileSyncEnabled };
 }

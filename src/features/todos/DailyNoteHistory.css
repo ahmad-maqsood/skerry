@@ -1,0 +1,59 @@
+.daily-history {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 6px;
+  background: var(--color-white-a04);
+  border: 1px solid var(--color-white-a08);
+  border-radius: var(--corner-xs);
+  corner-shape: var(--corner-shape);
+}
+
+.daily-history.todo-empty {
+  text-align: center;
+}
+
+.daily-history__item {
+  min-height: 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 14px;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 3px 10px;
+  color: var(--text-3);
+  text-align: left;
+  background: var(--color-white-a04);
+  border: 1px solid var(--color-white-a08);
+  border-radius: var(--corner-md);
+  corner-shape: var(--corner-shape);
+  outline: none;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.daily-history__item:hover {
+  color: var(--text-1);
+  background: var(--color-white-a08);
+}
+
+.daily-history__item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.daily-history__date {
+  overflow: hidden;
+  color: var(--text-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(13px * var(--island-font-scale, 1));
+  font-weight: 600;
+}
+
+.daily-history__file {
+  font-size: calc(11px * var(--island-font-scale, 1));
+  font-variant-numeric: tabular-nums;
+}

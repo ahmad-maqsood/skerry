@@ -12,7 +12,7 @@ export const en: ClockWeatherText = {
   title: "Clock & Weather",
   showClock: "Show time on the island", showWeather: "Show weather on the island", city: "Weather location",
   hourFormat: "Time format", hourFormatAuto: "Regional default (system)", hourFormat12: "12-hour", hourFormat24: "24-hour",
-  showSeconds: "Show seconds", showDateOnHover: "Show date chip on hover",
+  showSeconds: "Show seconds", showDateOnHover: "Show date on hover",
   chooseCity: "Choose a city to show weather", cityPlaceholder: "Enter a city name", search: "Search", searching: "Searching cities…",
   noCities: "No cities found. Try another name.", searchFailed: "City search is unavailable. Please try again later.",
   privacy: "Weather by Open-Meteo, refreshed every 30 minutes. Only your chosen city is queried; no automatic location.",

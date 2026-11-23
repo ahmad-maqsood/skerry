@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "../../i18n";
 import { collectCalendarTodos } from "./calendar";
+import type { TodoMarkdownFileEntry } from "./api";
+import { DailyNoteEditor } from "./DailyNoteEditor";
 import { TodoCalendar } from "./TodoCalendar";
 import { ScheduledTodoList } from "./ScheduledTodoList";
 import { TodoNotebookTasks } from "./TodoNotebookTasks";
@@ -9,6 +11,10 @@ import type { ScheduledTodo, TodoArchive, TodoItem, TodoPageMode } from "./types
 import type { TodoDuration, TodoDurations, TodoTimer } from "./timer";
 import { withoutUpdateTodo } from "./updateTodo";
 import "./TodoNotebook.css";
+
+// A stable stand-in, so the saved days are not read again on every render.
+const listNoDayFiles = async () => null;
+const keepNoNoteImage = async () => null;
 
 export function TodoNotebook({
   todos,
@@ -45,6 +51,14 @@ export function TodoNotebook({
   onShowDaily,
   onShowToday,
   onDailyNoteChange,
+  notesExpanded = false,
+  onToggleNotesExpanded = () => {},
+  onOpenDayFile = () => {},
+  onListDayFiles = listNoDayFiles,
+  onOpenPastDayFile = () => {},
+  onOpenNotesFolder = () => {},
+  onSaveNoteImage = keepNoNoteImage,
+  onReadNoteImage = keepNoNoteImage,
 }: {
   todos: TodoItem[];
   dailyNote: string;
@@ -84,6 +98,21 @@ export function TodoNotebook({
   onShowDaily: () => void;
   onShowToday: () => void;
   onDailyNoteChange: (value: string) => void;
+  /** The Notes tab is shown taller; the island grows with it (expandedHeight.ts). */
+  notesExpanded?: boolean;
+  onToggleNotesExpanded?: () => void;
+  /** Saves today's note and opens its markdown file in the system's editor. */
+  onOpenDayFile?: () => void;
+  /** The days saved as markdown in the save folder, newest first; null while no folder is chosen. */
+  onListDayFiles?: () => Promise<TodoMarkdownFileEntry[] | null>;
+  /** Opens a saved day's markdown file. */
+  onOpenPastDayFile?: (date: string) => void;
+  /** Opens the folder the days are saved in. */
+  onOpenNotesFolder?: () => void;
+  /** Saves an image pasted into the note; resolves to the path the note refers to, or null. */
+  onSaveNoteImage?: (image: Blob) => Promise<string | null>;
+  /** A saved note image as a data URL, for its thumbnail. */
+  onReadNoteImage?: (relativePath: string) => Promise<string | null>;
 }) {
   const t = useTranslation();
   const calendarTodos = useMemo(
@@ -134,13 +163,18 @@ export function TodoNotebook({
       )}
 
       {pageMode === "daily" ? (
-        <textarea
-          className="daily-note"
+        <DailyNoteEditor
           value={dailyNote}
-          placeholder={t.notebook.dailyPlaceholder}
-          aria-label={t.notebook.dailyNoteLabel}
-          spellCheck={false}
-          onChange={(event) => onDailyNoteChange(event.currentTarget.value)}
+          today={currentDate}
+          expanded={notesExpanded}
+          onChange={onDailyNoteChange}
+          onToggleExpanded={onToggleNotesExpanded}
+          onOpenDayFile={onOpenDayFile}
+          onListDayFiles={onListDayFiles}
+          onOpenPastDayFile={onOpenPastDayFile}
+          onOpenFolder={onOpenNotesFolder}
+          onSaveImage={onSaveNoteImage}
+          onReadImage={onReadNoteImage}
         />
       ) : pageMode === "upcoming" ? (
         <ScheduledTodoList todos={scheduledTodos} onDelete={onDeleteScheduledTodo} />

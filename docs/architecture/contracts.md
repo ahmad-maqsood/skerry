@@ -51,6 +51,7 @@ Dual-write for old and new keys: first active ID serves as primary task, legacy 
 | `skerry-archives` | `features/todos/storage.ts` |
 | `skerry-scheduled-todos` (todos scheduled for future dates, `{ id, title, date, createdAt }[]`) | `features/todos/storage.ts` |
 | `skerry-daily-note` | `features/todos/storage.ts` |
+| `skerry-notes-expanded` (`"true"` shows the Notes tab taller; missing or other values mean the normal size) | `features/todos/storage.ts` |
 | `skerry-save-directory` | `features/todos/storage.ts` |
 | `skerry-last-saved-signature` | `features/todos/storage.ts` |
 | `skerry-position` | `windows/island/storage.ts` |

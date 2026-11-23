@@ -6,6 +6,8 @@
 //   pnpm screenshots music settings
 //   pnpm screenshots --out=./out
 import { spawn, spawnSync } from "node:child_process";
+import { createServer } from "node:http";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync, mkdirSync, rmSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -54,11 +56,62 @@ export function selectShots(shots, words) {
 
 function runPowerShell(args) {
   const result = spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", ...args], {
-    cwd: root, encoding: "utf8", timeout: 300_000, maxBuffer: 2 * 1024 * 1024,
+    cwd: root, encoding: "utf8", timeout: 720_000, maxBuffer: 2 * 1024 * 1024,
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || `PowerShell exited with ${result.status}.`);
   return result.stdout;
+}
+
+function createSceneSignalServer(token) {
+  let resolveSignal;
+  let rejectSignal;
+  const signal = new Promise((resolve, reject) => {
+    resolveSignal = resolve;
+    rejectSignal = reject;
+  });
+  const server = createServer((request, response) => {
+    const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    response.setHeader("Access-Control-Allow-Private-Network", "true");
+    response.writeHead(204);
+    response.end();
+    // A browser may send an OPTIONS preflight for loopback access. Only the actual GET
+    // from the scene page is allowed to release the capture wait.
+    if (request.method !== "GET" || url.pathname !== "/scene-signal" || url.searchParams.get("token") !== token) return;
+    if (url.searchParams.get("status") === "ready") resolveSignal();
+    if (url.searchParams.get("status") === "error") {
+      rejectSignal(new Error(`Screenshot scene failed to render: ${url.searchParams.get("message") ?? "Unknown scene error"}`));
+    }
+  });
+  const listening = new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  return {
+    async start() {
+      await listening;
+      return server.address().port;
+    },
+    async wait(timeoutMs = 90_000) {
+      let timer;
+      try {
+        await Promise.race([
+          signal,
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(`Screenshot scene did not report ready within ${timeoutMs / 1000} seconds. The WebView may have failed to load tests/screenshots/scene.html or its React entry point.`)), timeoutMs);
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+    close() {
+      server.close();
+    },
+  };
 }
 
 async function captureScene(scene, output) {
@@ -70,7 +123,13 @@ async function captureScene(scene, output) {
     const [key, value = ""] = part.split("=");
     query.set(key, value);
   }
-  const url = `screenshot.html?${query}`;
+  const captureToken = randomUUID();
+  const signalServer = createSceneSignalServer(captureToken);
+  const capturePort = await signalServer.start();
+  query.set("capturePort", String(capturePort));
+  query.set("captureToken", captureToken);
+  // Use the maintained screenshot scene page (not the stale root-level screenshot.html).
+  const url = `tests/screenshots/scene.html?${query}`;
   const overlay = {
     app: { windows: [{ label: "main", title: "Skerry", url, width: 1280, height: 800, center: true, visible: true, alwaysOnTop: true }] },
   };
@@ -78,19 +137,48 @@ async function captureScene(scene, output) {
 
   // Tauri dev launches the real Windows desktop window and its WebView2 runtime. The screenshot
   // harness mounts the same production React components inside that native window (not Chrome).
-  const command = process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "pnpm";
+  // Use PowerShell as the Windows command host rather than cmd.exe. cmd /s /c was
+  // forwarding the quotes around this path as part of the --config value, so Tauri tried
+  // to open a filename that literally contained quotation marks (Windows error 123).
+  const command = process.platform === "win32" ? powershell : "pnpm";
+  const quotedConfig = config.replace(/'/g, "''");
   const args = process.platform === "win32"
-    ? ["/d", "/s", "/c", `pnpm tauri dev --config "${config}"`]
+    ? [
+      "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+      "-Command", `& pnpm tauri dev --config '${quotedConfig}'`,
+    ]
     : ["tauri", "dev", "--config", config];
-  const app = spawn(command, args, { cwd: root, stdio: "ignore", windowsHide: true });
+  // Keep Tauri/Cargo output in the Actions log so native startup failures are visible.
+  const app = spawn(command, args, { cwd: root, stdio: "inherit", windowsHide: true });
+  let launchError;
+  app.once("error", (error) => { launchError = error; });
   try {
     await sleep(1_500);
+    if (launchError) throw new Error(`Could not start the Tauri launcher: ${launchError.message}`);
+    if (app.exitCode !== null) {
+      throw new Error(`Tauri launcher exited before the window appeared (exit code ${app.exitCode}) while capturing ${scene}.`);
+    }
+
+    // Do not capture a native window just because it exists. Wait until the screenshot page has
+    // mounted the requested React scene and completed its scripted interactions.
+    await signalServer.wait();
+    console.log(`✓ Scene "${sceneName}" rendered and reported ready.`);
+
     const captureScript = path.join(root, "scripts", "capture-window.ps1");
-    runPowerShell(["-File", captureScript, "-WindowTitle", "Skerry", "-OutputPath", output, "-ReadyDelaySeconds", "10"]);
-    if (app.exitCode !== null && app.exitCode !== 0) throw new Error(`Tauri exited with code ${app.exitCode} while capturing ${scene}.`);
+    runPowerShell([
+      "-File", captureScript,
+      "-WindowTitle", "Skerry",
+      "-OutputPath", output,
+      "-ReadyDelaySeconds", "2",
+      "-TimeoutSeconds", "60",
+      "-LauncherProcessId", String(app.pid),
+    ]);
   } finally {
-    if (app.pid && process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });
-    else app.kill("SIGTERM");
+    signalServer.close();
+    if (app.pid && app.exitCode === null) {
+      if (process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });
+      else app.kill("SIGTERM");
+    }
     await sleep(700);
     rmSync(temp, { recursive: true, force: true });
   }
@@ -114,7 +202,15 @@ async function main() {
         await captureScene(`messages&material=${material}`, part);
         themeParts.push(part);
       }
-      runPowerShell(["-File", path.join(root, "scripts", "compose-screenshot-themes.ps1"), "-Inputs", ...themeParts, "-OutputPath", target]);
+      // Pass each theme image as its own named parameter. This avoids PowerShell
+      // array/JSON argument binding differences when launched from Node on Windows.
+      runPowerShell([
+        "-File", path.join(root, "scripts", "compose-screenshot-themes.ps1"),
+        "-ClassicPath", themeParts[0],
+        "-LiquidGlassPath", themeParts[1],
+        "-FrostedGlassPath", themeParts[2],
+        "-OutputPath", target,
+      ]);
     } else {
       await captureScene(shot.scene, target);
     }

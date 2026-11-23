@@ -60,7 +60,7 @@ export function IslandApp() {
   const { systemNotifications, preview, hasMessagePreview, dismissPreview } = notices;
   // The output level shows only on the collapsed island (its waveform).
   const media = useMediaState(settings.musicEnabled, mode === "collapsed");
-  const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight, notebookProps } = useIslandTodos({ settings, navigation, quiet: game.quiet });
+  const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight, notesExpanded, notebookProps } = useIslandTodos({ settings, navigation, quiet: game.quiet });
 
   const songPlaying = settings.musicEnabled && media.mediaState.playbackStatus === "playing" && Boolean(media.mediaState.title);
   const cover = settings.collapsedShowCover && songPlaying ? media.mediaState.thumbnail : null;
@@ -124,6 +124,7 @@ export function IslandApp() {
     todoVisibleRows: settings.todoVisibleRows,
     settingsContentHeight,
     shelfItems: fileShelf.items.length,
+    notesExpanded,
   }));
   const scheme = useDocumentTheme(settings);
   const colors = useMemo(() => resolveSchemeColors(settings, scheme), [settings, scheme]);

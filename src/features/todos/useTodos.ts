@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createTodoId, loadCurrentTodoDate, loadDailyNote, saveCurrentTodoDate, saveDailyNote } from "./storage";
+import { createTodoId, loadCurrentTodoDate, loadDailyNote, loadNotesExpanded, saveCurrentTodoDate, saveDailyNote, saveNotesExpanded } from "./storage";
 import type { TodoItem, TodoPageMode } from "./types";
 import type { TodoTimer } from "./timer";
 import { useTodoArchives } from "./useTodoArchives";
@@ -42,6 +42,8 @@ export function useTodos({
   const timerTodoIds = useMemo(() => list.timers.map((timer) => timer.todoId), [list.timers]);
   const { todos, setTodos, setDraftTodo, activeTodoId, setActiveTodoIds } = list;
   const [dailyNote, setDailyNote] = useState(loadDailyNote);
+  const [notesExpanded, setNotesExpanded] = useState(loadNotesExpanded);
+  const toggleNotesExpanded = useCallback(() => setNotesExpanded((expanded) => !expanded), []);
   const [currentTodoDate, setCurrentTodoDate] =
     useState<string>(loadCurrentTodoDate);
   const { archives, upsertArchive } = useTodoArchives();
@@ -67,7 +69,7 @@ export function useTodos({
     setTodos(document.todos);
     setDailyNote(document.dailyNote);
   }, [setTodos]);
-  const { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, fileSyncEnabled } =
+  const { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, openDayFile, listDayFiles, openFolder, saveNoteImage, readNoteImage, fileSyncEnabled } =
     useTodoSaving({
       currentTodoDate,
       todos,
@@ -136,7 +138,12 @@ export function useTodos({
     saveCurrentTodoDate(currentTodoDate);
   }, [currentTodoDate]);
 
+  useEffect(() => {
+    saveNotesExpanded(notesExpanded);
+  }, [notesExpanded]);
+
   return {
+    notesExpanded,
     todos,
     activeTodoId,
     activeTodoIds: list.activeTodoIds,
@@ -177,6 +184,14 @@ export function useTodos({
       onShowDaily: showDaily,
       onShowToday: showToday,
       onDailyNoteChange: setDailyNote,
+      notesExpanded,
+      onToggleNotesExpanded: toggleNotesExpanded,
+      onOpenDayFile: openTodayFile,
+      onOpenPastDayFile: openDayFile,
+      onListDayFiles: listDayFiles,
+      onOpenNotesFolder: openFolder,
+      onSaveNoteImage: saveNoteImage,
+      onReadNoteImage: readNoteImage,
     },
   };
 }

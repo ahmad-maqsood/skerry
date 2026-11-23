@@ -1,17 +1,6 @@
 name: Refresh native app screenshots
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'tests/screenshots/**'
-      - 'scripts/capture-screenshots.mjs'
-      - 'scripts/capture-window.ps1'
-      - 'scripts/compose-screenshot-themes.ps1'
-      - 'screenshot.html'
-      - 'src-tauri/**'
-      - '.github/workflows/screenshots.yml'
   workflow_dispatch:
 
 permissions:

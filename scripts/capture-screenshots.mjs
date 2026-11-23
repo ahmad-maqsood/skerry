@@ -95,13 +95,13 @@ function createSceneSignalServer(token) {
       await listening;
       return server.address().port;
     },
-    async wait(timeoutMs = 90_000) {
+    async wait(timeoutMs = 10 * 60_000) {
       let timer;
       try {
         await Promise.race([
           signal,
           new Promise((_, reject) => {
-            timer = setTimeout(() => reject(new Error(`Screenshot scene did not report ready within ${timeoutMs / 1000} seconds. The WebView may have failed to load tests/screenshots/scene.html or its React entry point.`)), timeoutMs);
+            timer = setTimeout(() => reject(new Error(`Screenshot scene did not report ready within ${timeoutMs / 60_000} minutes. The native app may still be compiling/starting, or the WebView may have failed to load tests/screenshots/scene.html.`)), timeoutMs);
           }),
         ]);
       } finally {

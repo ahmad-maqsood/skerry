@@ -48,7 +48,7 @@ const powershell = process.env.POWERSHELL_PATH ?? "powershell.exe";
 export function selectShots(shots, words) {
   if (!words.length) return shots;
   const selected = shots.filter((shot) => words.some((word) => shot.file.includes(word) || shot.scene === word));
-  if (!selected.length) throw new Error(`No screenshot matches: ${words.join(", ")}.`);
+  if (!selected.length) throw new Error(`No shot matches ${words.join(", ")}. Shots: ${shots.map((shot) => shot.scene).join(", ")}.`);
   return selected;
 }
 

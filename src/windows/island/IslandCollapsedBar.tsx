@@ -120,12 +120,15 @@ export function IslandCollapsedBar({
 
   // The text and the status icons, placed in the order Settings → Appearance arranged.
   const slots: Record<CollapsedSlot, ReactNode> = {
-    // The status light opens the message being previewed, or the first page.
+    // The status light always expands the island, even while a notification is previewed; the
+    // preview text beside it is what opens the notification's app.
     pulse: (
       <button
         className="island__light"
         type="button"
-        aria-label={preview ? t.messages.noticeOpen(preview.appDisplayName) : collapsedLabel}
+        aria-label={collapsedLabel}
+        aria-expanded={isExpanded}
+        aria-controls="island-panel"
         onPointerDown={prepareWindowDrag}
         onPointerMove={handleWindowDragMove}
         onPointerUp={cancelWindowDrag}
@@ -133,7 +136,7 @@ export function IslandCollapsedBar({
         onClick={(event) => {
           if (event.detail !== 0 && didDragRef.current) return;
           event.stopPropagation();
-          if (preview) openPreview(preview); else onExpand();
+          onExpand();
         }}
       >
         <span className="island__pulse" />

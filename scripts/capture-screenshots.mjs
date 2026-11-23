@@ -54,7 +54,7 @@ export function selectShots(shots, words) {
 
 function runPowerShell(args) {
   const result = spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", ...args], {
-    cwd: root, encoding: "utf8", timeout: 300_000, maxBuffer: 2 * 1024 * 1024,
+    cwd: root, encoding: "utf8", timeout: 720_000, maxBuffer: 2 * 1024 * 1024,
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || `PowerShell exited with ${result.status}.`);
@@ -82,11 +82,19 @@ async function captureScene(scene, output) {
   const args = process.platform === "win32"
     ? ["/d", "/s", "/c", `pnpm tauri dev --config "${config}"`]
     : ["tauri", "dev", "--config", config];
-  const app = spawn(command, args, { cwd: root, stdio: "ignore", windowsHide: true });
+  // Keep Tauri/Cargo output in the Actions log. The previous silent spawn hid startup/build
+  // failures and made the window detector look like the root cause.
+  const app = spawn(command, args, { cwd: root, stdio: "inherit", windowsHide: true });
   try {
     await sleep(1_500);
     const captureScript = path.join(root, "scripts", "capture-window.ps1");
-    runPowerShell(["-File", captureScript, "-WindowTitle", "Skerry", "-OutputPath", output, "-ReadyDelaySeconds", "10"]);
+    runPowerShell([
+      "-File", captureScript,
+      "-WindowTitle", "Skerry",
+      "-OutputPath", output,
+      "-ReadyDelaySeconds", "10",
+      "-TimeoutSeconds", "600",
+    ]);
     if (app.exitCode !== null && app.exitCode !== 0) throw new Error(`Tauri exited with code ${app.exitCode} while capturing ${scene}.`);
   } finally {
     if (app.pid && process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });

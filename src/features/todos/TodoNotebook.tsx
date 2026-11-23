@@ -56,6 +56,7 @@ export function TodoNotebook({
   onOpenDayFile = () => {},
   onListDayFiles = listNoDayFiles,
   onOpenPastDayFile = () => {},
+  onOpenNotesFolder = () => {},
   onSaveNoteImage = keepNoNoteImage,
   onReadNoteImage = keepNoNoteImage,
 }: {
@@ -106,6 +107,8 @@ export function TodoNotebook({
   onListDayFiles?: () => Promise<TodoMarkdownFileEntry[] | null>;
   /** Opens a saved day's markdown file. */
   onOpenPastDayFile?: (date: string) => void;
+  /** Opens the folder the days are saved in. */
+  onOpenNotesFolder?: () => void;
   /** Saves an image pasted into the note; resolves to the path the note refers to, or null. */
   onSaveNoteImage?: (image: Blob) => Promise<string | null>;
   /** A saved note image as a data URL, for its thumbnail. */
@@ -169,6 +172,7 @@ export function TodoNotebook({
           onOpenDayFile={onOpenDayFile}
           onListDayFiles={onListDayFiles}
           onOpenPastDayFile={onOpenPastDayFile}
+          onOpenFolder={onOpenNotesFolder}
           onSaveImage={onSaveNoteImage}
           onReadImage={onReadNoteImage}
         />

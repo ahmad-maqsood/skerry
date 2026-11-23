@@ -40,6 +40,7 @@ macro_rules! tauri_commands {
             crate::system::todo_export::save_todo_markdown,
             crate::system::todo_export::open_todo_markdown,
             crate::system::todo_history::list_todo_markdown_files,
+            crate::system::todo_history::open_todo_folder,
             crate::system::todo_images::save_todo_note_image,
             crate::system::todo_images::read_todo_note_image,
             crate::system::todo_export::get_default_todo_save_directory,

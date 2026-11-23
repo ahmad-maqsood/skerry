@@ -26,6 +26,11 @@ export function listTodoMarkdownFiles(directory: string) {
   return invoke<TodoMarkdownFileEntry[]>("list_todo_markdown_files", { directory });
 }
 
+/** Opens the save folder in the file manager. */
+export function openTodoFolder(directory: string) {
+  return invoke<void>("open_todo_folder", { directory });
+}
+
 // Corresponds to SavedNoteImage in src-tauri/src/system/todo_images.rs.
 export type SavedNoteImage = {
   /** Where the note refers to it, relative to the markdown file: `assets/<name>`. */

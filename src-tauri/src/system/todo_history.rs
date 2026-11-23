@@ -64,6 +64,20 @@ pub async fn list_todo_markdown_files(directory: String) -> Result<Vec<TodoMarkd
     list_days(&directory)
 }
 
+/// Opens the save folder in the file manager, making it first if it is not there yet.
+#[tauri::command]
+pub async fn open_todo_folder(directory: String) -> Result<(), String> {
+    let directory = directory.trim();
+
+    if directory.is_empty() {
+        return Err("Todo save path is empty.".to_string());
+    }
+
+    fs::create_dir_all(directory).map_err(|error| format!("Could not create {directory}: {error}"))?;
+    tauri_plugin_opener::open_path(directory, None::<&str>)
+        .map_err(|error| format!("Could not open {directory}: {error}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{day_of_file_name, list_days};

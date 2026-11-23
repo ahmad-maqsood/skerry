@@ -22,6 +22,8 @@ export type NotebookText = {
   pastNotesNeedFolder: string;
   pastNotesFailed: string;
   openPastNote: (date: string) => string;
+  openNotesFolder: string;
+  insertTime: string;
   noteImage: string;
   noteImageMissing: string;
   pickDate: string;
@@ -78,6 +80,8 @@ export const en: NotebookText = {
   pastNotesNeedFolder: "Choose a save folder in settings to see saved days",
   pastNotesFailed: "Could not read the save folder",
   openPastNote: (date) => `Open the markdown file for ${date}`,
+  openNotesFolder: "Open the notes folder",
+  insertTime: "Insert the current time",
   noteImage: "Pasted image",
   noteImageMissing: "Image not found",
   pickDate: "Pick a date",

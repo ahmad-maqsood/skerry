@@ -1,8 +1,8 @@
 import { useCallback } from "react";
-import { listTodoMarkdownFiles, openTodoMarkdown, type TodoMarkdownFileEntry } from "./api";
+import { listTodoMarkdownFiles, openTodoFolder, openTodoMarkdown, type TodoMarkdownFileEntry } from "./api";
 import type { TodoItem } from "./types";
 
-/** The days saved as markdown files: opening today's or an earlier one, and listing them. */
+/** The days saved as markdown files: opening today's or an earlier one, listing them, opening their folder. */
 export function useTodoDayFiles({
   saveDirectory,
   date,
@@ -59,5 +59,21 @@ export function useTodoDayFiles({
     return directory ? listTodoMarkdownFiles(directory) : null;
   }, [saveDirectory]);
 
-  return { openTodayFile, openDayFile, listDayFiles };
+  const openFolder = useCallback(async () => {
+    const directory = saveDirectory.trim();
+
+    if (!directory) {
+      onNeedsFolder();
+      return;
+    }
+
+    try {
+      await openTodoFolder(directory);
+    } catch (error) {
+      console.error("Failed to open the todo save folder", error);
+      onFailed();
+    }
+  }, [onFailed, onNeedsFolder, saveDirectory]);
+
+  return { openTodayFile, openDayFile, listDayFiles, openFolder };
 }

@@ -117,7 +117,7 @@ export function useTodoSaving({
     onMissingSaveDirectory();
   }, [onMissingSaveDirectory]);
   const onFailed = useCallback(() => setSaveState("error"), []);
-  const { openTodayFile, openDayFile, listDayFiles } = useTodoDayFiles({
+  const { openTodayFile, openDayFile, listDayFiles, openFolder } = useTodoDayFiles({
     saveDirectory,
     date: currentTodoDate,
     todos,
@@ -151,5 +151,5 @@ export function useTodoSaving({
     [],
   );
 
-  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, openDayFile, listDayFiles, saveNoteImage, readNoteImage, fileSyncEnabled };
+  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, openDayFile, listDayFiles, openFolder, saveNoteImage, readNoteImage, fileSyncEnabled };
 }

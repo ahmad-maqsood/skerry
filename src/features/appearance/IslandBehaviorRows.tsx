@@ -5,7 +5,7 @@ import { SettingsRow } from "../../components/settings/SettingsRow";
 import { SettingsNumberRow } from "../../components/settings/SettingsNumberRow";
 import { SettingsSliderRow } from "../../components/settings/SettingsSliderRow";
 import { SettingsToggleRow } from "../../components/settings/SettingsToggleRow";
-import { AUTO_COLLAPSE_SECONDS, GAME_NOTICE_SECONDS, TUCK_DELAY_SECONDS } from "./settingsLimits";
+import { AUTO_COLLAPSE_SECONDS, GAME_NOTICE_SECONDS, MARGIN_Y, TUCK_DELAY_SECONDS } from "./settingsLimits";
 import type { ExpandTrigger, IslandSettings } from "./types";
 
 type RowsProps = {
@@ -109,11 +109,20 @@ export function GameModeRow({ settings, onSettingsChange }: RowsProps) {
   );
 }
 
-/** A way back to the default position, and locking it. */
+/** The distance from the top in pixels, a way back to the default position, and locking it. */
 export function PositionRows({ settings, onSettingsChange, onResetPosition }: RowsProps & { onResetPosition: () => void }) {
   const position = useTranslation().settings.position;
   return (
     <>
+      <SettingsNumberRow
+        title={position.marginRow}
+        description={position.marginHint}
+        unit={position.unit}
+        value={settings.marginY}
+        min={MARGIN_Y.min}
+        max={MARGIN_Y.max}
+        onChange={(marginY) => onSettingsChange({ ...settings, marginY })}
+      />
       <SettingsRow
         title={position.resetRow}
         control={<SettingsLinkButton onClick={onResetPosition}>{position.reset}</SettingsLinkButton>}

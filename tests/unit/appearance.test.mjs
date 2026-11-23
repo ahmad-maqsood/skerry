@@ -98,7 +98,6 @@ test("notch dimensions and text size have independent defaults, bounds and reset
 
 test("options no longer in Settings load as their defaults, whatever was saved", () => {
   const saved = {
-    marginY: 48,
     islandMonitor: "cursor",
     maxPanelHeight: 320,
     pulseBrightness: 140,
@@ -125,6 +124,16 @@ test("options no longer in Settings load as their defaults, whatever was saved",
   };
   const normalized = normalizeSettings(saved);
   for (const key of Object.keys(saved)) assert.deepEqual(normalized[key], DEFAULT_SETTINGS[key], key);
+});
+
+test("the distance from the top is whole pixels within Rust's 0..160 range", () => {
+  assert.equal(normalizeSettings({}).marginY, 0);
+  assert.equal(normalizeSettings({ marginY: 8 }).marginY, 8);
+  assert.equal(normalizeSettings({ marginY: 7.6 }).marginY, 8);
+  assert.equal(normalizeSettings({ marginY: 999 }).marginY, 160);
+  assert.equal(normalizeSettings({ marginY: -5 }).marginY, 0);
+  assert.equal(normalizeSettings({ marginY: "8" }).marginY, 0);
+  assert.equal(normalizeSettings({ marginY: Infinity }).marginY, 0);
 });
 
 test("the open corner radius and shape are settings again, kept within Rust's range", () => {

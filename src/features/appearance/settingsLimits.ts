@@ -39,6 +39,8 @@ export const ISLAND_FONT_PERCENT = { min: 90, max: 120, step: 5, default: 100 } 
 export const COLLAPSED_WIDTH = { min: 240, max: 480, default: 340 } as const;
 // The floor was 32 until 2026-11-19 (user request minimum 26px); Rust clamps to the same range (geometry.rs).
 export const COLLAPSED_HEIGHT = { min: 26, max: 60, default: 38 } as const;
+/** The gap under the top of the screen, in px; 0 attaches the island. Rust clamps to the same range (island/mod.rs). */
+export const MARGIN_Y = { min: 0, max: 160, default: 0 } as const;
 /** The collapsed island's side space; 18 is what it always was. */
 export const COLLAPSED_PADDING = { min: 4, max: 32, default: 18 } as const;
 // Optional top-edge shoulder strength, before the island scale is applied.

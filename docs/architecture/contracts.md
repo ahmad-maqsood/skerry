@@ -208,3 +208,4 @@ Overview see [overview.md](overview.md).
 - `skerry-system-settings` compatibly adds `showQuickControls` (default `true`; only an explicit `false` hides the volume and brightness sliders at the top of the System page).
 
 - The `mail` collapsed-island slot and the `mailEnabled` setting were removed (2026-11-23): nothing rendered them. Saved layouts and hidden lists that still name `mail` drop it on read, like any unknown slot; a stored `mailEnabled` is ignored.
+- `skerry-settings.marginY` is a setting again (2026-11-23): an integer px, 0-160, default 0 (values outside are clamped, non-numbers read as 0). No Rust or command changes; `set_island_layout` and `set_island_interaction` already clamped it to 0-160.

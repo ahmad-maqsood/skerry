@@ -77,6 +77,7 @@ Dual-write for old and new keys: first active ID serves as primary task, legacy 
 | `skerry-wechat-message-preview-enabled` (string `"true"` enabled, missing or other values disabled) | `features/messages/wechat/storage.ts` |
 | `skerry-wechat-hide-minimized-taskbar` (string `"true"` enabled, missing or other values disabled) | `features/messages/wechat/storage.ts` |
 | `skerry-translation-settings` | `features/translation/storage.ts` |
+| `skerry-changelog-cache` (`{ releases: [{ tag, name, body, publishedAt, url, prerelease }], fetchedAt }`; the last release list from GitHub, shown while the next one loads or when GitHub cannot be reached. Starting 2026-11-24) | `features/changelog/storage.ts` |
 | Appearance theme files (starting 2026-11-08; `skerry-theme-<datetime>.json`, saved to Downloads folder, command `save_theme_file`, validated on Rust side by filename prefix and content; `{ app: "skerry", kind: "theme", version: 1, name, exportedAt, appearance }`, `appearance` contains only `APPEARANCE_SETTING_KEYS` from `features/appearance/settings.ts`; imported values overlaid onto current settings and validated via `normalizeSettings` then stored as a new style preset without auto-applying) | `features/appearance/theme.ts` |
 | `skerry-locale` | `i18n/index.ts` |
 | `skerry-community-invite-seen` (`"true"`: user community group was clicked in "About"; when missing or other values, island settings button, sidebar "About", and community group row show red dot. Starting 2026-11-12) | `features/updater/storage.ts` |

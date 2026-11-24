@@ -24,6 +24,7 @@ import type { SettingsSaveText } from "./save";
 import type { SettingsDiagnosticsText } from "./diagnostics";
 import type { SettingsConfigTransferText } from "./configTransfer";
 import type { SettingsSystemMonitorText } from "./systemMonitor";
+import type { SettingsChangelogText } from "./changelog";
 import * as fileShelf from "./fileShelf.ts";
 import * as modules from "./modules.ts";
 import * as messageSources from "./messageSources.ts";
@@ -50,6 +51,7 @@ import * as save from "./save.ts";
 import * as diagnostics from "./diagnostics.ts";
 import * as configTransfer from "./configTransfer.ts";
 import * as systemMonitor from "./systemMonitor.ts";
+import * as changelog from "./changelog.ts";
 
 export type SettingsText = {
   configTransfer: SettingsConfigTransferText;
@@ -99,6 +101,7 @@ export type SettingsText = {
   save: SettingsSaveText;
   diagnostics: SettingsDiagnosticsText;
   systemMonitor: SettingsSystemMonitorText;
+  changelog: SettingsChangelogText;
 };
 
 
@@ -149,4 +152,5 @@ export const en: SettingsText = {
   save: save.en,
   diagnostics: diagnostics.en,
   systemMonitor: systemMonitor.en,
+  changelog: changelog.en,
 };

@@ -52,17 +52,17 @@ try {
 
   const groups = () => [...host.querySelectorAll<HTMLElement>(".settings-sidebar__group")].map((group) => group.getAttribute("aria-label")).filter(Boolean);
   check(groups().join("|") === "Basics|Features" && !host.querySelector(".settings-sidebar__heading"),
-    "Pages sit in two named groups (Plugins and About after them), set apart by space rather than visible headings");
+    "Pages sit in two named groups (Plugins, Changelog and About after them), set apart by space rather than visible headings");
   check(!host.querySelector("input, button[aria-expanded]"), "No search box and nothing to fold");
-  check(listed().join() === "general,appearance,todos,music,translation,clipboard,messages,system,plugins,about",
+  check(listed().join() === "general,appearance,todos,music,translation,clipboard,messages,system,plugins,changelog,about",
     "Every page is listed once, in sidebar order");
   const listGroups = [...host.querySelectorAll<HTMLElement>(".settings-sidebar__list .settings-sidebar__group")];
   const lastGroup = listGroups[listGroups.length - 1];
-  // Plugins now shares the final untitled group with About.
+  // Plugins and Changelog share the final untitled group with About.
   check(!host.querySelector(".settings-sidebar__footer") && !lastGroup?.getAttribute("aria-label")
-    && [...lastGroup.querySelectorAll<HTMLElement>("[data-category]")].map(item => item.dataset.category).join() === "plugins,about"
+    && [...lastGroup.querySelectorAll<HTMLElement>("[data-category]")].map(item => item.dataset.category).join() === "plugins,changelog,about"
     && lastGroup.previousElementSibling?.querySelector("li:last-child [data-category='system']"),
-    "Plugins then About share the final untitled group below Features, not pinned to a footer");
+    "Plugins, Changelog then About share the final untitled group below Features, not pinned to a footer");
   check(settingsCategoryFor("plugins") === "plugins", "The plugin guide route is always available");
   check(element(".settings-sidebar__item--active").dataset.category === "general", "The open page is marked");
   await act(async () => { element<HTMLButtonElement>("[data-category='clipboard']").click(); });

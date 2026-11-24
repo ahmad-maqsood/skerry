@@ -21,11 +21,14 @@ import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoC
 import { isCollapsedFocused, focusedCollapsedSlots } from "./collapsedFocus.ts";
 import type { IslandPage } from "./types";
 import { useLingeringFlag } from "./useLingeringFlag";
+import { useReleasedFlag } from "./useReleasedFlag";
 import { useWindowDragGesture } from "./useWindowDragGesture";
 import "./IslandCollapsedBar.css";
 
-/** How long a message preview takes to slide out of the text (CollapsedMessageContent's outgoing layer). */
-const FOCUS_RELEASE_MS = 720;
+/** How long a message preview takes to slide out of the text (CollapsedMessageContent's exit, 200ms, plus a beat). */
+const FOCUS_RELEASE_MS = 240;
+/** How long the status icons take to fade back in once the alert has gone (IslandCollapsedBar.css). */
+const RESTORE_MS = 360;
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -117,7 +120,13 @@ export function IslandCollapsedBar({
     showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
     layout: collapsedLayout,
   });
-  const focused = useLingeringFlag(alerting, prefersReducedMotion() ? 0 : FOCUS_RELEASE_MS) && !isExpanded && !isTucked && collapsedLayout.includes("text");
+  const releaseMs = prefersReducedMotion() ? 0 : FOCUS_RELEASE_MS;
+  const focused = useLingeringFlag(alerting, releaseMs) && !isExpanded && !isTucked && collapsedLayout.includes("text");
+  // While a pop-up slides away the idle content (lyrics, title) and the song cover stay out, so the
+  // ordinary island is not seen for a moment before the icons come back; then all of it fades in.
+  const previewShown = preview !== null && !isExpanded && !isTucked;
+  const previewLeaving = useLingeringFlag(previewShown, releaseMs) && !previewShown && focused;
+  const restoring = useReleasedFlag(focused, prefersReducedMotion() ? 0 : RESTORE_MS);
 
   if (noticeReader && preview && !isExpanded && !isTucked) return (
     <div className="island__collapsed island__collapsed--notice">
@@ -187,8 +196,8 @@ export function IslandCollapsedBar({
         >
           {updatePending && <span className="island-update-dot island-update-dot--inline" aria-hidden="true" />}
           {/* The new-song popup already shows the cover as its icon, so the bar's own cover waits until it is gone. */}
-          {collapsedCover && preview?.kind !== "music" && <img className="collapsed-cover" src={collapsedCover} alt="" draggable={false} />}
-          <CollapsedMessageContent preview={preview} enabled={!isExpanded && !isTucked}>
+          {collapsedCover && preview?.kind !== "music" && !previewLeaving && <img className="collapsed-cover" src={collapsedCover} alt="" draggable={false} />}
+          <CollapsedMessageContent preview={preview} enabled={!isExpanded && !isTucked} holdIdle={previewLeaving}>
             {showCollapsedText && showTitle && (
               <span className="island__brand">Skerry</span>
             )}
@@ -242,7 +251,7 @@ export function IslandCollapsedBar({
 
   return (
     <div
-      className="island__collapsed"
+      className={`island__collapsed${restoring ? " island__collapsed--restoring" : ""}`}
       aria-hidden={isExpanded}
       inert={isExpanded}
       onClick={(event) => {

@@ -37,10 +37,17 @@ function MessageContent({ preview }: { preview: MessagePreview }) {
 export function CollapsedMessageContent({
   preview,
   enabled,
+  holdIdle = false,
   children,
 }: {
   preview: MessagePreview | null;
   enabled: boolean;
+  /**
+   * Keep the idle content (lyrics, title, todo) out while a pop-up slides away, and bring it in
+   * once this turns false. Without it the idle content slid in under the leaving pop-up, a flash
+   * of the ordinary island before it had settled.
+   */
+  holdIdle?: boolean;
   children: ReactNode;
 }) {
   const t = useTranslation();
@@ -101,6 +108,7 @@ export function CollapsedMessageContent({
   const label = current ? t.messages.label(messagePreviewText(current, t.messages)) : undefined;
   const row = (message: MessagePreview | null) =>
     message ? <MessageContent preview={message} /> : children;
+  const idleHeld = holdIdle && !current;
 
   return (
     <span
@@ -125,7 +133,8 @@ export function CollapsedMessageContent({
         </span>
       )}
       <span
-        key={version}
+        // A new key when the hold ends replays the enter animation on the idle content.
+        key={idleHeld ? `${version}-held` : version}
         className={`island__summary-layer${moving ? " island__summary-layer--incoming" : ""}`}
       >
         <span
@@ -134,7 +143,7 @@ export function CollapsedMessageContent({
             if (event.target === event.currentTarget) settle();
           }}
         >
-          {row(current)}
+          {idleHeld ? null : row(current)}
         </span>
       </span>
     </span>

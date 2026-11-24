@@ -106,7 +106,8 @@ export const cpuAt = (step: number) => Math.round((18 + 9 * Math.sin(step / 4) +
 
 export const DEMO_SYSTEM = (step: number): SystemSnapshot => ({
   cpu: { totalPercent: cpuAt(step), coreCount: 8, corePercents: [14, 22, 9, 31, 12, 18, 7, 26] },
-  memory: { totalBytes: 32 * GB, usedBytes: 14.2 * GB, percent: 44 },
+  // A slow drift, so the memory graph reads as live instead of a ruled line.
+  memory: { totalBytes: 32 * GB, usedBytes: (13.9 + 0.35 * Math.sin(step / 7) + 0.15 * Math.sin(step / 3)) * GB, percent: Math.round(((13.9 + 0.35 * Math.sin(step / 7) + 0.15 * Math.sin(step / 3)) / 32) * 100) },
   disk: {
     drives: [
       { mountPoint: "C:", name: "NVMe SSD", totalBytes: 953 * GB, availableBytes: (953 - 412) * GB, usedPercent: 43 },
@@ -117,7 +118,7 @@ export const DEMO_SYSTEM = (step: number): SystemSnapshot => ({
   },
   network: {
     rxBytesPerSec: 4.2 * 1024 * 1024 + 90_000 * Math.sin(step),
-    txBytesPerSec: 620 * 1024,
+    txBytesPerSec: (620 + 90 * Math.sin(step / 2 + 1)) * 1024,
     totalRxBytes: 104_857_600,
     totalTxBytes: 31_457_280,
   },

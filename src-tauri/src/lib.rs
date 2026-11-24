@@ -1,5 +1,6 @@
 mod app_log;
 mod brightness;
+mod changelog;
 mod clipboard_history;
 mod clipboard_window;
 mod config_transfer;
@@ -114,6 +115,7 @@ pub fn run() {
             ; privacy_indicator
             ; brightness
             ; device_status
+            ; changelog
         ))
         .build(context)
         .map(|app| {

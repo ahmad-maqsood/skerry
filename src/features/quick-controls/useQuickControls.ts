@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getBrightness, getSystemVolume, setBrightness, setSystemVolume } from "./api.ts";
 import { createLatestRunner } from "./latestRunner.ts";
+import { loadLastReadings, saveLastReadings } from "./storage.ts";
 import {
   BRIGHTNESS_DELAY_MS,
   brightnessToPercent,
@@ -12,10 +13,30 @@ import {
 } from "./quickControls.ts";
 
 /**
- * The last readings, kept across the System page closing and opening again. The brightness read is
- * a PowerShell call, so without these the sliders vanished on every visit and popped back in later.
+ * The last readings, kept across the System page closing and opening again, and across restarts
+ * (storage.ts). The brightness read is a PowerShell call, so without these the sliders were missing
+ * on every first visit and popped in a moment later.
  */
-const lastKnown: { volume: number | null; brightness: number | null } = { volume: null, brightness: null };
+const lastKnown: { volume: number | null; brightness: number | null } = loadLastReadings();
+
+function remember(): void {
+  saveLastReadings(lastKnown);
+}
+
+/** Reads both levels ahead of the System page opening, so its sliders are there on the first frame. */
+export function warmQuickControls(): Promise<void> {
+  const volume = getSystemVolume()
+    .then((level) => {
+      lastKnown.volume = volumeToPercent(level);
+    })
+    .catch(() => {});
+  const brightness = getBrightness()
+    .then((reading) => {
+      lastKnown.brightness = brightnessToPercent(reading);
+    })
+    .catch(() => {});
+  return Promise.all([volume, brightness]).then(remember);
+}
 
 /**
  * The system volume and the built-in display's brightness as slider percentages. A value is null
@@ -36,6 +57,7 @@ export function useQuickControls() {
         if (cancelled) return;
         lastKnown.volume = volumeToPercent(level);
         setVolumeState(lastKnown.volume);
+        remember();
       })
       .catch(() => {});
     void getBrightness()
@@ -43,6 +65,7 @@ export function useQuickControls() {
         if (cancelled) return;
         lastKnown.brightness = brightnessToPercent(reading);
         setBrightnessState(lastKnown.brightness);
+        remember();
       })
       .catch(() => {});
     return () => {

@@ -37,3 +37,26 @@ export function retractsPeek(state: TuckState): boolean {
   if (!state.isPeeking || state.hasMessagePreview || state.isPreviewing) return false;
   return !(state.keepVisible && state.tuckedAutomatically);
 }
+
+/**
+ * How long an island that a pop-up slid out waits once the pop-up has gone before sliding back:
+ * just the pop-up's own exit (200ms, CollapsedMessageContent). The longer grace of a hover peek
+ * would leave an empty pill sitting out, since the ordinary content is held back meanwhile.
+ */
+export const MESSAGE_PEEK_RETRACT_MS = 260;
+
+/**
+ * Whether the island is done showing only what a pop-up brought. While a pop-up's peek is on, the
+ * ordinary content (status light, icons, text) stays out through the pop-up's exit and the slide
+ * back, so the idle island is not seen for a moment before it tucks. It ends once the cursor
+ * takes the island over, or when nothing will slide it back (it should stay visible), as then
+ * the ordinary content is what stays.
+ */
+export function messagePeekSettles(state: TuckState & { messagePeek: boolean; isHovering: boolean }): boolean {
+  if (!state.messagePeek) return false;
+  if (state.isHovering) return true;
+  // Tucked again: held through the slide, until something brings the island out for good.
+  if (state.isTucked) return false;
+  if (state.hasMessagePreview) return false;
+  return !retractsPeek(state);
+}

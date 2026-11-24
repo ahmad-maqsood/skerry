@@ -11,6 +11,7 @@ import { SETTINGS_FOCUS_STORAGE_KEY, takeFocusRequest, requestPanelPreview } fro
 import { TodosSettingsPage } from "./TodosSettingsPage";
 import { TranslationSettingsPage } from "./TranslationSettingsPage";
 import { AboutSettingsPage } from "./AboutSettingsPage";
+import { ChangelogSettingsPage } from "./ChangelogSettingsPage";
 import { SystemSettingsPage } from "../../features/system-monitor/SystemSettingsPage.tsx";
 import { DEFAULT_SETTINGS, withAppearanceFrom } from "../../features/appearance/settings";
 import { ResetAppearanceButton } from "../../features/appearance/ResetAppearanceButton";
@@ -113,6 +114,7 @@ export function SettingsPanel({
       {category === "music" && <MusicSettingsPage settings={settings} onSettingsChange={setSettings} />}
       {category === "system" && <SystemSettingsPage islandSettings={settings} onIslandSettingsChange={setSettings} />}
       {category === "plugins" && <PluginsSettingsPage />}
+      {category === "changelog" && <ChangelogSettingsPage />}
       {category === "about" && <AboutSettingsPage />}
     </LayoutEditor>
   );

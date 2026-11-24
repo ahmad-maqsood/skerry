@@ -9,6 +9,7 @@ const ALL_SETTINGS_CATEGORIES = [
   "messages",
   "system",
   "plugins",
+  "changelog",
   "about",
 ] as const;
 
@@ -19,13 +20,13 @@ export type SettingsGroup = "basics" | "features";
 
 /**
  * Sidebar sections: app-wide settings, one page per module (QQ, WeChat and Mail share Messages,
- * the file shelf shares Clipboard). A null label sets Plugins and About apart as the last group
+ * the file shelf shares Clipboard). A null label sets Plugins, Changelog and About apart as the last group
  * of the list.
  */
 export const SETTINGS_GROUPS: readonly { label: SettingsGroup | null; categories: readonly SettingsCategory[] }[] = [
   { label: "basics", categories: ["general", "appearance"] },
   { label: "features", categories: ["todos", "music", "translation", "clipboard", "messages", "system"] },
-  { label: null, categories: ["plugins", "about"] },
+  { label: null, categories: ["plugins", "changelog", "about"] },
 ];
 
 export const DEFAULT_SETTINGS_CATEGORY: SettingsCategory = "general";

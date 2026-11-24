@@ -15,6 +15,8 @@ export function useIslandNavigation() {
   const [isPeekTuck, setIsPeekTuck] = useState(false);
   // How long a peeking island waits after the cursor leaves; null keeps the minimize default.
   const [peekRetractDelayMs, setPeekRetractDelayMs] = useState<number | null>(null);
+  // Slid out by a pop-up (not by the cursor) and due to slide straight back; see tuckRules.ts.
+  const [messagePeek, setMessagePeek] = useState(false);
   // The current tuck came from the idle timer: "stay visible while…" may undo it (tuckRules.ts).
   const [tuckedAutomatically, setTuckedAutomatically] = useState(false);
   const [page, setPage] = useState<IslandPage>(loadLastPage);
@@ -26,6 +28,7 @@ export function useIslandNavigation() {
     setIsTucked(snapshot.isTucked);
     setIsPeekTuck(snapshot.retractsAfterPeek);
     setPeekRetractDelayMs(snapshot.peekRetractDelayMs);
+    setMessagePeek(false);
   }, []);
 
   const setIslandMode = useCallback((nextMode: IslandMode) => {
@@ -33,6 +36,7 @@ export function useIslandNavigation() {
     setIsTucked(false);
     setIsPeekTuck(false);
     setTuckedAutomatically(false);
+    setMessagePeek(false);
   }, []);
 
   // Keeps a peek: a panel opened from a peeking island closes, and the island slides
@@ -70,6 +74,7 @@ export function useIslandNavigation() {
     setIsTucked(false);
     setIsPeekTuck(false);
     setTuckedAutomatically(false);
+    setMessagePeek(false);
   }, []);
 
   /**
@@ -79,11 +84,18 @@ export function useIslandNavigation() {
   const revealForMessage = useCallback(() => {
     setIsTucked(false);
     setIsPeekTuck(true);
+    setMessagePeek(true);
+  }, []);
+
+  /** The pop-up's peek is over, or the cursor took it over: the island shows its ordinary content again. */
+  const settleMessagePeek = useCallback(() => {
+    setMessagePeek(false);
   }, []);
 
   /** Slides out under the cursor; a minimized island slides back when it leaves. */
   const peekIsland = useCallback(() => {
     setIsTucked(false);
+    setMessagePeek(false);
   }, []);
 
   const endPeek = useCallback(() => {
@@ -103,6 +115,7 @@ export function useIslandNavigation() {
     setIsTucked(false);
     setIsPeekTuck(false);
     setTuckedAutomatically(false);
+    setMessagePeek(false);
   }, []);
 
   const openClipboardHistory = useCallback(() => {
@@ -136,6 +149,8 @@ export function useIslandNavigation() {
     isPeeking: isPeekTuck && !isTucked,
     /** Tucked such that hovering only peeks it out (minimized, or idle-tucked with retract). */
     retractsAfterPeek: isPeekTuck,
+    messagePeek,
+    settleMessagePeek,
     peekRetractDelayMs,
     tuckedAutomatically,
     page,

@@ -6,9 +6,6 @@
  */
 export type TranslationLanguage = { code: string; name: string; native: string };
 
-/** The output choice that keeps the earlier behaviour: Chinese into English, anything else into Chinese. */
-export const AUTO_TARGET_LANGUAGE = "auto";
-
 export const TRANSLATION_LANGUAGES: readonly TranslationLanguage[] = [
   { code: "ar", name: "Arabic", native: "العربية" },
   { code: "bn", name: "Bengali", native: "বাংলা" },
@@ -69,9 +66,9 @@ export function findTranslationLanguage(code: unknown): TranslationLanguage | un
   return TRANSLATION_LANGUAGES.find((language) => language.code === code);
 }
 
-/** True for "auto" and for every language in the list. */
+/** True for every language in the list. */
 export function isTargetLanguage(value: unknown): value is string {
-  return value === AUTO_TARGET_LANGUAGE || findTranslationLanguage(value) !== undefined;
+  return findTranslationLanguage(value) !== undefined;
 }
 
 /** Lower case without accents, so "espanol" finds "Español" and "turkce" finds "Türkçe". */
@@ -104,14 +101,7 @@ export function searchTranslationLanguages(query: string): TranslationLanguage[]
 
 export type LanguageChoice = { code: string; label: string; native?: string };
 
-/**
- * What the picker lists for `query`: the matching languages, led by the automatic choice when the
- * query is empty or starts to spell it ("au"). `autoLabel` is that choice's text.
- */
-export function languageChoices(query: string, autoLabel: string): LanguageChoice[] {
-  const languages = searchTranslationLanguages(query).map(({ code, name, native }) => ({ code, label: name, native }));
-  const wanted = fold(query.trim());
-  return !wanted || fold(autoLabel).startsWith(wanted)
-    ? [{ code: AUTO_TARGET_LANGUAGE, label: autoLabel }, ...languages]
-    : languages;
+/** What the picker lists for `query`: the matching languages, best first. */
+export function languageChoices(query: string): LanguageChoice[] {
+  return searchTranslationLanguages(query).map(({ code, name, native }) => ({ code, label: name, native }));
 }

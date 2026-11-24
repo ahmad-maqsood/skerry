@@ -64,7 +64,7 @@
   color: var(--text-2);
   background: var(--color-white-a08);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-circle);
   outline: none;
   cursor: pointer;
   transition:

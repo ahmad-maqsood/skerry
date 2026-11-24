@@ -2,11 +2,12 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 
 import { Check, ChevronDown, Search } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import { findTranslationLanguage, languageChoices } from "./languages";
+import { DEFAULT_TARGET_LANGUAGE } from "./storage";
 import "./LanguagePicker.css";
 
 /**
  * Picks the language to translate into from a list that can be searched by English name, the
- * language's own name or its code. The first choice is "auto". Keyboard: type to filter,
+ * language's own name or its code. Keyboard: type to filter,
  * arrows move, Enter picks, Esc closes.
  */
 export function LanguagePicker({
@@ -25,9 +26,8 @@ export function LanguagePicker({
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const autoLabel = t.translator.autoTarget;
-  const choices = useMemo(() => languageChoices(query, autoLabel), [query, autoLabel]);
-  const label = findTranslationLanguage(value)?.name ?? autoLabel;
+  const choices = useMemo(() => languageChoices(query), [query]);
+  const label = findTranslationLanguage(value)?.name ?? findTranslationLanguage(DEFAULT_TARGET_LANGUAGE)?.name ?? "";
   const optionId = (index: number) => `${listId}-${index}`;
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export function LanguagePicker({
 
   const open = () => {
     setQuery("");
-    setActiveIndex(Math.max(languageChoices("", autoLabel).findIndex((choice) => choice.code === value), 0));
+    setActiveIndex(Math.max(languageChoices("").findIndex((choice) => choice.code === value), 0));
     setIsOpen(true);
   };
   const choose = (index: number) => {

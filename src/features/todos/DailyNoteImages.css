@@ -1,7 +1,11 @@
+/* Inside the note's box, under the text, with the text's own side padding. */
 .daily-note-images {
+  position: relative;
+  z-index: 1;
   min-width: 0;
   display: flex;
   gap: var(--space-sm);
+  padding: 0 10px 8px;
   overflow-x: auto;
   scrollbar-width: none;
 }

@@ -45,6 +45,10 @@ mockIPC((command, payload) => {
         exePath: null, directory: null, version: null, status: "ok", neteasePluginState: null },
     ] };
     case "get_media_state": return { sessions: [{ id: "Spotify.exe", label: "Spotify", playing: false }, { id: "chrome.exe", label: "Google Chrome", playing: true }] };
+    case "fetch_release_notes": return [
+      { tag: "v1.2.0", name: "Skerry 1.2", body: "## What's new\n\n- Release notes in settings", publishedAt: "2026-11-20T10:00:00Z", url: "https://github.com/ahmad-maqsood/skerry/releases/tag/v1.2.0", prerelease: false },
+      { tag: "v1.1.0", name: "Skerry 1.1", body: "", publishedAt: "2026-11-01T10:00:00Z", url: "https://github.com/ahmad-maqsood/skerry/releases/tag/v1.1.0", prerelease: false },
+    ];
     case "get_launch_at_startup": return false;
     case "get_config_import_report": return null;
     case "dismiss_config_import_report": return null;

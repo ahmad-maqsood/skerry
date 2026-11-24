@@ -3,16 +3,65 @@
   width: 100%;
   height: 28px;
   overflow: visible;
+  color: var(--island-accent, #3b82f6);
+}
+
+/* Faint guide lines give the eye something to read movement against. */
+.system-sparkline__guide {
+  stroke: currentColor;
+  stroke-opacity: 0.12;
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  vector-effect: non-scaling-stroke;
 }
 
 .system-sparkline__path {
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.5;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, currentColor 55%, transparent));
 }
 
 .system-sparkline__fill {
-  opacity: 0.15;
+  stroke: none;
+}
+
+/* The live dot at the newest sample. */
+.system-sparkline__dot,
+.system-sparkline__halo {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.system-sparkline__dot {
+  stroke-width: 5px;
+}
+
+.system-sparkline__halo {
+  stroke-width: 5px;
+  stroke-opacity: 0.45;
+  animation: system-sparkline-pulse 1.8s ease-out infinite;
+}
+
+@keyframes system-sparkline-pulse {
+  0% {
+    stroke-width: 5px;
+    stroke-opacity: 0.45;
+  }
+  100% {
+    stroke-width: 15px;
+    stroke-opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .system-sparkline__halo {
+    animation: none;
+    stroke-opacity: 0;
+  }
 }

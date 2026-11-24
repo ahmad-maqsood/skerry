@@ -1,34 +1,37 @@
-# Native Screenshot Capture Guide
+# Screenshot Guide
 
-Skerry's README screenshots are captured from the **real Windows desktop application window**, not from a browser mockup or a separately recreated design.
+Skerry's README screenshots come from the **real, current UI** (the production React components and styles), rendered in headless Chrome or Edge at a high pixel density. Nothing is drawn by hand and nothing is captured automatically: you run the command yourself when the UI has changed.
 
 ## Run the capture
 
-Run on Windows with the repository dependencies installed:
+On a machine with Chrome or Edge and the repository dependencies installed:
 
 ```powershell
 pnpm install
 pnpm screenshots
 pnpm screenshots music settings
+pnpm screenshots --scale=2
 pnpm screenshots --out=./out
 ```
 
-The command launches the Tauri desktop app for each scene, waits for its native window to render, captures that window using Windows screen capture, then closes it before moving to the next scene. It uses the production React components and styling inside WebView2. Only OS-facing Tauri commands and user data are replaced by the fictional fixtures in `tests/screenshots/demoData.ts`.
+- With no words, every shot is captured into `docs/assets/screenshots/`. Words pick shots by scene or file name.
+- `--scale` is the pixel density, a whole number from 1 to 4 (default **3**). At 3x a 700 px island becomes a 2100 px image, so the pictures stay sharp on high-DPI screens and when GitHub scales them down. A whole number keeps every edge on a device pixel.
+- `CHROME_PATH` picks the browser if Chrome or Edge is not in its usual place.
+- Run it on **Windows** to get Segoe UI like the installed app. Another system uses its own fallback font, which can change line breaks slightly.
+
+The command starts this checkout's Vite server, opens each scene in a headless browser, waits for the scene to report that it is ready, and crops the picture on whole pixels. The desktop colour behind the island gives the glass materials something to blur. Only the screenshot scenes (`tests/screenshots/`) use mocked data; the app code is unchanged.
+
+There is no CI workflow for screenshots: they are never refreshed on a schedule or on a push. Commit the new images yourself.
 
 ## How the Tauri commands are mocked
 
-WebView2 makes `window.__TAURI_INTERNALS__` read-only and non-configurable in every frame, so a scene cannot replace it. While `pnpm screenshots` runs, it sets `SKERRY_NATIVE_SCREENSHOTS=1`; `vite.config.ts` then makes the `@tauri-apps` packages read private globals (`__SKERRY_SCREENSHOT_INTERNALS__`), which `mockIPC()`/`mockWindows()` from `@tauri-apps/api/mocks` fill as usual. The real Tauri IPC is never used for a scene, and normal `pnpm dev`/`pnpm build` are unaffected.
-
-## GitHub Actions
-
-The **Refresh native app screenshots** workflow runs on Windows when relevant UI or capture files change on `main`, and can also be started manually from Actions. It uploads the generated images as a 30-day artifact and opens or updates a pull request containing the refreshed images. It never pushes generated screenshots directly to `main`.
+`tests/screenshots/scene.tsx` uses `mockIPC()` and `mockWindows()` from `@tauri-apps/api/mocks` to answer the OS-facing commands (media, clipboard, notifications, volume, brightness, system metrics) with the fictional fixtures in `tests/screenshots/demoData.ts`. The island uses its default icon tabs, as in the installed app.
 
 ## Privacy and repeatability
 
-- The capture harness starts with a clean app profile and uses fictional messages, names, tracks, clipboard entries, files, and system metrics.
-- It does not read the runner's clipboard, notification center, media sessions, personal files, or installed apps.
-- The clock and screenshot state are deterministic so repeated runs produce comparable images.
-- Screenshots are taken from the native Tauri window on Windows, using the same WebView2 rendering path as the installed app.
+- Every scene starts from a clean profile and uses fictional messages, names, tracks, clipboard entries, files, and system metrics.
+- It reads nothing from the machine it runs on: no clipboard, notification center, media sessions, personal files, or installed apps.
+- The clock and the scripted interactions are deterministic, so repeated runs give comparable images.
 
 ## Shot list
 
@@ -45,4 +48,4 @@ The **Refresh native app screenshots** workflow runs on Windows when relevant UI
 | `screenshot-settings.png` | `settings` | Settings and appearance controls |
 | `screenshot-themes.png` | `themes` | Classic, Liquid Glass, and Frosted Glass comparison |
 
-To change a screenshot, edit the relevant scene in `tests/screenshots/scene.tsx` or its fictional fixtures in `tests/screenshots/demoData.ts`, then run the matching scene locally. The capture process itself should not contain hand-drawn UI or generated placeholder screenshots.
+To change a screenshot, edit the relevant scene in `tests/screenshots/scene.tsx` or its fictional fixtures in `tests/screenshots/demoData.ts`, then run `pnpm screenshots <scene>`. You can also open `/tests/screenshots/scene.html?scene=<name>&wallpaper=1` under `pnpm dev` to look at a scene by eye. The capture should not contain hand-drawn UI or placeholder images.

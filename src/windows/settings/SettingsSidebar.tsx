@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Activity, ClipboardList, Info, Languages, ListTodo, MessageCircle, Music, Palette, Puzzle, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { Activity, ClipboardList, Info, Languages, ListTodo, MessageCircle, Music, Palette, Puzzle, ScrollText, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import { SETTINGS_GROUPS, type SettingsCategory } from "./categories";
 import "./SettingsSidebar.css";
@@ -14,6 +14,7 @@ const CATEGORY_ICONS: Record<SettingsCategory, LucideIcon> = {
   translation: Languages,
   system: Activity,
   plugins: Puzzle,
+  changelog: ScrollText,
   about: Info,
 };
 

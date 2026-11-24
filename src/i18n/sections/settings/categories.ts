@@ -19,6 +19,8 @@ export type SettingsCategoriesText = {
   /** The file shelf's group on the Clipboard page. */
   shelf: string;
   plugins: string;
+  /** The release notes of every published version. */
+  changelog: string;
   about: string;
 };
 
@@ -41,5 +43,6 @@ export const en: SettingsCategoriesText = {
   system: "System",
   shelf: "File shelf",
   plugins: "Plugins",
+  changelog: "Changelog",
   about: "About",
 };

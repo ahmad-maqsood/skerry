@@ -51,6 +51,7 @@ export function SystemPanel(): ReactNode {
 
   const { cpu, memory, disk, network, wifi, battery, uptimeSeconds } = snapshot;
   const speedUnit = settings.networkSpeedUnit;
+  const tickMs = settings.refreshIntervalSeconds * 1000;
 
   return (
     <div className="system-panel">
@@ -81,7 +82,7 @@ export function SystemPanel(): ReactNode {
               </button>
             </div>
 
-            <Sparkline data={cpuHistory} max={100} height={28} />
+            <Sparkline data={cpuHistory} max={100} height={34} tickMs={tickMs} />
 
             {showCores && (
               <div className="system-card__cores-grid">
@@ -119,7 +120,7 @@ export function SystemPanel(): ReactNode {
               </span>
             </div>
 
-            <Sparkline data={memoryHistory} max={100} height={28} />
+            <Sparkline data={memoryHistory} max={100} height={34} tickMs={tickMs} />
 
             <div className="system-card__progress-track">
               <div
@@ -183,7 +184,7 @@ export function SystemPanel(): ReactNode {
                 <span className="system-card__net-val">
                   {formatRate(network.rxBytesPerSec, speedUnit)}
                 </span>
-                <Sparkline data={downloadHistory} height={22} />
+                <Sparkline data={downloadHistory} height={26} tickMs={tickMs} />
               </div>
 
               <div className="system-card__net-stream">
@@ -194,7 +195,12 @@ export function SystemPanel(): ReactNode {
                 <span className="system-card__net-val">
                   {formatRate(network.txBytesPerSec, speedUnit)}
                 </span>
-                <Sparkline data={uploadHistory} height={22} />
+                <Sparkline
+                  data={uploadHistory}
+                  height={26}
+                  tickMs={tickMs}
+                  color="var(--island-accent-2, #a78bfa)"
+                />
               </div>
             </div>
           </div>

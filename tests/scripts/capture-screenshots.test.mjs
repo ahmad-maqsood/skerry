@@ -38,16 +38,17 @@ test("the native window opens the iframe host, never scene.html as its top page"
   assert.match(host, /document\.getElementById\("scene"\)\.src = \`scene\.html\$\{window\.location\.search\}\`/);
 });
 
-test("native screenshot mocks use the local helper, which copes with Tauri's read-only internals", () => {
+test("native screenshots run Vite with the private Tauri globals, since WebView2 locks the real ones", () => {
+  const script = readFileSync(path.join(root, "scripts/capture-screenshots.mjs"), "utf8");
+  assert.match(script, /SKERRY_NATIVE_SCREENSHOTS: "1"/);
   const scene = readFileSync(path.join(root, "tests/screenshots/scene.tsx"), "utf8");
-  const mocks = readFileSync(path.join(root, "tests/screenshots/tauriMocks.ts"), "utf8");
-  assert.match(scene, /from "\.\/tauriMocks"/);
-  assert.doesNotMatch(scene, /from "@tauri-apps\/api\/mocks"/);
-  // Assigning to the read-only `invoke` threw in the native WebView (tests/unit/screenshot-mocks.test.mjs
-  // runs the real behaviour); the helper falls back to replacing the object on window.
-  assert.doesNotMatch(mocks, /\btauri\.invoke\s*=/);
-  assert.match(mocks, /installInternals\("__TAURI_INTERNALS__"/);
-  assert.match(mocks, /replaceWindowProperty/);
+  assert.match(scene, /from "@tauri-apps\/api\/mocks"/);
+  // The scene must not try to replace Tauri's read-only window.__TAURI_INTERNALS__ itself.
+  assert.doesNotMatch(scene, /__TAURI_INTERNALS__\s*=/);
+  const config = readFileSync(path.join(root, "vite.config.ts"), "utf8");
+  assert.match(config, /SKERRY_NATIVE_SCREENSHOTS/);
+  assert.match(config, /__SKERRY_SCREENSHOT_INTERNALS__/);
+  assert.match(config, /exclude: \["@tauri-apps\/api"/);
 });
 
 test("words pick shots by scene or by file name; no words means all", () => {

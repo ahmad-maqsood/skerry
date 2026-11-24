@@ -9,7 +9,7 @@
 // Open it under `pnpm dev` to look at a scene by eye; `pnpm screenshots` captures all of them.
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
-import { mockIPC, mockWindows } from "./tauriMocks";
+import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { emit } from "@tauri-apps/api/event";
 import "../../src/styles/tokens.css";
 import "../../src/styles/fonts.css";
@@ -74,7 +74,9 @@ if (todosScene) {
   localStorage.setItem("skerry-todo-durations", JSON.stringify({ t2: 25 }));
 }
 
-// mockIPC/mockWindows provide the Tauri test environment; isTauri is read-only.
+// mockIPC/mockWindows provide the Tauri test environment. In the native window Vite renames the
+// globals the @tauri-apps packages use (vite.config.ts, SKERRY_NATIVE_SCREENSHOTS), because
+// WebView2 locks window.__TAURI_INTERNALS__; isTauri is read-only.
 const root = createRoot(document.getElementById("root")!);
 const element = (selector: string) => {
   const found = document.querySelector<HTMLElement>(selector);

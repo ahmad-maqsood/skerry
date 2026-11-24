@@ -69,7 +69,7 @@ export function useTodos({
     setTodos(document.todos);
     setDailyNote(document.dailyNote);
   }, [setTodos]);
-  const { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openTodayFile, openDayFile, listDayFiles, openFolder, saveNoteImage, readNoteImage, fileSyncEnabled } =
+  const { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openDayFile, listDayFiles, openFolder, saveNoteImage, readNoteImage, fileSyncEnabled } =
     useTodoSaving({
       currentTodoDate,
       todos,
@@ -186,7 +186,6 @@ export function useTodos({
       onDailyNoteChange: setDailyNote,
       notesExpanded,
       onToggleNotesExpanded: toggleNotesExpanded,
-      onOpenDayFile: openTodayFile,
       onOpenPastDayFile: openDayFile,
       onListDayFiles: listDayFiles,
       onOpenNotesFolder: openFolder,

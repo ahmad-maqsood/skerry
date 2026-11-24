@@ -1,23 +1,13 @@
 import { useCallback } from "react";
 import { listTodoMarkdownFiles, openTodoFolder, openTodoMarkdown, type TodoMarkdownFileEntry } from "./api";
-import type { TodoItem } from "./types";
 
-/** The days saved as markdown files: opening today's or an earlier one, listing them, opening their folder. */
+/** The days saved as markdown files: opening a saved day, listing them, opening their folder. */
 export function useTodoDayFiles({
   saveDirectory,
-  date,
-  todos,
-  dailyNote,
-  saveTodosToDisk,
   onNeedsFolder,
   onFailed,
 }: {
   saveDirectory: string;
-  /** The list's own day. */
-  date: string;
-  todos: TodoItem[];
-  dailyNote: string;
-  saveTodosToDisk: (date: string, todos: TodoItem[], dailyNote: string) => Promise<unknown>;
   /** Called when there is no save folder to read from. */
   onNeedsFolder: () => void;
   onFailed: () => void;
@@ -38,20 +28,6 @@ export function useTodoDayFiles({
       onFailed();
     }
   }, [onFailed, onNeedsFolder, saveDirectory]);
-
-  // Saves first, so the file exists and holds what is written here, then opens it.
-  const openTodayFile = useCallback(async () => {
-    if (saveDirectory.trim()) {
-      try {
-        await saveTodosToDisk(date, todos, dailyNote);
-      } catch (error) {
-        // An earlier save may still have left a file to open.
-        console.error("Failed to save todo markdown before opening it", error);
-      }
-    }
-
-    await openDayFile(date);
-  }, [dailyNote, date, openDayFile, saveDirectory, saveTodosToDisk, todos]);
 
   // The days saved in the folder, newest first, or null while no folder is chosen.
   const listDayFiles = useCallback(async (): Promise<TodoMarkdownFileEntry[] | null> => {
@@ -75,5 +51,5 @@ export function useTodoDayFiles({
     }
   }, [onFailed, onNeedsFolder, saveDirectory]);
 
-  return { openTodayFile, openDayFile, listDayFiles, openFolder };
+  return { openDayFile, listDayFiles, openFolder };
 }

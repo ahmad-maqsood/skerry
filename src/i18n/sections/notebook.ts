@@ -15,7 +15,6 @@ export type NotebookText = {
   notesActions: string;
   expandNotes: string;
   collapseNotes: string;
-  openDayFile: string;
   showPastNotes: string;
   hidePastNotes: string;
   noPastNotes: string;
@@ -73,7 +72,6 @@ export const en: NotebookText = {
   notesActions: "Note actions",
   expandNotes: "Make the notes taller",
   collapseNotes: "Make the notes smaller",
-  openDayFile: "Open today's markdown file",
   showPastNotes: "Show saved days",
   hidePastNotes: "Back to today's note",
   noPastNotes: "No earlier days saved yet",

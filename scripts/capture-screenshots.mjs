@@ -129,8 +129,10 @@ async function captureScene(scene, output) {
   query.set("capturePort", String(capturePort));
   query.set("captureToken", captureToken);
   // The native window opens native-host.html, which embeds the maintained scene page in an iframe
-  // (not the stale root-level screenshot.html). Tauri's __TAURI_INTERNALS__ is read-only, in the
-  // iframe too; tests/screenshots/tauriMocks.ts replaces it with a mutable copy when it must.
+  // (not the stale root-level screenshot.html). WebView2 makes window.__TAURI_INTERNALS__
+  // read-only and non-configurable in every frame, so the scene cannot mock it. With
+  // SKERRY_NATIVE_SCREENSHOTS=1 (set below) vite.config.ts points the @tauri-apps packages at
+  // private globals instead, which mockIPC()/mockWindows() can fill freely.
   const url = `tests/screenshots/native-host.html?${query}`;
   const overlay = {
     app: { windows: [{ label: "main", title: "Skerry", url, width: 1280, height: 800, center: true, visible: true, alwaysOnTop: true }] },
@@ -151,7 +153,11 @@ async function captureScene(scene, output) {
     ]
     : ["tauri", "dev", "--config", config];
   // Keep Tauri/Cargo output in the Actions log so native startup failures are visible.
-  const app = spawn(command, args, { cwd: root, stdio: "inherit", windowsHide: true });
+  // The environment reaches Tauri's beforeDevCommand, i.e. the Vite dev server that serves the scene.
+  const app = spawn(command, args, {
+    cwd: root, stdio: "inherit", windowsHide: true,
+    env: { ...process.env, SKERRY_NATIVE_SCREENSHOTS: "1" },
+  });
   let launchError;
   app.once("error", (error) => { launchError = error; });
   try {

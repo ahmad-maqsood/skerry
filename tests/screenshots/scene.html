@@ -27,8 +27,9 @@
   </head>
   <body>
     <script>
-      // The scene runs in a child frame of native-host.html, which has no Tauri globals, so
-      // mockIPC() works there. Tell @tauri-apps/api it is inside Tauri, as the top frame would.
+      // The scene runs in a child frame of native-host.html. Its read-only window.__TAURI_INTERNALS__
+      // is never touched: vite.config.ts points @tauri-apps at private globals for the capture, so
+      // mockIPC() works. Tell @tauri-apps/api it is inside Tauri, as the top frame would.
       if (!("isTauri" in window)) Object.defineProperty(window, "isTauri", { value: true, configurable: true });
     </script>
     <div id="root"></div>

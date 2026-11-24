@@ -53,7 +53,6 @@ export function TodoNotebook({
   onDailyNoteChange,
   notesExpanded = false,
   onToggleNotesExpanded = () => {},
-  onOpenDayFile = () => {},
   onListDayFiles = listNoDayFiles,
   onOpenPastDayFile = () => {},
   onOpenNotesFolder = () => {},
@@ -101,8 +100,6 @@ export function TodoNotebook({
   /** The Notes tab is shown taller; the island grows with it (expandedHeight.ts). */
   notesExpanded?: boolean;
   onToggleNotesExpanded?: () => void;
-  /** Saves today's note and opens its markdown file in the system's editor. */
-  onOpenDayFile?: () => void;
   /** The days saved as markdown in the save folder, newest first; null while no folder is chosen. */
   onListDayFiles?: () => Promise<TodoMarkdownFileEntry[] | null>;
   /** Opens a saved day's markdown file. */
@@ -169,7 +166,6 @@ export function TodoNotebook({
           expanded={notesExpanded}
           onChange={onDailyNoteChange}
           onToggleExpanded={onToggleNotesExpanded}
-          onOpenDayFile={onOpenDayFile}
           onListDayFiles={onListDayFiles}
           onOpenPastDayFile={onOpenPastDayFile}
           onOpenFolder={onOpenNotesFolder}

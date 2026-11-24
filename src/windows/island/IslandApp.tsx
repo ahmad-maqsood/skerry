@@ -48,7 +48,7 @@ const NO_TODOS: TodoItem[] = [];
  */
 export function IslandApp() {
   const navigation = useIslandNavigation();
-  const { mode, isTucked, page, setPage, collapseIsland, tuckIsland, revealIsland, minimizeToEdge, openIslandPage, toggleClipboardHistory } = navigation;
+  const { mode, isTucked, messagePeek, page, setPage, collapseIsland, tuckIsland, revealIsland, minimizeToEdge, openIslandPage, toggleClipboardHistory } = navigation;
   const [settings, setSettings] = useIslandSettings();
   const detachedSettings = useSettingsPresentation();
   const { openSettings, changePresentation } = useSettingsNavigation(openIslandPage, setPage);
@@ -203,6 +203,7 @@ export function IslandApp() {
         material={settings.material}
         nativeGlassState={nativeGlassState}
         isTucked={isTucked}
+        peekedForMessage={messagePeek}
         tuckStyle={settings.tuckStyle}
         topEdgeShoulders={settings.topEdgeShoulders}
         positionLocked={settings.positionLocked}

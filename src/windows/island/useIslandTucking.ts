@@ -3,7 +3,7 @@ import type { IslandSettings } from "../../features/appearance/types";
 import { listenIslandHover } from "./api";
 import { idlePlan } from "./idleCollapse";
 import { keepIslandVisible, keepVisibleChangesAt } from "./keepVisible";
-import { retractsPeek, revealsForKeepVisible } from "./tuckRules";
+import { MESSAGE_PEEK_RETRACT_MS, messagePeekSettles, retractsPeek, revealsForKeepVisible } from "./tuckRules";
 import { useIdleTuck, useRevealOnMessage } from "./useIslandAutomation";
 import { isEditingText } from "./useHoverExpand";
 import type { useIslandNavigation } from "./useIslandNavigation";
@@ -25,13 +25,17 @@ type IslandTuckingOptions = {
  * collapsed island away when idle (B), sliding it out for what needs to be seen, and ending a peek.
  */
 export function useIslandTucking({ settings, navigation, hasMessagePreview, activity, gameHolds }: IslandTuckingOptions) {
-  const { mode, page, isTucked, isPeeking, peekRetractDelayMs, tuckedAutomatically, idleTuck, collapseIsland, revealIsland, revealForMessage, endPeek } = navigation;
+  const { mode, page, isTucked, isPeeking, peekRetractDelayMs, tuckedAutomatically, messagePeek, settleMessagePeek, idleTuck, collapseIsland, revealIsland, revealForMessage, endPeek } = navigation;
   const isHovering = useIslandHovering();
   const pickerOpen = useIslandPickerOpen();
   const keepVisible = useKeepVisible(settings, activity);
   const tuckState = {
     isTucked, isPeeking, tuckedAutomatically, keepVisible, hasMessagePreview, isPreviewing: navigation.isPreviewing, gameHolds,
   };
+  const settlesMessagePeek = messagePeekSettles({ ...tuckState, messagePeek, isHovering });
+  useEffect(() => {
+    if (settlesMessagePeek) settleMessagePeek();
+  }, [settlesMessagePeek, settleMessagePeek]);
   const revealForActivity = revealsForKeepVisible(tuckState);
   useEffect(() => {
     if (revealForActivity) revealIsland();
@@ -55,7 +59,7 @@ export function useIslandTucking({ settings, navigation, hasMessagePreview, acti
   );
   useRevealOnMessage(hasMessagePreview, isTucked, revealForMessage);
   // A preview holds the peek; the island slides back once it has gone and the cursor is away.
-  useTuckPeek(retractsPeek(tuckState), endPeek, peekRetractDelayMs ?? undefined);
+  useTuckPeek(retractsPeek(tuckState), endPeek, messagePeek ? MESSAGE_PEEK_RETRACT_MS : peekRetractDelayMs ?? undefined);
 }
 
 /**

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DEFAULT_SETTINGS } from "../../src/features/appearance/settings.ts";
 import { keepIslandVisible, keepVisibleChangesAt } from "../../src/windows/island/keepVisible.ts";
-import { retractsPeek, revealsForKeepVisible } from "../../src/windows/island/tuckRules.ts";
+import { MESSAGE_PEEK_RETRACT_MS, messagePeekSettles, retractsPeek, revealsForKeepVisible } from "../../src/windows/island/tuckRules.ts";
 
 const base = { isTucked: true, isPeeking: false, tuckedAutomatically: true, keepVisible: true,
   hasMessagePreview: false, isPreviewing: false, gameHolds: false };
@@ -38,4 +38,23 @@ test("a todo timer that holds the island is re-checked when it runs out", () => 
   assert.equal(keepVisibleChangesAt(settings, activity, 5000), null);
   assert.equal(keepVisibleChangesAt(settings, { ...activity, activeTodoId: "a" }, 1000), null, "a started todo holds without end");
   assert.equal(keepVisibleChangesAt({ ...settings, keepVisibleWhileTodoRunning: false }, activity, 1000), null);
+});
+
+test("a pop-up's peek keeps the ordinary content out until the island has tucked back", () => {
+  const out = { ...base, isTucked: false, isPeeking: true, keepVisible: false, messagePeek: true, isHovering: false };
+  assert.equal(messagePeekSettles(out), false, "pop-up gone, island about to slide back");
+  assert.equal(messagePeekSettles({ ...out, isTucked: true, isPeeking: false }), false, "held through the slide to the edge");
+  assert.equal(messagePeekSettles({ ...out, hasMessagePreview: true }), false, "pop-up still showing");
+});
+
+test("the ordinary content returns when the cursor takes the island, or when nothing will tuck it", () => {
+  const out = { ...base, isTucked: false, isPeeking: true, keepVisible: false, messagePeek: true, isHovering: false };
+  assert.equal(messagePeekSettles({ ...out, isHovering: true }), true, "cursor on it");
+  assert.equal(messagePeekSettles({ ...out, keepVisible: true }), true, "stays out for lyrics or a timer");
+  assert.equal(messagePeekSettles({ ...out, isPeeking: false }), true, "no peek left to end");
+  assert.equal(messagePeekSettles({ ...out, messagePeek: false }), false, "not a pop-up's peek at all");
+});
+
+test("a pop-up's peek retracts within the pop-up's own exit", () => {
+  assert.ok(MESSAGE_PEEK_RETRACT_MS >= 200 && MESSAGE_PEEK_RETRACT_MS <= 400);
 });

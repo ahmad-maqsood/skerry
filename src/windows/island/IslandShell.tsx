@@ -37,6 +37,8 @@ type IslandShellProps = {
   material: Material;
   nativeGlassState: NativeGlassState;
   isTucked: boolean;
+  /** Slid out by a pop-up and due straight back: the bar keeps to the pop-up until it has tucked. */
+  peekedForMessage?: boolean;
   /** How the island looks while tucked: its own rim (edge), a short line, or nothing. */
   tuckStyle: TuckStyle;
   topEdgeShoulders: boolean;
@@ -96,6 +98,7 @@ export function IslandShell({
   material,
   nativeGlassState,
   isTucked,
+  peekedForMessage = false,
   tuckStyle,
   topEdgeShoulders,
   positionLocked,
@@ -202,6 +205,7 @@ export function IslandShell({
           noticeReader={notice?.reader ? { scrolls: notice.scrolls } : null}
           isExpanded={isExpanded}
           isTucked={isTucked}
+          peekedForMessage={peekedForMessage}
           positionLocked={positionLocked}
           showTitle={showTitle}
           showCollapsedText={showCollapsedText}

@@ -28,6 +28,8 @@ import "./IslandCollapsedBar.css";
 
 /** How long a message preview takes to slide out of the text (CollapsedMessageContent's exit, 200ms, plus a beat). */
 const FOCUS_RELEASE_MS = 240;
+/** How long the island takes to tuck away (--island-tuck-in-duration, IslandTuckStyle.css), plus a beat. */
+const TUCK_IN_MS = 400;
 /** How long the status icons take to fade back in once the alert has gone (IslandCollapsedBar.css). */
 const RESTORE_MS = 360;
 
@@ -40,6 +42,8 @@ type IslandCollapsedBarProps = {
   noticeReader?: { scrolls: boolean } | null;
   isExpanded: boolean;
   isTucked: boolean;
+  /** Slid out by a pop-up and due straight back: the ordinary content stays out until it has tucked. */
+  peekedForMessage?: boolean;
   positionLocked: boolean;
   showTitle: boolean;
   showCollapsedText: boolean;
@@ -76,6 +80,7 @@ export function IslandCollapsedBar({
   noticeReader = null,
   isExpanded,
   isTucked,
+  peekedForMessage = false,
   positionLocked,
   showTitle,
   showCollapsedText,
@@ -121,12 +126,18 @@ export function IslandCollapsedBar({
     showsTodo: collapsedItem === "todo" && collapsedTaskTitle !== null,
     layout: collapsedLayout,
   });
-  const releaseMs = prefersReducedMotion() ? 0 : FOCUS_RELEASE_MS;
-  const focused = useLingeringFlag(alerting, releaseMs) && !isExpanded && !isTucked && collapsedLayout.includes("text");
+  // An alert that ends because the island tucks keeps its layout through the slide to the edge.
+  const lingerMs = prefersReducedMotion() ? 0 : isTucked ? TUCK_IN_MS : FOCUS_RELEASE_MS;
+  // An island a pop-up slid out keeps the pop-up's layout after it has gone and through the slide
+  // back to the edge, so the ordinary island (the status light first) is not seen on the way out.
+  const retractHold = peekedForMessage && !isExpanded;
+  const alertLingers = useLingeringFlag(alerting, lingerMs);
+  const focused = (retractHold || (alertLingers && !isExpanded)) && collapsedLayout.includes("text");
   // While a pop-up slides away the idle content (lyrics, title) and the song cover stay out, so the
   // ordinary island is not seen for a moment before the icons come back; then all of it fades in.
   const previewShown = preview !== null && !isExpanded && !isTucked;
-  const previewLeaving = useLingeringFlag(previewShown, releaseMs) && !previewShown && focused;
+  const previewLingers = useLingeringFlag(previewShown, lingerMs);
+  const previewLeaving = (retractHold || previewLingers) && !previewShown && focused;
   const restoring = useReleasedFlag(focused, prefersReducedMotion() ? 0 : RESTORE_MS);
 
   if (noticeReader && preview && !isExpanded && !isTucked) return (

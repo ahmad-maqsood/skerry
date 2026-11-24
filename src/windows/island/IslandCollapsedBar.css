@@ -193,13 +193,14 @@
   flex: 0 0 auto;
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
+  aspect-ratio: 1;
   padding: 0;
-  color: var(--text-3);
-  background: transparent;
+  color: var(--text-2);
+  background: var(--color-white-a08);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-circle);
   cursor: pointer;
   transition: background 140ms ease, color 140ms ease;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { visibleCollapsedSlots } from "../../features/appearance/collapsedLayout";
 // First: the message panels it loads bring CSS that must come before the page panels' and the shell's.
 import { useIslandNotices } from "./useIslandNotices";
@@ -32,6 +32,7 @@ import { useIslandShelf } from "./useIslandShelf";
 import { useIslandHover } from "./useIslandHover";
 import { useIdleUpdateInstall } from "../../features/updater/useIdleUpdateInstall";
 import { useIslandTranslation } from "./useIslandTranslation";
+import { warmQuickControls } from "../../features/quick-controls";
 import { useSettingsPageHeight } from "./useSettingsPageHeight";
 import { useIslandPickerOpen } from "../../lib/islandPicker";
 import { TODO_DATE_PICKER_EXPANDED_ISLAND_HEIGHT } from "./layout";
@@ -48,6 +49,12 @@ const NO_TODOS: TodoItem[] = [];
  */
 export function IslandApp() {
   const navigation = useIslandNavigation();
+  // The brightness read is slow (PowerShell): read it once the island has settled in, so the System
+  // page's sliders are already there when it first opens.
+  useEffect(() => {
+    const timer = window.setTimeout(() => void warmQuickControls(), 1500);
+    return () => window.clearTimeout(timer);
+  }, []);
   const { mode, isTucked, messagePeek, page, setPage, collapseIsland, tuckIsland, revealIsland, minimizeToEdge, openIslandPage, toggleClipboardHistory } = navigation;
   const [settings, setSettings] = useIslandSettings();
   const detachedSettings = useSettingsPresentation();

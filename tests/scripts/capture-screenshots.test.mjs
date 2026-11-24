@@ -38,14 +38,16 @@ test("the native window opens the iframe host, never scene.html as its top page"
   assert.match(host, /document\.getElementById\("scene"\)\.src = \`scene\.html\$\{window\.location\.search\}\`/);
 });
 
-test("native screenshot mocks mutate Tauri internals instead of replacing the read-only window property", () => {
+test("native screenshot mocks use the local helper, which copes with Tauri's read-only internals", () => {
   const scene = readFileSync(path.join(root, "tests/screenshots/scene.tsx"), "utf8");
   const mocks = readFileSync(path.join(root, "tests/screenshots/tauriMocks.ts"), "utf8");
   assert.match(scene, /from "\.\/tauriMocks"/);
   assert.doesNotMatch(scene, /from "@tauri-apps\/api\/mocks"/);
-  assert.match(mocks, /tauri\.invoke = invoke/);
-  assert.match(mocks, /tauri\.transformCallback = registerCallback/);
-  assert.doesNotMatch(mocks, /window\.__TAURI_INTERNALS__\s*=/);
+  // Assigning to the read-only `invoke` threw in the native WebView (tests/unit/screenshot-mocks.test.mjs
+  // runs the real behaviour); the helper falls back to replacing the object on window.
+  assert.doesNotMatch(mocks, /\btauri\.invoke\s*=/);
+  assert.match(mocks, /installInternals\("__TAURI_INTERNALS__"/);
+  assert.match(mocks, /replaceWindowProperty/);
 });
 
 test("words pick shots by scene or by file name; no words means all", () => {

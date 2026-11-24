@@ -1,7 +1,9 @@
-// Tauri installs __TAURI_INTERNALS__ as a read-only Window property in a native WebView.
-// The official @tauri-apps/api/mocks helper tries to assign that property, which only works
-// in a plain browser test. For native screenshot capture, keep Tauri's object and replace
-// the IPC methods on that object instead.
+// Inside the native WebView, Tauri defines __TAURI_INTERNALS__ (and its `invoke`, `metadata`, ...)
+// as read-only, in the scene's iframe as well as the top frame, so the official
+// @tauri-apps/api/mocks helper and a plain `internals.invoke = ...` throw "Cannot assign to read
+// only property 'invoke'". These mocks first try to change the object Tauri provided; when it
+// refuses, they put a mutable copy in its place on `window`. @tauri-apps/api reads
+// window.__TAURI_INTERNALS__ on every call, so the copy is picked up straight away.
 type MockHandler = (command: string, payload?: unknown) => unknown;
 
 type EventArgs = {
@@ -11,36 +13,67 @@ type EventArgs = {
   payload?: unknown;
 };
 
-function internals(name: string): Record<string, unknown> {
-  const value = (window as unknown as Record<string, unknown>)[name];
-  if (!value || typeof value !== "object") {
-    throw new Error(`Tauri did not provide window.${name} in the native screenshot WebView.`);
+type Bag = Record<string, unknown>;
+
+/** Sets `key` on `target`, redefining it when it is configurable; false when neither works. */
+function setProperty(target: Bag, key: string, value: unknown): boolean {
+  const descriptor = Object.getOwnPropertyDescriptor(target, key);
+  try {
+    if (!descriptor) {
+      if (!Object.isExtensible(target)) return false;
+      target[key] = value;
+    } else if (descriptor.writable) {
+      target[key] = value;
+    } else if (descriptor.configurable) {
+      Object.defineProperty(target, key, { value, writable: true, configurable: true, enumerable: true });
+    } else {
+      return false;
+    }
+    return target[key] === value;
+  } catch {
+    return false;
   }
-  return value as Record<string, unknown>;
+}
+
+/** Puts `value` on `window` under `name`, even over a read-only property when it is configurable. */
+function replaceWindowProperty(name: string, value: Bag): void {
+  if (!setProperty(window as unknown as Bag, name, value)) {
+    throw new Error(`Cannot replace window.${name} in the native screenshot WebView; it is not configurable.`);
+  }
+}
+
+/**
+ * The object behind window.<name> with every key in `values` set on it. When Tauri's own object
+ * is read-only, a copy of it (own data properties) with the new values replaces it on window.
+ */
+function installInternals(name: string, values: Bag): Bag {
+  const existing = (window as unknown as Bag)[name];
+  const current: Bag = existing && typeof existing === "object" ? (existing as Bag) : {};
+  const settable = Object.entries(values).every(([key, value]) => setProperty(current, key, value));
+  if (existing && settable) return current;
+  const copy: Bag = {};
+  for (const key of Object.keys(current)) {
+    const descriptor = Object.getOwnPropertyDescriptor(current, key);
+    if (descriptor && "value" in descriptor) copy[key] = descriptor.value;
+  }
+  Object.assign(copy, values);
+  replaceWindowProperty(name, copy);
+  return copy;
 }
 
 export function mockWindows(current: string): void {
-  const tauri = internals("__TAURI_INTERNALS__");
-  tauri.metadata = {
-    currentWindow: { label: current },
-    currentWebview: { windowLabel: current, label: current },
-  };
+  installInternals("__TAURI_INTERNALS__", {
+    metadata: {
+      currentWindow: { label: current },
+      currentWebview: { windowLabel: current, label: current },
+    },
+  });
 }
 
 export function mockIPC(
   handler: MockHandler,
   options: { shouldMockEvents?: boolean } = {},
 ): void {
-  const tauri = internals("__TAURI_INTERNALS__");
-  const eventWindow = window as unknown as Record<string, unknown>;
-  let eventInternals = eventWindow.__TAURI_EVENT_PLUGIN_INTERNALS__ as Record<string, unknown> | undefined;
-  if (!eventInternals || typeof eventInternals !== "object") {
-    eventInternals = {};
-    Object.defineProperty(eventWindow, "__TAURI_EVENT_PLUGIN_INTERNALS__", {
-      value: eventInternals,
-      configurable: true,
-    });
-  }
   const callbacks = new Map<number, (data: unknown) => void>();
   const listeners = new Map<string, number[]>();
 
@@ -82,11 +115,14 @@ export function mockIPC(
     return handler(command, payload);
   };
 
-  // Mutate the existing native Tauri object; never reassign window.__TAURI_INTERNALS__.
-  tauri.invoke = invoke;
-  tauri.transformCallback = registerCallback;
-  tauri.unregisterCallback = unregisterCallback;
-  tauri.runCallback = runCallback;
-  tauri.callbacks = callbacks;
-  eventInternals.unregisterListener = (_event: string, eventId: number) => unregisterCallback(eventId);
+  installInternals("__TAURI_INTERNALS__", {
+    invoke,
+    transformCallback: registerCallback,
+    unregisterCallback,
+    runCallback,
+    callbacks,
+  });
+  installInternals("__TAURI_EVENT_PLUGIN_INTERNALS__", {
+    unregisterListener: (_event: string, eventId: number) => unregisterCallback(eventId),
+  });
 }

@@ -27,6 +27,20 @@
   min-width: 7.5ch;
 }
 
+/* The colons sit back from the digits and breathe slowly, so the time reads as live without ticking. */
+.collapsed-clock__colon {
+  display: inline-block;
+  margin: 0 0.04em;
+  opacity: 0.55;
+  transform: translateY(-0.04em);
+  animation: collapsedClockColon 2s ease-in-out infinite;
+}
+
+@keyframes collapsedClockColon {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.2; }
+}
+
 .collapsed-clock--tick {
   animation: collapsedClockTick 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -76,6 +90,9 @@
     transition: none;
   }
   .collapsed-clock--tick {
+    animation: none;
+  }
+  .collapsed-clock__colon {
     animation: none;
   }
   .collapsed-clock__date-chip {

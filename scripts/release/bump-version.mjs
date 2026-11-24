@@ -80,15 +80,16 @@ export function isValidVersion(text) {
 
 /**
  * Turns what was typed into the new version: an exact version ("1.4.0" or "v1.4.0") or one of
- * patch / minor / major. Throws a readable message for anything else, or for the current version.
+ * patch / minor / major. Throws a readable message for anything else, or for the current version
+ * (unless allowCurrent is set, which the Release workflow uses so a failed run can be started again).
  */
-export function resolveRequestedVersion(input, currentVersion) {
+export function resolveRequestedVersion(input, currentVersion, { allowCurrent = false } = {}) {
   const text = String(input ?? "").trim().replace(/^v(?=\d)/i, "");
   if (["patch", "minor", "major"].includes(text)) return calculateNextVersion(currentVersion, text);
   if (!isValidVersion(text)) {
     throw new Error(`"${text}" is not a version. Use something like 1.4.0 or 1.4.0-beta.1, or patch / minor / major.`);
   }
-  if (text === currentVersion) throw new Error(`The version is already ${currentVersion}.`);
+  if (text === currentVersion && !allowCurrent) throw new Error(`The version is already ${currentVersion}.`);
   return text;
 }
 
@@ -116,15 +117,23 @@ function git(args) {
 async function main() {
   const args = process.argv.slice(2);
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-  const explicit = args.find((arg) => isValidVersion(arg.replace(/^v(?=\d)/i, "")));
-  const bumpType = args.find((arg) => ["patch", "minor", "major"].includes(arg));
+  const positional = args.filter((arg) => !arg.startsWith("--"));
+  const explicit = positional.find((arg) => isValidVersion(arg.replace(/^v(?=\d)/i, "")));
+  const bumpType = positional.find((arg) => ["patch", "minor", "major"].includes(arg));
+  const allowSame = args.includes("--allow-same");
   const isPrerelease = args.includes("--prerelease") || process.env.PRERELEASE === "true";
+  // Something was typed but it is neither a version nor patch/minor/major: stop instead of guessing.
+  if (positional.length > 0 && !explicit && !bumpType) {
+    console.error(`\n✗ "${positional[0]}" is not a version. Use something like 1.4.0 or 1.4.0-beta.1, or patch / minor / major.`);
+    process.exitCode = 1;
+    return;
+  }
   const interactive = !explicit && !bumpType && Boolean(process.stdin.isTTY);
   const rl = process.stdin.isTTY ? createInterface({ input: process.stdin, output: process.stdout }) : null;
 
   try {
     let newVersion;
-    if (explicit) newVersion = resolveRequestedVersion(explicit, pkg.version);
+    if (explicit) newVersion = resolveRequestedVersion(explicit, pkg.version, { allowCurrent: allowSame });
     else if (interactive) newVersion = await askForVersion(rl, pkg.version);
     else newVersion = calculateNextVersion(pkg.version, bumpType ?? "patch", isPrerelease);
 

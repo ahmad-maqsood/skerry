@@ -1,6 +1,10 @@
 name: Release
 
-# One button: Actions > Release > Run workflow.
+# One button: Actions > Release > Run workflow. Nothing to do on your own computer.
+#   version:          type the new version (1.4.0, or patch / minor / major). The workflow updates
+#                     package.json, Cargo.toml, Cargo.lock and tauri.conf.json for you and, when
+#                     publishing, commits "Bump version to X" to the branch it runs on before building.
+#                     Leave it empty to release the version already in the files.
 #   publish unticked: a quick trial. Builds and signs only the NSIS installer and attaches it to the
 #                     run as a download. No MSI and no update manifest, so it cannot be published.
 #   publish ticked:   the full release: runs the frontend checks, builds and signs both the NSIS and
@@ -11,11 +15,16 @@ name: Release
 #                     "What's new" part.
 # Clippy and the Rust tests are not repeated here: CI runs them on every push to main.
 # The version comes from package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json
-# (they must match). Change it with: pnpm bump
+# (they must match). The "version" input above sets all of them; pnpm bump does the same locally.
 
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: "New version: 1.4.0, or patch / minor / major (empty = keep the current version)"
+        type: string
+        required: false
+        default: ""
       publish:
         description: "Publish a GitHub release (leave unticked to only build)"
         type: boolean
@@ -55,6 +64,15 @@ jobs:
             exit 1
           fi
 
+      # Rewrites the four version files in this run's checkout. Typing the current version is fine
+      # (it lets you start again after a failed run). A typo fails here, before anything is built.
+      - name: Set the version
+        if: ${{ inputs.version != '' }}
+        shell: bash
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: node scripts/release/bump-version.mjs "$REQUESTED_VERSION" --allow-same
+
       - uses: pnpm/action-setup@v4
         with:
           version: 11
@@ -83,6 +101,23 @@ jobs:
       - name: Check the frontend
         if: ${{ inputs.publish }}
         run: pnpm check
+
+      # The release is created at this commit, so the bump has to be on GitHub before the build. It is
+      # pushed only after the checks pass, so a broken build leaves no stray commit behind.
+      - name: Commit the new version
+        if: ${{ inputs.publish && inputs.version != '' }}
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "The version files already match; nothing to commit."
+            exit 0
+          fi
+          VERSION=$(node -p "require('./package.json').version")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json
+          git commit -m "Bump version to ${VERSION}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Build, sign and publish
         if: ${{ inputs.publish }}

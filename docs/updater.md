@@ -16,10 +16,12 @@ Releases are built, signed, and published entirely via GitHub Actions. Maintaine
 
 ### Building or publishing a release
 
-1. Set the version once: run `pnpm bump`. It shows the current version, asks for the new one (type `1.4.0`, or `patch` / `minor` / `major`; Enter = patch), updates all the version files and offers to commit and push. Without a terminal, `node scripts/release/bump-version.mjs 1.4.0` (or `patch`) does the same. The version must match in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`.
-2. Open GitHub repository -> **Actions** -> **Release** -> **Run workflow**.
+1. Open GitHub repository -> **Actions** -> **Release** -> **Run workflow**.
+2. **Version**: type the new version (`1.4.0`, `1.4.0-beta.1`, or `patch` / `minor` / `major`). The workflow updates `package.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock` and `src-tauri/tauri.conf.json` for you. Leave it empty to release the version already in the files. A typo fails in the first seconds, before anything is built.
 3. Tick **Publish a GitHub release** to publish. Leave it unticked for a quick trial build.
 4. Click **Run workflow**.
+
+Nothing needs to be done on your own computer. When you publish with a version typed in, the workflow commits `Bump version to X` to the branch it runs on after the checks pass and before the build, then creates the release from that commit. If a run fails after that, start it again with the same version; it is accepted as is. (`pnpm bump` still exists for doing the same by hand: `node scripts/release/bump-version.mjs 1.4.0`.)
 
 Either way the workflow checks the signing secrets first. Clippy and the Rust tests are not run here: CI runs them on every push to `main`, so check that CI is green for the commit you release.
 

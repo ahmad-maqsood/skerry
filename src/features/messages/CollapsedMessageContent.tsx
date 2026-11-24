@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { LevelPopupContent } from "./LevelPopupContent";
 import { MessageSourceIcon } from "./MessageSourceIcon";
 import { messagePreviewText, type MessagePreview } from "./messagePreview";
 import { useTranslation } from "../../i18n";
@@ -14,6 +15,7 @@ type ContentTransition = {
 };
 
 function MessageContent({ preview }: { preview: MessagePreview }) {
+  if (preview.level !== undefined) return <LevelPopupContent preview={preview} />;
   return (
     <>
       <MessageSourceIcon logo={preview.appLogo} name={preview.appDisplayName} size={16} kind={preview.kind} />
@@ -52,8 +54,10 @@ export function CollapsedMessageContent({
 }) {
   const t = useTranslation();
   const current = enabled ? preview : null;
+  // A level pop-up keeps one key while its bar moves (each change is a fresh preview with a new
+  // receivedAt), so the bar slides in place instead of the whole pop-up entering again.
   const key = current
-    ? JSON.stringify([current.id, current.receivedAt, current.title, current.body])
+    ? JSON.stringify(current.level !== undefined ? [current.id] : [current.id, current.receivedAt, current.title, current.body])
     : "idle";
   const [transition, setTransition] = useState<ContentTransition>({
     key,

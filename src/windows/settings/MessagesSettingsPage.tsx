@@ -126,6 +126,18 @@ export function MessagesSettingsPage({
           checked={settings.airplanePopup}
           onChange={(airplanePopup) => onSettingsChange({ ...settings, airplanePopup })}
         />
+        <SettingsToggleRow
+          title={labels.popupVolume}
+          description={labels.popupVolumeHint}
+          checked={settings.volumePopup}
+          onChange={(volumePopup) => onSettingsChange({ ...settings, volumePopup })}
+        />
+        <SettingsToggleRow
+          title={labels.popupBrightness}
+          description={labels.popupBrightnessHint}
+          checked={settings.brightnessPopup}
+          onChange={(brightnessPopup) => onSettingsChange({ ...settings, brightnessPopup })}
+        />
       </SettingsGroup>
 
       {enabled && (

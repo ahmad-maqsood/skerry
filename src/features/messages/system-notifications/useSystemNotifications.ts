@@ -35,6 +35,8 @@ export type SystemNotificationPreview = {
   appLogo?: string | null;
   receivedAt: number;
   kind?: PreviewKind;
+  /** A level pop-up's position, 0 to 100 (see MessagePreview.level). */
+  level?: number;
 };
 
 const EMPTY_SNAPSHOT: SystemNotificationSnapshot = {

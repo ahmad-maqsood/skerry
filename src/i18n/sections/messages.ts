@@ -19,6 +19,9 @@ export type MessagesText = {
   airplaneName: string;
   airplaneOn: string;
   airplaneOff: string;
+  /** Source names of the volume and brightness pop-ups; the pop-up's label reads e.g. "Volume · 45%". */
+  volumeName: string;
+  brightnessName: string;
   /** Body of that pop-up: the battery level, e.g. "85%". */
   batteryLevel: (percent: number) => string;
   noticeOpen: (app: string) => string;
@@ -47,6 +50,8 @@ export const en: MessagesText = {
   airplaneName: "Airplane mode",
   airplaneOn: "Airplane mode on",
   airplaneOff: "Airplane mode off",
+  volumeName: "Volume",
+  brightnessName: "Brightness",
   batteryLevel: (percent) => `${percent}%`,
   noticeOpen: (app) => `Open ${app}`,
   noticeReader: (sender) => `Full notification from ${sender}`,

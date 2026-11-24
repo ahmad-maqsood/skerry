@@ -57,7 +57,7 @@ export function IslandApp() {
   const game = useGameMode(settings, { mode, isTucked, collapseIsland, tuckIsland, revealIsland });
   const notices = useIslandNotices(settings, { mode, isTucked, quiet: game.quiet });
   useIdleUpdateInstall(mode === "collapsed", game.quiet);
-  const { systemNotifications, preview, hasMessagePreview, dismissPreview } = notices;
+  const { systemNotifications, preview, hasMessagePreview, dismissPreview, canPreviewMessages } = notices;
   // The output level shows only on the collapsed island (its waveform).
   const media = useMediaState(settings.musicEnabled, mode === "collapsed");
   const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight, notesExpanded, notebookProps } = useIslandTodos({ settings, navigation, quiet: game.quiet });
@@ -92,6 +92,7 @@ export function IslandApp() {
   useIslandPopups({
     settings,
     showPreview: systemNotifications.showPreview,
+    canPreview: canPreviewMessages,
     clipboardHistory,
     ownCopyAtRef: clipboard.ownCopyAtRef,
     mediaState: media.mediaState,

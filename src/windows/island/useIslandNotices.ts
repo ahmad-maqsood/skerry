@@ -13,7 +13,7 @@ export function useIslandNotices(
 ) {
   const canPreviewMessages = canPreviewNotice(settings, quiet, mode, isTucked);
   // A preview that expands stays for the expanded duration, any other for the normal one.
-  const previewSeconds = (shown: { kind?: PreviewKind }) => previewSecondsFor(settings, quiet, expandsPreview(settings, shown.kind));
+  const previewSeconds = (shown: { kind?: PreviewKind }) => previewSecondsFor(settings, quiet, expandsPreview(settings, shown.kind), shown.kind);
   const systemNotifications = useSystemNotifications(canPreviewMessages, previewSeconds);
 
   const heldPreview = useHeldPreview(systemNotifications.preview, !quiet);
@@ -30,5 +30,5 @@ export function useIslandNotices(
     if (currentAt !== null) setDismissedAt(currentAt);
   }, [currentAt]);
 
-  return { systemNotifications, preview, hasMessagePreview, dismissPreview };
+  return { systemNotifications, preview, hasMessagePreview, dismissPreview, canPreviewMessages };
 }

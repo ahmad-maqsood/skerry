@@ -1,5 +1,5 @@
 import type { IslandSettings } from "../../features/appearance/types";
-import type { PreviewKind } from "../../features/messages/messagePreview";
+import { isLevelKind, LEVEL_PREVIEW_SECONDS, type PreviewKind } from "../../features/messages/messagePreview.ts";
 import type { IslandMode, IslandPage } from "./types";
 
 type NoticeSettings = Pick<IslandSettings, "messagePreviewSeconds" | "messageAutoExpand" | "messageExpandSeconds" | "gameShowNotices" | "gameNoticeSeconds">;
@@ -16,9 +16,11 @@ export function expandsPreview(settings: ExpandSettings, kind?: PreviewKind) {
     case "clipboard": return settings.messageExpandClipboard;
     case "music": return settings.messageExpandMusic;
     case "battery": return settings.messageExpandCharger;
-    // Short device notices are one line: there is nothing to expand.
+    // Short device notices and level bars are one line: there is nothing to expand.
     case "bluetooth":
-    case "airplane": return false;
+    case "airplane":
+    case "volume":
+    case "brightness": return false;
     default: return settings.messageExpandApps;
   }
 }
@@ -36,9 +38,10 @@ export function previewPage(kind: PreviewKind): IslandPage {
  * How long a message preview stays: game mode's own seconds while it is quiet (previews show there
  * only with gameShowNotices), the adaptive preview's while it expands (a long text takes longer to
  * read), otherwise the usual preview seconds. `expands` is whether this preview expands; it
- * defaults to the master switch.
+ * defaults to the master switch. A level pop-up (volume, brightness) always stays its own short time.
  */
-export function previewSecondsFor(settings: NoticeSettings, quiet: boolean, expands = settings.messageAutoExpand) {
+export function previewSecondsFor(settings: NoticeSettings, quiet: boolean, expands = settings.messageAutoExpand, kind?: PreviewKind) {
+  if (isLevelKind(kind)) return LEVEL_PREVIEW_SECONDS;
   if (quiet && settings.gameShowNotices) return settings.gameNoticeSeconds;
   return expands ? settings.messageExpandSeconds : settings.messagePreviewSeconds;
 }

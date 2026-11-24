@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { SHOTS, parseArgs, sceneUrl, selectShots } from "../../scripts/capture-screenshots.mjs";
+import { DEFAULT_SCALE, SHOTS, parseArgs, parseScale, pngSize, sceneUrl, selectShots, snapClip } from "../../scripts/capture-screenshots.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -30,25 +30,41 @@ test("the scene page the shots open exists", () => {
   assert.ok(existsSync(path.join(root, "tests/screenshots/scene.tsx")));
 });
 
-test("the native window opens the iframe host, never scene.html as its top page", () => {
+test("the capture runs in a browser by hand: no native window, no workflow, no schedule", () => {
   const script = readFileSync(path.join(root, "scripts/capture-screenshots.mjs"), "utf8");
-  assert.match(script, /tests\/screenshots\/native-host\.html\?\$\{query\}/);
-  assert.doesNotMatch(script, /const url = `tests\/screenshots\/scene\.html/);
-  const host = readFileSync(path.join(root, "tests/screenshots/native-host.html"), "utf8");
-  assert.match(host, /document\.getElementById\("scene"\)\.src = \`scene\.html\$\{window\.location\.search\}\`/);
+  assert.match(script, /withRegressionBrowser/);
+  assert.doesNotMatch(script, /powershell|tauri dev|SKERRY_NATIVE_SCREENSHOTS/i);
+  for (const gone of ["scripts/capture-window.ps1", "scripts/compose-screenshot-themes.ps1", "tests/screenshots/native-host.html", ".github/workflows/screenshots.yml"]) {
+    assert.ok(!existsSync(path.join(root, gone)), `${gone} is removed`);
+  }
+  for (const workflow of readdirSync(path.join(root, ".github/workflows"))) {
+    const text = readFileSync(path.join(root, ".github/workflows", workflow), "utf8");
+    assert.doesNotMatch(text, /capture-screenshots|pnpm screenshots/, `${workflow} never takes screenshots`);
+  }
 });
 
-test("native screenshots run Vite with the private Tauri globals, since WebView2 locks the real ones", () => {
-  const script = readFileSync(path.join(root, "scripts/capture-screenshots.mjs"), "utf8");
-  assert.match(script, /SKERRY_NATIVE_SCREENSHOTS: "1"/);
+test("the scenes show the app's default icon tabs, not capsules", () => {
   const scene = readFileSync(path.join(root, "tests/screenshots/scene.tsx"), "utf8");
-  assert.match(scene, /from "@tauri-apps\/api\/mocks"/);
-  // The scene must not try to replace Tauri's read-only window.__TAURI_INTERNALS__ itself.
-  assert.doesNotMatch(scene, /__TAURI_INTERNALS__\s*=/);
-  const config = readFileSync(path.join(root, "vite.config.ts"), "utf8");
-  assert.match(config, /SKERRY_NATIVE_SCREENSHOTS/);
-  assert.match(config, /__SKERRY_SCREENSHOT_INTERNALS__/);
-  assert.match(config, /exclude: \["@tauri-apps\/api"/);
+  assert.doesNotMatch(scene, /pageButtonStyle/);
+});
+
+test("the pixel density is a whole number from 1 to 4, 3 by default", () => {
+  assert.equal(DEFAULT_SCALE, 3);
+  assert.equal(parseScale(undefined), 3);
+  assert.equal(parseScale("2"), 2);
+  for (const bad of ["0", "5", "1.5", "big"]) assert.throws(() => parseScale(bad), /--scale/);
+});
+
+test("a crop is snapped outward to whole pixels so no edge is resampled", () => {
+  assert.deepEqual(snapClip({ x: 10.4, y: 0, width: 100.2, height: 50.5 }), { x: 10, y: 0, width: 101, height: 51 });
+  assert.deepEqual(snapClip({ x: 5, y: 6, width: 7, height: 8 }), { x: 5, y: 6, width: 7, height: 8 });
+});
+
+test("a PNG's size is read from its header", () => {
+  const header = Buffer.alloc(24);
+  header.writeUInt32BE(2640, 16);
+  header.writeUInt32BE(2220, 20);
+  assert.deepEqual(pngSize(header), { width: 2640, height: 2220 });
 });
 
 test("words pick shots by scene or by file name; no words means all", () => {

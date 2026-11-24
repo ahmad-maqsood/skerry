@@ -123,12 +123,20 @@ mod tests {
     #[test]
     fn lists_published_releases_and_skips_drafts() {
         let list = parse_releases(
+<<<<<<< Updated upstream
             br#"[
+=======
+            br###"[
+>>>>>>> Stashed changes
               {"tag_name":"v1.2.0","name":"Skerry 1.2","body":"## What's new\r\n\r\n- A\r\n","published_at":"2026-11-20T10:00:00Z","html_url":"https://github.com/x/y/releases/tag/v1.2.0","draft":false,"prerelease":false},
               {"tag_name":"v1.3.0","name":"Soon","body":"x","draft":true},
               {"tag_name":"v1.1.0-beta.1","name":null,"body":null,"published_at":null,"html_url":"u","prerelease":true},
               {"tag_name":"  ","name":"No tag"}
+<<<<<<< Updated upstream
             ]"#,
+=======
+            ]"###,
+>>>>>>> Stashed changes
         )
         .unwrap();
         assert_eq!(list.len(), 2);

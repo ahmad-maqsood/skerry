@@ -68,7 +68,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 
 ## Screenshots
 
-<!-- Note: Screenshot assets are captured automatically (`pnpm screenshots`, see docs/SCREENSHOTS.md) and stored in docs/assets/screenshots/ -->
+<!-- Note: Screenshot assets are captured by hand with `pnpm screenshots` (see docs/SCREENSHOTS.md) and stored in docs/assets/screenshots/ -->
 
 ### Collapsed Island and Clock
 
@@ -314,7 +314,7 @@ flowchart TD
 ├── scripts/                  # Release automation, size checks, screenshots, and regression runner
 ├── tests/                    # Unit tests, script tests, browser regression pages, screenshot scenes
 ├── docs/                     # Architecture, design notes, updater/release guide, plugin guide, screenshot shot list
-├── .github/workflows/        # CI, Release, and Screenshots workflows
+├── .github/workflows/        # CI and Release workflows
 ├── release-features.json     # Release feature flags shared by the frontend and Rust
 ├── AGENTS.md / DESIGN.md     # Contributor and AI-agent rules; confirmed UI design conventions
 ├── SECURITY.md               # Vulnerability reporting process
@@ -333,8 +333,6 @@ Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a r
   - **Browser pages** (`windows-latest`, three shards): the headless Chrome regression pages, which need Windows fonts, split across three runners with `scripts/run-regression.mjs --shard=i/3`.
   - **Clippy** and **Rust tests** (`windows-latest`, one job each): `cargo clippy --all-targets -- -D warnings` for the app and the plugin workspace, and `cargo test --lib` for the app plus `cargo test --workspace` for the plugins, each with its own Rust cache.
   - **Gate Check**: a lightweight `CI passed` status check that needs all of the above, for branch protection.
-
-- **Screenshots (`.github/workflows/screenshots.yml`)**: re-captures the README screenshots on a Windows runner when the UI changes on `main`, and commits them if they changed; see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
 
 - **Releases (`.github/workflows/release.yml`)**, started by hand with **Run workflow**:
   - **Publish unticked**: a quick trial that builds and signs only the NSIS installer and attaches it to the run.

@@ -1,17 +1,19 @@
-// Captures the actual Skerry Tauri desktop window on Windows.
-// The React screens are the production components; only OS-facing commands and user data are
-// replaced by the fictional fixtures in tests/screenshots/demoData.ts.
+// Captures the README screenshots from the real, current Skerry UI in headless Chrome or Edge.
+// Run it by hand; nothing in CI or on a schedule starts it.
 //
-//   pnpm screenshots
-//   pnpm screenshots music settings
-//   pnpm screenshots --out=./out
-import { spawn, spawnSync } from "node:child_process";
-import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
-import { mkdtempSync, mkdirSync, rmSync, statSync } from "node:fs";
-import os from "node:os";
+//   pnpm screenshots                     every shot, into docs/assets/screenshots
+//   pnpm screenshots music settings      only the shots whose scene or file name matches
+//   pnpm screenshots --scale=2           pixel density (default 3, so a 700 px island is 2100 px wide)
+//   pnpm screenshots --out=./out         another folder
+//
+// The production React components render over the fictional fixtures in
+// tests/screenshots/demoData.ts (the OS-facing Tauri commands are mocked). Each page is drawn at
+// a high device pixel ratio and cropped on whole pixels, so text and icon edges are crisp.
+// Run it on Windows to get Segoe UI like the installed app; CHROME_PATH picks the browser.
+import { mkdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { withRegressionBrowser } from "./run-regression.mjs";
 
 export const SHOTS = [
   { file: "screenshot-collapsed-clock.png", scene: "clock" },
@@ -26,6 +28,15 @@ export const SHOTS = [
   { file: "screenshot-themes.png", scene: "themes" },
 ];
 
+export const DEFAULT_SCALE = 3;
+const VIEWPORT = { width: 1280, height: 800 };
+const THEMES = [
+  { material: "classic", label: "Classic" },
+  { material: "liquidGlass", label: "Liquid Glass" },
+  { material: "frostedGlass", label: "Frosted Glass" },
+];
+const SCENE_TIMEOUT_MS = 60_000;
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function parseArgs(argv) {
@@ -44,8 +55,6 @@ export function sceneUrl(base, shot, extra = {}) {
   url.search = new URLSearchParams({ scene: shot.scene, ...extra }).toString();
   return url.toString();
 }
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const powershell = process.env.POWERSHELL_PATH ?? "powershell.exe";
 
 export function selectShots(shots, words) {
   if (!words.length) return shots;
@@ -54,181 +63,120 @@ export function selectShots(shots, words) {
   return selected;
 }
 
-function runPowerShell(args) {
-  const result = spawnSync(powershell, ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", ...args], {
-    cwd: root, encoding: "utf8", timeout: 720_000, maxBuffer: 2 * 1024 * 1024,
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(result.stderr || result.stdout || `PowerShell exited with ${result.status}.`);
-  return result.stdout;
+/** The pixel density from --scale (whole numbers from 1 to 4); sharp edges need a whole number. */
+export function parseScale(value) {
+  if (value === undefined) return DEFAULT_SCALE;
+  const scale = Number(value);
+  if (!Number.isInteger(scale) || scale < 1 || scale > 4) throw new Error(`--scale must be a whole number from 1 to 4, got "${value}".`);
+  return scale;
 }
 
-function createSceneSignalServer(token) {
-  let resolveSignal;
-  let rejectSignal;
-  const signal = new Promise((resolve, reject) => {
-    resolveSignal = resolve;
-    rejectSignal = reject;
-  });
-  const server = createServer((request, response) => {
-    const url = new URL(request.url ?? "/", "http://127.0.0.1");
-    response.setHeader("Access-Control-Allow-Origin", "*");
-    response.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    response.setHeader("Access-Control-Allow-Private-Network", "true");
-    response.writeHead(204);
-    response.end();
-    // A browser may send an OPTIONS preflight for loopback access. Only the actual GET
-    // from the scene page is allowed to release the capture wait.
-    if (request.method !== "GET" || url.pathname !== "/scene-signal" || url.searchParams.get("token") !== token) return;
-    if (url.searchParams.get("status") === "ready") resolveSignal();
-    if (url.searchParams.get("status") === "error") {
-      rejectSignal(new Error(`Screenshot scene failed to render: ${url.searchParams.get("message") ?? "Unknown scene error"}`));
-    }
-  });
-  const listening = new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", resolve);
-  });
-  return {
-    async start() {
-      await listening;
-      return server.address().port;
-    },
-    async wait(timeoutMs = 10 * 60_000) {
-      let timer;
-      try {
-        await Promise.race([
-          signal,
-          new Promise((_, reject) => {
-            timer = setTimeout(() => reject(new Error(`Screenshot scene did not report ready within ${timeoutMs / 60_000} minutes. The native app may still be compiling/starting, or the WebView may have failed to load tests/screenshots/scene.html.`)), timeoutMs);
-          }),
-        ]);
-      } finally {
-        clearTimeout(timer);
-      }
-    },
-    close() {
-      server.close();
-    },
-  };
+/** Width and height in pixels, read from a PNG's header. */
+export function pngSize(png) {
+  return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
 }
 
-async function captureScene(scene, output) {
-  const temp = mkdtempSync(path.join(os.tmpdir(), "skerry-native-shot-"));
-  const config = path.join(temp, "tauri.screenshot.json");
-  const [sceneName, ...extraParts] = scene.split("&");
-  const query = new URLSearchParams({ scene: sceneName });
-  for (const part of extraParts) {
-    const [key, value = ""] = part.split("=");
-    query.set(key, value);
+/** A crop on whole CSS pixels, so every edge lands on a device pixel and nothing is resampled. */
+export function snapClip(box) {
+  const x = Math.floor(box.x);
+  const y = Math.floor(box.y);
+  return { x, y, width: Math.ceil(box.x + box.width) - x, height: Math.ceil(box.y + box.height) - y };
+}
+
+const evaluate = async (session, expression, awaitPromise = false) =>
+  (await session.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise })).result?.value;
+
+async function setViewport(session, width, height, scale) {
+  await session.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: scale, mobile: false });
+}
+
+async function waitForScene(session, scene) {
+  const deadline = Date.now() + SCENE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const state = JSON.parse(await evaluate(session, `JSON.stringify({
+      ready: document.documentElement.dataset.sceneReady ?? "",
+      error: document.documentElement.dataset.sceneError ?? "",
+      capture: document.documentElement.dataset.capture ?? "",
+    })`) ?? "{}");
+    if (state.error) throw new Error(`Scene "${scene}" failed:\n${state.error}`);
+    if (state.ready === "true") return JSON.parse(state.capture);
+    await sleep(250);
   }
-  const captureToken = randomUUID();
-  const signalServer = createSceneSignalServer(captureToken);
-  const capturePort = await signalServer.start();
-  query.set("capturePort", String(capturePort));
-  query.set("captureToken", captureToken);
-  // The native window opens native-host.html, which embeds the maintained scene page in an iframe
-  // (not the stale root-level screenshot.html). WebView2 makes window.__TAURI_INTERNALS__
-  // read-only and non-configurable in every frame, so the scene cannot mock it. With
-  // SKERRY_NATIVE_SCREENSHOTS=1 (set below) vite.config.ts points the @tauri-apps packages at
-  // private globals instead, which mockIPC()/mockWindows() can fill freely.
-  const url = `tests/screenshots/native-host.html?${query}`;
-  const overlay = {
-    app: { windows: [{ label: "main", title: "Skerry", url, width: 1280, height: 800, center: true, visible: true, alwaysOnTop: true }] },
-  };
-  await import("node:fs/promises").then(({ writeFile }) => writeFile(config, JSON.stringify(overlay)));
+  throw new Error(`Scene "${scene}" did not report ready within ${SCENE_TIMEOUT_MS / 1000}s.`);
+}
 
-  // Tauri dev launches the real Windows desktop window and its WebView2 runtime. The screenshot
-  // harness mounts the same production React components inside that native window (not Chrome).
-  // Use PowerShell as the Windows command host rather than cmd.exe. cmd /s /c was
-  // forwarding the quotes around this path as part of the --config value, so Tauri tried
-  // to open a filename that literally contained quotation marks (Windows error 123).
-  const command = process.platform === "win32" ? powershell : "pnpm";
-  const quotedConfig = config.replace(/'/g, "''");
-  const args = process.platform === "win32"
-    ? [
-      "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-      "-Command", `& pnpm tauri dev --config '${quotedConfig}'`,
-    ]
-    : ["tauri", "dev", "--config", config];
-  // Keep Tauri/Cargo output in the Actions log so native startup failures are visible.
-  // The environment reaches Tauri's beforeDevCommand, i.e. the Vite dev server that serves the scene.
-  const app = spawn(command, args, {
-    cwd: root, stdio: "inherit", windowsHide: true,
-    env: { ...process.env, SKERRY_NATIVE_SCREENSHOTS: "1" },
-  });
-  let launchError;
-  app.once("error", (error) => { launchError = error; });
-  try {
-    await sleep(1_500);
-    if (launchError) throw new Error(`Could not start the Tauri launcher: ${launchError.message}`);
-    if (app.exitCode !== null) {
-      throw new Error(`Tauri launcher exited before the window appeared (exit code ${app.exitCode}) while capturing ${scene}.`);
-    }
+async function shoot(session, shot, extra, scale) {
+  await setViewport(session, VIEWPORT.width, VIEWPORT.height, scale);
+  await session.send("Page.navigate", { url: "about:blank" });
+  await session.send("Page.navigate", { url: extra.url });
+  const clip = snapClip(await waitForScene(session, shot.scene));
+  // Fonts and the last transitions settle before the pixels are taken.
+  await evaluate(session, "document.fonts.ready.then(() => true)", true);
+  await sleep(400);
+  const { data } = await session.send("Page.captureScreenshot", { format: "png", clip: { ...clip, scale: 1 }, captureBeyondViewport: false });
+  if (!data) throw new Error(`The browser returned no image for "${shot.scene}".`);
+  return Buffer.from(data, "base64");
+}
 
-    // Do not capture a native window just because it exists. Wait until the screenshot page has
-    // mounted the requested React scene and completed its scripted interactions.
-    await signalServer.wait();
-    console.log(`✓ Scene "${sceneName}" rendered and reported ready.`);
-
-    const captureScript = path.join(root, "scripts", "capture-window.ps1");
-    runPowerShell([
-      "-File", captureScript,
-      "-WindowTitle", "Skerry",
-      "-OutputPath", output,
-      "-ReadyDelaySeconds", "2",
-      "-TimeoutSeconds", "60",
-      "-LauncherProcessId", String(app.pid),
-    ]);
-  } finally {
-    signalServer.close();
-    if (app.pid && app.exitCode === null) {
-      if (process.platform === "win32") spawnSync("taskkill.exe", ["/PID", String(app.pid), "/T", "/F"], { stdio: "ignore" });
-      else app.kill("SIGTERM");
-    }
-    await sleep(700);
-    rmSync(temp, { recursive: true, force: true });
-  }
+/** The three styles side by side on the desktop colour, each with its name below. */
+async function composeThemes(session, parts, scale) {
+  const gap = 24;
+  const card = 420;
+  const labelHeight = 42;
+  const sizes = parts.map((part) => pngSize(part.png));
+  const widest = Math.max(...sizes.map((size) => size.width));
+  const cardHeight = Math.round(Math.max(...sizes.map((size) => size.height)) * (card / widest));
+  const width = parts.length * card + (parts.length + 1) * gap;
+  const height = cardHeight + labelHeight + 2 * gap;
+  const cards = parts.map((part, index) => {
+    const ratio = Math.min(card / sizes[index].width, cardHeight / sizes[index].height);
+    const left = gap + index * (card + gap);
+    return `<img src="data:image/png;base64,${part.png.toString("base64")}" style="position:absolute;left:${left}px;top:${gap}px;width:${sizes[index].width * ratio}px;height:${sizes[index].height * ratio}px">`
+      + `<div style="position:absolute;left:${left}px;top:${gap + cardHeight + 8}px;font:600 14px 'Segoe UI Variable','Segoe UI',Inter,system-ui,sans-serif;color:#e2e8f0">${part.label}</div>`;
+  }).join("");
+  await setViewport(session, width, height, scale);
+  await session.send("Page.navigate", { url: "about:blank" });
+  await evaluate(session, `document.documentElement.style.background = "#0f172a";
+    document.body.style.cssText = "margin:0";
+    document.body.innerHTML = ${JSON.stringify(cards)};
+    Promise.all([...document.images].map((image) => image.decode())).then(() => document.fonts.ready).then(() => true)`, true);
+  await sleep(200);
+  const { data } = await session.send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width, height, scale: 1 } });
+  return Buffer.from(data, "base64");
 }
 
 async function main() {
-  if (process.platform !== "win32") throw new Error("Native Skerry screenshots must run on Windows (GitHub Actions uses windows-latest).");
-  const argv = process.argv.slice(2);
-  const outArg = argv.find((arg) => arg.startsWith("--out="));
-  const words = argv.filter((arg) => !arg.startsWith("--"));
-  const out = path.resolve(root, outArg?.slice("--out=".length) ?? "docs/assets/screenshots");
-  mkdirSync(out, { recursive: true });
+  const { options, words } = parseArgs(process.argv.slice(2));
+  const scale = parseScale(options.scale);
+  const out = path.resolve(root, options.out ?? "docs/assets/screenshots");
   const shots = selectShots(SHOTS, words);
-  const themeParts = [];
-  for (const shot of shots) {
-    const target = path.join(out, shot.file);
-    const started = Date.now();
-    if (shot.scene === "themes") {
-      for (const material of ["classic", "liquidGlass", "frostedGlass"]) {
-        const part = path.join(os.tmpdir(), `skerry-theme-${material}.png`);
-        await captureScene(`messages&material=${material}`, part);
-        themeParts.push(part);
+  mkdirSync(out, { recursive: true });
+  // The regression helper serves this checkout with Vite and drives a headless browser over the
+  // DevTools protocol. Its first page only proves the server answers.
+  await withRegressionBrowser(root, "island-tour.html", async ({ session, base }) => {
+    for (const shot of shots) {
+      const started = Date.now();
+      const target = path.join(out, shot.file);
+      const look = { wallpaper: "1" };
+      let png;
+      if (shot.scene === "themes") {
+        const parts = [];
+        for (const { material, label } of THEMES) {
+          const messages = { scene: "messages" };
+          parts.push({ label, png: await shoot(session, messages, { url: sceneUrl(base, messages, { ...look, material }) }, scale) });
+        }
+        png = await composeThemes(session, parts, scale);
+      } else {
+        png = await shoot(session, shot, { url: sceneUrl(base, shot, look) }, scale);
       }
-      // Pass each theme image as its own named parameter. This avoids PowerShell
-      // array/JSON argument binding differences when launched from Node on Windows.
-      runPowerShell([
-        "-File", path.join(root, "scripts", "compose-screenshot-themes.ps1"),
-        "-ClassicPath", themeParts[0],
-        "-LiquidGlassPath", themeParts[1],
-        "-FrostedGlassPath", themeParts[2],
-        "-OutputPath", target,
-      ]);
-    } else {
-      await captureScene(shot.scene, target);
+      writeFileSync(target, png);
+      const { width, height } = pngSize(png);
+      console.log(`✓ ${shot.file}  ${width}×${height}px  ${Math.round(statSync(target).size / 1024)} KB  ${((Date.now() - started) / 1000).toFixed(1)}s`);
     }
-    const size = Math.round(statSync(target).size / 1024);
-    console.log(`✓ ${shot.file}  ${size} KB  ${((Date.now() - started) / 1000).toFixed(1)}s`);
-  }
-  for (const part of themeParts) rmSync(part, { force: true });
-  console.log(`Captured ${shots.length} screenshot(s) from the native Skerry window into ${path.relative(root, out)}.`);
+  });
+  console.log(`Captured ${shots.length} screenshot(s) at ${scale}x into ${path.relative(root, out) || "."}.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; });
+  main().then(() => process.exit(0), (error) => { console.error(error instanceof Error ? error.message : error); process.exit(1); });
 }

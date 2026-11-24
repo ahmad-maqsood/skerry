@@ -44,7 +44,7 @@ Code is organized according to the target structure: Rust-side `unsafe` blocks o
 ├── tests/               # unit/ frontend unit tests, scripts/ script tests; regression/ browser regression pages; screenshots/ screenshot scenes
 ├── scripts/             # release/ packaging, signing, and latest.json generation; root scripts (regression runner, screenshots, size check)
 ├── docs/                # Specialized documentation: architecture/, design/, plugins/, updater.md, SCREENSHOTS.md
-├── .github/workflows/   # ci.yml, release.yml, screenshots.yml
+├── .github/workflows/   # ci.yml, release.yml
 ├── release-features.json # Release feature flags shared by the frontend and Rust (currently only `plugins`)
 ├── DESIGN.md            # Confirmed UI design conventions
 └── README.md            # Project documentation
@@ -67,7 +67,7 @@ Code is organized according to the target structure: Rust-side `unsafe` blocks o
 | Rust unit tests | `cargo test --manifest-path src-tauri/Cargo.toml` (CI runs `--lib`) |
 | Rust lints | `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings` |
 | Plugin crates | `cargo test --manifest-path plugins/Cargo.toml --workspace` (and the same for clippy) |
-| Refresh README screenshots | `pnpm screenshots` (see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)) |
+| Refresh README screenshots (by hand, never in CI) | `pnpm screenshots` (see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)) |
 | Generate release binary only | `pnpm tauri build --no-bundle` |
 | Full package build | `pnpm tauri build` |
 | Release | `pnpm release` |

@@ -122,6 +122,13 @@
   --dot-glow: rgba(255, 154, 118, 0.46);
 }
 
+.dot-button--system {
+  /* Without a colour the System tab drew no capsule at all (a gap among the dots), an untinted
+     icon and no highlight when it was the open page. */
+  --dot-color: #7fe0b2;
+  --dot-glow: rgba(127, 224, 178, 0.46);
+}
+
 .dot-button--messages {
   --dot-color: #e58ee2;
   --dot-glow: rgba(229, 142, 226, 0.44);

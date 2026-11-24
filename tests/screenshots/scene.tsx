@@ -1,12 +1,14 @@
 // One page for every documentation screenshot: /tests/screenshots/scene.html?scene=<name>.
 // It mounts the real island, clipboard or settings window over mocked Tauri commands that answer
 // with the fictional demo data in demoData.ts, drives the UI into the state the shot needs, and
-// then tells scripts/capture-screenshots.mjs where to crop (<html data-scene-ready, data-capture>).
+// then tells scripts/capture-screenshots.mjs where to crop (<html data-scene-ready, data-capture>;
+// <html data-scene-error> when the scene failed).
 //
 //   scene = clock | notification | messages | music | todos | shelf | system | clipboard | settings
 //   ?material=classic|liquidGlass|frostedGlass  ?theme=dark|light  ?wallpaper=1  ?page=<settings page>
 //
-// Open it under `pnpm dev` to look at a scene by eye; `pnpm screenshots` captures all of them.
+// Open it under `pnpm dev` to look at a scene by eye; `pnpm screenshots` (run by hand) captures
+// them in headless Chrome or Edge at high resolution.
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
@@ -54,7 +56,6 @@ localStorage.setItem("skerry-qq-notification-access-requested", "true");
 localStorage.setItem("skerry-detached-settings", "true");
 localStorage.setItem("skerry-clock-weather", JSON.stringify({ showClock: true, showWeather: false }));
 localStorage.setItem("skerry-settings", JSON.stringify({
-  pageButtonStyle: "capsule",
   autoCollapseSeconds: 0,
   autoTuck: false,
   topEdgeShoulders: true,
@@ -74,9 +75,7 @@ if (todosScene) {
   localStorage.setItem("skerry-todo-durations", JSON.stringify({ t2: 25 }));
 }
 
-// mockIPC/mockWindows provide the Tauri test environment. In the native window Vite renames the
-// globals the @tauri-apps packages use (vite.config.ts, SKERRY_NATIVE_SCREENSHOTS), because
-// WebView2 locks window.__TAURI_INTERNALS__; isTauri is read-only.
+// mockIPC/mockWindows provide the Tauri test environment in the plain browser.
 const root = createRoot(document.getElementById("root")!);
 const element = (selector: string) => {
   const found = document.querySelector<HTMLElement>(selector);
@@ -91,21 +90,9 @@ const rectOf = (target: Element, pad: { x?: number; top?: number; bottom?: numbe
   const top = Math.max(0, box.top - (pad.top ?? 0));
   return { x: Math.max(0, box.left - x), y: top, width: box.width + 2 * x, height: box.bottom + (pad.bottom ?? 0) - top };
 };
-const capturePort = query.get("capturePort");
-const captureToken = query.get("captureToken");
-const reportCaptureStatus = async (status: "ready" | "error", message?: string) => {
-  if (!capturePort || !captureToken) return;
-  const endpoint = new URL(`http://127.0.0.1:${capturePort}/scene-signal`);
-  endpoint.searchParams.set("token", captureToken);
-  endpoint.searchParams.set("status", status);
-  if (message) endpoint.searchParams.set("message", message.slice(0, 500));
-  const response = await fetch(endpoint);
-  if (!response.ok) throw new Error(`Screenshot controller returned HTTP ${response.status}.`);
-};
-const ready = async (capture: { x: number; y: number; width: number; height: number }) => {
+const ready = (capture: { x: number; y: number; width: number; height: number }) => {
   document.documentElement.dataset.capture = JSON.stringify(capture);
   document.documentElement.dataset.sceneReady = "true";
-  await reportCaptureStatus("ready");
 };
 
 async function islandScene() {
@@ -122,6 +109,9 @@ async function islandScene() {
       case "get_clipboard_history": return DEMO_CLIPBOARD(now);
       case "get_file_shelf": return { items: DEMO_SHELF(now) };
       case "get_system_snapshot": return DEMO_SYSTEM(0);
+      // The two sliders at the top of the System page: volume as 0 to 1, brightness as a percentage.
+      case "get_system_volume": return 0.62;
+      case "get_brightness": return 70;
       case "get_system_notifications_state": case "set_system_notifications_enabled":
         return notificationSnapshot(scene === "messages" ? messages : [], ++revision);
       case "get_foreground_fullscreen": return { active: false, onIslandMonitor: false };
@@ -192,7 +182,7 @@ async function clipboardScene() {
   const { ClipboardWindow } = await import("../../src/windows/clipboard/ClipboardWindow");
   root.render(<I18nProvider><ClipboardWindow /></I18nProvider>);
   await sleep(1200);
-  await ready(rectOf(element("#root"), { x: 40, top: 40, bottom: 40 }));
+  ready(rectOf(element("#root"), { x: 40, top: 40, bottom: 40 }));
 }
 
 async function settingsScene() {
@@ -208,10 +198,6 @@ const scenes: Record<string, () => Promise<void>> = { clipboard: clipboardScene,
 try {
   await (scenes[scene] ?? islandScene)();
 } catch (error) {
-  const message = error instanceof Error ? error.stack ?? error.message : String(error);
-  document.documentElement.dataset.sceneError = message;
+  document.documentElement.dataset.sceneError = error instanceof Error ? error.stack ?? error.message : String(error);
   console.error(error);
-  await reportCaptureStatus("error", message).catch((reportError) => {
-    console.error("Could not report screenshot scene error:", reportError);
-  });
 }

@@ -34,6 +34,7 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     clipboardPopup: settings?.clipboardPopup !== false,
     musicPopup: settings?.musicPopup !== false,
     chargerPopup: settings?.chargerPopup !== false,
+    bluetoothPopup: settings?.bluetoothPopup !== false,
     gameNoticeSeconds: wholeSeconds(settings?.gameNoticeSeconds, GAME_NOTICE_SECONDS, GAME_NOTICE_SECONDS.default),
     todoTimerReminder: settings?.todoTimerReminder === true,
     todoTimerReminderSound: settings?.todoTimerReminderSound === true,

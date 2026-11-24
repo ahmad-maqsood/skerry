@@ -1,6 +1,6 @@
 import type { IslandSettings } from "../../features/appearance/types";
 import type { PreviewKind } from "../../features/messages/messagePreview";
-import type { IslandMode } from "./types";
+import type { IslandMode, IslandPage } from "./types";
 
 type NoticeSettings = Pick<IslandSettings, "messagePreviewSeconds" | "messageAutoExpand" | "messageExpandSeconds" | "gameShowNotices" | "gameNoticeSeconds">;
 type ExpandSettings = Pick<IslandSettings, "messageAutoExpand" | "messageExpandApps" | "messageExpandClipboard" | "messageExpandMusic" | "messageExpandCharger">;
@@ -16,7 +16,18 @@ export function expandsPreview(settings: ExpandSettings, kind?: PreviewKind) {
     case "clipboard": return settings.messageExpandClipboard;
     case "music": return settings.messageExpandMusic;
     case "battery": return settings.messageExpandCharger;
+    // Short device notices are one line: there is nothing to expand.
+    case "bluetooth": return false;
     default: return settings.messageExpandApps;
+  }
+}
+
+/** The page a click on a pop-up opens: the island's own pop-ups open a page, not an app. */
+export function previewPage(kind: PreviewKind): IslandPage {
+  switch (kind) {
+    case "clipboard": return "clipboard";
+    case "music": return "music";
+    default: return "system";
   }
 }
 

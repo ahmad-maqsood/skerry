@@ -12,6 +12,9 @@ export type MessagesText = {
   batteryName: string;
   chargerPluggedIn: string;
   chargerUnplugged: string;
+  /** Source name and body of the island pop-up for a Bluetooth device connecting; its title is the device's name. */
+  bluetoothName: string;
+  bluetoothConnected: string;
   /** Body of that pop-up: the battery level, e.g. "85%". */
   batteryLevel: (percent: number) => string;
   noticeOpen: (app: string) => string;
@@ -35,6 +38,8 @@ export const en: MessagesText = {
   batteryName: "Battery",
   chargerPluggedIn: "Charger plugged in",
   chargerUnplugged: "Charger unplugged",
+  bluetoothName: "Bluetooth",
+  bluetoothConnected: "Connected",
   batteryLevel: (percent) => `${percent}%`,
   noticeOpen: (app) => `Open ${app}`,
   noticeReader: (sender) => `Full notification from ${sender}`,

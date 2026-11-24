@@ -114,6 +114,12 @@ export function MessagesSettingsPage({
           checked={settings.chargerPopup}
           onChange={(chargerPopup) => onSettingsChange({ ...settings, chargerPopup })}
         />
+        <SettingsToggleRow
+          title={labels.popupBluetooth}
+          description={labels.popupBluetoothHint}
+          checked={settings.bluetoothPopup}
+          onChange={(bluetoothPopup) => onSettingsChange({ ...settings, bluetoothPopup })}
+        />
       </SettingsGroup>
 
       {enabled && (

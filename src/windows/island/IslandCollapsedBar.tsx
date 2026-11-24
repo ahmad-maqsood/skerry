@@ -19,6 +19,7 @@ import { useUpdatePending } from "../../features/updater/useUpdatePending";
 import { isTodoTimerEndingSoon, type TodoTimer } from "../../features/todos/timer";
 import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoContent";
 import { isCollapsedFocused, focusedCollapsedSlots } from "./collapsedFocus.ts";
+import { previewPage } from "./noticeRules";
 import type { IslandPage } from "./types";
 import { useLingeringFlag } from "./useLingeringFlag";
 import { useReleasedFlag } from "./useReleasedFlag";
@@ -107,7 +108,7 @@ export function IslandCollapsedBar({
   const isMusicPlaying = mediaState.playbackStatus === "playing";
   const openPreview = (shown: MessagePreview) => {
     // The island's own pop-ups (a copied text, a new song, the charger) open their page, not an app.
-    if (shown.kind) onOpenPage(shown.kind === "battery" ? "system" : shown.kind);
+    if (shown.kind) onOpenPage(previewPage(shown.kind));
     else void systemNotifications.openApp(shown.appId);
   };
 

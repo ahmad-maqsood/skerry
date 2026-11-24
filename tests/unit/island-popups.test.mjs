@@ -45,7 +45,7 @@ test("a song counts once, and resuming it after a pause is not a new song", () =
 });
 
 test("the pop-ups are on unless switched off", () => {
-  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup"]) {
+  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup", "bluetoothPopup"]) {
     for (const value of [undefined, null, "false", 0, {}, true]) {
       assert.equal(normalizeSettings({ [key]: value })[key], true, key);
     }
@@ -60,4 +60,16 @@ test("the charger is announced only when it changes, never for the first reading
   assert.equal(chargerChange(false, false), null);
   assert.equal(chargerChange(false, true), "plugged");
   assert.equal(chargerChange(true, false), "unplugged");
+});
+
+test("a Bluetooth device is announced once it connects, never for the first reading", async () => {
+  const { newBluetoothDevices, BLUETOOTH_COOLDOWN_MS } = await import("../../src/features/device-status/bluetoothPopup.ts");
+  const none = new Map();
+  assert.deepEqual(newBluetoothDevices(undefined, [{ name: "Buds" }], none, 0), [], "already connected at start");
+  assert.deepEqual(newBluetoothDevices(new Set(["buds"]), [{ name: "Buds" }], none, 0), [], "still connected");
+  assert.deepEqual(newBluetoothDevices(new Set(), [{ name: " Buds " }, { name: "BUDS" }, { name: "  " }], none, 0), ["Buds"], "one name, trimmed, blanks and repeats ignored");
+  assert.deepEqual(newBluetoothDevices(new Set(["buds"]), [{ name: "Buds" }, { name: "Mouse" }], none, 0), ["Mouse"]);
+  const announced = new Map([["buds", 1000]]);
+  assert.deepEqual(newBluetoothDevices(new Set(), [{ name: "Buds" }], announced, 1000 + BLUETOOTH_COOLDOWN_MS - 1), [], "a device that keeps dropping is not repeated");
+  assert.deepEqual(newBluetoothDevices(new Set(), [{ name: "Buds" }], announced, 1000 + BLUETOOTH_COOLDOWN_MS), ["Buds"]);
 });

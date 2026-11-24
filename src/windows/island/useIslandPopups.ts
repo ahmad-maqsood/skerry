@@ -9,6 +9,7 @@ import type { SystemNotificationsController } from "../../features/messages/syst
 import { getBatteryStatus } from "../../features/system-monitor/api";
 import { chargerChange } from "../../features/system-monitor/chargerPopup";
 import { useTranslation } from "../../i18n";
+import { useDevicePopups } from "./useDevicePopups";
 import type { Translations } from "../../i18n/types";
 
 /** A copy made by the island's own "copy again" is not announced, with room for the change event. */
@@ -21,7 +22,7 @@ const STARTUP_GRACE_MS = 4000;
 const CHARGER_POLL_MS = 2000;
 
 type IslandPopupsOptions = {
-  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled" | "chargerPopup">;
+  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled" | "chargerPopup" | "bluetoothPopup">;
   showPreview: SystemNotificationsController["showPreview"];
   clipboardHistory: ClipboardHistorySnapshot;
   ownCopyAtRef: MutableRefObject<number>;
@@ -31,13 +32,14 @@ type IslandPopupsOptions = {
 /**
  * The island's own pop-ups, shown like a notification (same timing, same slide-out from a tucked
  * island, same game-mode rules, all decided by showPreview): a text just copied, a song that
- * just started playing, and the charger being plugged in or unplugged.
+ * just started playing, the charger being plugged in or unplugged, and devices (useDevicePopups).
  */
 export function useIslandPopups({ settings, showPreview, clipboardHistory, ownCopyAtRef, mediaState }: IslandPopupsOptions) {
   const t = useTranslation();
   useCopyPopup(settings.clipboardPopup, showPreview, clipboardHistory, ownCopyAtRef, t.messages.copiedToClipboard);
   useTrackPopup(settings.musicEnabled && settings.musicPopup, showPreview, mediaState);
   useChargerPopup(settings.chargerPopup, showPreview, t.messages);
+  useDevicePopups({ bluetooth: settings.bluetoothPopup, showPreview, copy: t.messages });
 }
 
 function useChargerPopup(enabled: boolean, showPreview: IslandPopupsOptions["showPreview"], copy: Translations["messages"]) {

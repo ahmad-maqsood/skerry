@@ -20,6 +20,8 @@ export type SettingsMessageSourcesText = {
   popupMusicHint: string;
   popupCharger: string;
   popupChargerHint: string;
+  popupBluetooth: string;
+  popupBluetoothHint: string;
   masterToggle: string;
   masterToggleHint: string;
   accessStatus: string;
@@ -58,6 +60,8 @@ export const en: SettingsMessageSourcesText = {
   popupMusicHint: "The island pops out for a moment to show the song when a new one starts playing.",
   popupCharger: "Show charger changes",
   popupChargerHint: "The island pops out for a moment when the charger is plugged in or unplugged. Only on laptops with a battery.",
+  popupBluetooth: "Show Bluetooth connections",
+  popupBluetoothHint: "The island pops out for a moment with the device's name when a Bluetooth device (headphones, a mouse, a keyboard) connects.",
   masterToggle: "Receive system notifications",
   masterToggleHint: "Listens to incoming Windows toast notifications (WhatsApp, Telegram, Outlook, browsers, etc.) and displays them on the island.",
   accessStatus: "Notification access",

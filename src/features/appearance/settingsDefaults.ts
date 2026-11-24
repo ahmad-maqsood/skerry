@@ -82,6 +82,7 @@ export const DEFAULT_SETTINGS: IslandSettings = {
   musicPopup: true,
   chargerPopup: true,
   bluetoothPopup: true,
+  airplanePopup: true,
   expandTrigger: "hover",
   hoverExpandDelayMs: DEFAULT_HOVER_EXPAND_DELAY_MS,
   hoverCollapseDelayMs: DEFAULT_HOVER_COLLAPSE_DELAY_MS,

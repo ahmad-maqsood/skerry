@@ -22,7 +22,7 @@ const STARTUP_GRACE_MS = 4000;
 const CHARGER_POLL_MS = 2000;
 
 type IslandPopupsOptions = {
-  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled" | "chargerPopup" | "bluetoothPopup">;
+  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled" | "chargerPopup" | "bluetoothPopup" | "airplanePopup">;
   showPreview: SystemNotificationsController["showPreview"];
   clipboardHistory: ClipboardHistorySnapshot;
   ownCopyAtRef: MutableRefObject<number>;
@@ -39,7 +39,7 @@ export function useIslandPopups({ settings, showPreview, clipboardHistory, ownCo
   useCopyPopup(settings.clipboardPopup, showPreview, clipboardHistory, ownCopyAtRef, t.messages.copiedToClipboard);
   useTrackPopup(settings.musicEnabled && settings.musicPopup, showPreview, mediaState);
   useChargerPopup(settings.chargerPopup, showPreview, t.messages);
-  useDevicePopups({ bluetooth: settings.bluetoothPopup, showPreview, copy: t.messages });
+  useDevicePopups({ bluetooth: settings.bluetoothPopup, airplane: settings.airplanePopup, showPreview, copy: t.messages });
 }
 
 function useChargerPopup(enabled: boolean, showPreview: IslandPopupsOptions["showPreview"], copy: Translations["messages"]) {

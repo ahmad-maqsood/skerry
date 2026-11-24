@@ -17,7 +17,8 @@ export function expandsPreview(settings: ExpandSettings, kind?: PreviewKind) {
     case "music": return settings.messageExpandMusic;
     case "battery": return settings.messageExpandCharger;
     // Short device notices are one line: there is nothing to expand.
-    case "bluetooth": return false;
+    case "bluetooth":
+    case "airplane": return false;
     default: return settings.messageExpandApps;
   }
 }

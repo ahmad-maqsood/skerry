@@ -1,6 +1,7 @@
-//! What happens to the PC's devices, for the island's pop-ups: Bluetooth devices connecting, and
-//! more to come. The frontend polls these commands and announces what changed.
+//! What happens to the PC's devices, for the island's pop-ups: Bluetooth devices connecting and
+//! airplane mode switching. The frontend polls these commands and announces what changed.
 
+mod airplane;
 mod bluetooth;
 
 use bluetooth::BluetoothDeviceInfo;
@@ -13,10 +14,17 @@ pub async fn get_connected_bluetooth_devices() -> Result<Vec<BluetoothDeviceInfo
         .map_err(|error| format!("Failed to join the Bluetooth task: {error}"))?
 }
 
+/// Whether airplane mode is on; `None` on a PC that has no setting for it.
+#[tauri::command]
+pub async fn get_airplane_mode() -> Result<Option<bool>, String> {
+    Ok(airplane::airplane_mode())
+}
+
 macro_rules! tauri_commands {
     ($next:ident [$($done:tt)*] $($rest:tt)*) => {
         $next!([$($done)*
             crate::device_status::get_connected_bluetooth_devices,
+            crate::device_status::get_airplane_mode,
         ] $($rest)*)
     };
 }

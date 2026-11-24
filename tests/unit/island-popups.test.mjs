@@ -45,7 +45,7 @@ test("a song counts once, and resuming it after a pause is not a new song", () =
 });
 
 test("the pop-ups are on unless switched off", () => {
-  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup", "bluetoothPopup"]) {
+  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup", "bluetoothPopup", "airplanePopup"]) {
     for (const value of [undefined, null, "false", 0, {}, true]) {
       assert.equal(normalizeSettings({ [key]: value })[key], true, key);
     }
@@ -72,4 +72,14 @@ test("a Bluetooth device is announced once it connects, never for the first read
   const announced = new Map([["buds", 1000]]);
   assert.deepEqual(newBluetoothDevices(new Set(), [{ name: "Buds" }], announced, 1000 + BLUETOOTH_COOLDOWN_MS - 1), [], "a device that keeps dropping is not repeated");
   assert.deepEqual(newBluetoothDevices(new Set(), [{ name: "Buds" }], announced, 1000 + BLUETOOTH_COOLDOWN_MS), ["Buds"]);
+});
+
+test("airplane mode is announced only when it switches, never for the first reading", async () => {
+  const { airplaneChange } = await import("../../src/features/device-status/airplanePopup.ts");
+  assert.equal(airplaneChange(undefined, true), null, "already on at start");
+  assert.equal(airplaneChange(undefined, false), null, "already off at start");
+  assert.equal(airplaneChange(true, true), null);
+  assert.equal(airplaneChange(false, false), null);
+  assert.equal(airplaneChange(false, true), "on");
+  assert.equal(airplaneChange(true, false), "off");
 });

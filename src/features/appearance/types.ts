@@ -132,6 +132,8 @@ export type IslandSettings = {
   chargerPopup: boolean;
   /** The island pops out with the device's name when a Bluetooth device connects. */
   bluetoothPopup: boolean;
+  /** The island pops out when airplane mode is switched on or off. */
+  airplanePopup: boolean;
   expandTrigger: ExpandTrigger;
   /** Pointer rest time (ms) before a hover opens the island. */
   hoverExpandDelayMs: number;

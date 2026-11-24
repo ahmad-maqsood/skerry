@@ -14,15 +14,15 @@ export type MessagePreview = {
   kind?: PreviewKind;
 };
 
-export type PreviewKind = "clipboard" | "music" | "battery" | "bluetooth";
+export type PreviewKind = "clipboard" | "music" | "battery" | "bluetooth" | "airplane";
 
 /**
  * Which pop-up wins when two want the bar: a higher one is not replaced by a lower one while it
- * shows. Device notices (a Bluetooth connection) give way to anything the user is more likely to
+ * shows. Device notices (a Bluetooth connection, airplane mode) give way to anything the user is more likely to
  * be waiting for (a notification from an app, a copied text, a new song); the rest replace each other.
  */
 export function previewPriority(kind?: PreviewKind): number {
-  return kind === "bluetooth" ? 2 : 3;
+  return kind === "bluetooth" || kind === "airplane" ? 2 : 3;
 }
 
 export function messagePreviewText(

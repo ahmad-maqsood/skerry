@@ -1,4 +1,4 @@
-import { Bell, BatteryCharging, Bluetooth, Clipboard, Music, type LucideIcon } from "lucide-react";
+import { Bell, BatteryCharging, Bluetooth, Clipboard, Music, Plane, type LucideIcon } from "lucide-react";
 import type { PreviewKind } from "./messagePreview";
 import "./MessageSourceIcon.css";
 
@@ -7,6 +7,7 @@ const KIND_ICONS: Record<PreviewKind, LucideIcon> = {
   music: Music,
   battery: BatteryCharging,
   bluetooth: Bluetooth,
+  airplane: Plane,
 };
 
 export function MessageSourceIcon({

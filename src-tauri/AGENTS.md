@@ -17,7 +17,7 @@ src-tauri/src/
 ├── file_shelf/              # File shelf: path list (file-shelf.json) and commands; drag-out invokes win32/ole.rs
 ├── media_control/           # diagnostics.rs: SMTC, processes, versions, and player read-only diagnostics; hotkeys.rs: optional music global shortcuts, registration status, and existing media session control
 ├── lyrics/                  # Local LRC, LRCLIB; online results cached in lyrics-cache/
-├── device_status/           # Device pop-up sources polled by the island: connected Bluetooth devices (WinRT device enumeration)
+├── device_status/           # Device pop-up sources polled by the island: connected Bluetooth devices (WinRT device enumeration) and airplane mode (registry)
 ├── system_notifications/  # Generic Windows system notification listener (WinRT UserNotificationListener), history, logo cache, per-app mute, privacy filter
 ├── weather/                 # Time and weather: Open-Meteo city search and current weather async commands, no auto-geolocation, no native data files written
 ├── translation/             # Quick translation: window, global hotkeys, credentials, and translation requests (mod.rs)

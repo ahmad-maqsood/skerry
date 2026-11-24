@@ -120,6 +120,12 @@ export function MessagesSettingsPage({
           checked={settings.bluetoothPopup}
           onChange={(bluetoothPopup) => onSettingsChange({ ...settings, bluetoothPopup })}
         />
+        <SettingsToggleRow
+          title={labels.popupAirplane}
+          description={labels.popupAirplaneHint}
+          checked={settings.airplanePopup}
+          onChange={(airplanePopup) => onSettingsChange({ ...settings, airplanePopup })}
+        />
       </SettingsGroup>
 
       {enabled && (

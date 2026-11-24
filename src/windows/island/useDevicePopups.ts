@@ -1,24 +1,29 @@
 import { useEffect, useRef } from "react";
-import { getConnectedBluetoothDevices } from "../../features/device-status/api";
+import { getAirplaneMode, getConnectedBluetoothDevices } from "../../features/device-status/api";
+import { airplaneChange } from "../../features/device-status/airplanePopup";
 import { bluetoothKey, newBluetoothDevices } from "../../features/device-status/bluetoothPopup";
 import type { Translations } from "../../i18n/types";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 
 /** How often the connected Bluetooth devices are read; the native read is one short device query. */
 const BLUETOOTH_POLL_MS = 3000;
+/** How often airplane mode is read; the native read is one registry value. */
+const AIRPLANE_POLL_MS = 2000;
 
 type ShowPreview = SystemNotificationsController["showPreview"];
 
 /**
- * Pop-ups for what happens to the PC's devices: a Bluetooth device connecting (named), and more to
- * come. Shown like a notification through showPreview, which decides when they may show.
+ * Pop-ups for what happens to the PC's devices: a Bluetooth device connecting (named) and airplane
+ * mode switching. Shown like a notification through showPreview, which decides when they may show.
  */
-export function useDevicePopups({ bluetooth, showPreview, copy }: {
+export function useDevicePopups({ bluetooth, airplane, showPreview, copy }: {
   bluetooth: boolean;
+  airplane: boolean;
   showPreview: ShowPreview;
   copy: Translations["messages"];
 }) {
   useBluetoothPopup(bluetooth, showPreview, copy);
+  useAirplanePopup(airplane, showPreview, copy);
 }
 
 function useBluetoothPopup(enabled: boolean, showPreview: ShowPreview, copy: Translations["messages"]) {
@@ -64,6 +69,48 @@ function useBluetoothPopup(enabled: boolean, showPreview: ShowPreview, copy: Tra
     };
     check();
     const timer = window.setInterval(check, BLUETOOTH_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [enabled, showPreview]);
+}
+
+function useAirplanePopup(enabled: boolean, showPreview: ShowPreview, copy: Translations["messages"]) {
+  const copyRef = useRef(copy);
+  useEffect(() => {
+    copyRef.current = copy;
+  });
+  useEffect(() => {
+    if (!enabled) return;
+    // Whether airplane mode was on at the last reading; undefined until the first one.
+    let previous: boolean | undefined;
+    let cancelled = false;
+    const check = () => {
+      getAirplaneMode()
+        .then((on) => {
+          // No setting (a desktop PC without radios): nothing to announce.
+          if (cancelled || on === null) return;
+          const change = airplaneChange(previous, on);
+          previous = on;
+          if (!change) return;
+          const now = Date.now();
+          showPreview({
+            id: `airplane-${change}-${now}`,
+            appId: "airplane",
+            appDisplayName: copyRef.current.airplaneName,
+            title: change === "on" ? copyRef.current.airplaneOn : copyRef.current.airplaneOff,
+            body: "",
+            timestamp: now,
+            kind: "airplane",
+          });
+        })
+        .catch(() => {
+          // Not running in the desktop app, or the setting could not be read: try again next time.
+        });
+    };
+    check();
+    const timer = window.setInterval(check, AIRPLANE_POLL_MS);
     return () => {
       cancelled = true;
       window.clearInterval(timer);

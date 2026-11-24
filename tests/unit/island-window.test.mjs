@@ -110,7 +110,7 @@ test("a clipboard opened in its own window is not kept as the island's page", as
 });
 
 test("an idle bar with no text starts narrower than one with a line of text", () => {
-  assert.equal(IDLE_COLLAPSED_ISLAND_WIDTH, 240);
+  assert.equal(IDLE_COLLAPSED_ISLAND_WIDTH, 160);
   assert.ok(IDLE_COLLAPSED_ISLAND_WIDTH < getCollapsedIslandWidth(""));
   // Aligning may nudge a width, but never below the floor it is given.
   for (const ratio of [1, 1.25, 1.5, 1.75, 2]) {

@@ -70,8 +70,8 @@ export function getNoticeSize({ sender, body }: NoticeText, limits: NoticeLimits
     ...paragraphs.map(textWidth),
   ) + SIDE_PADDING * 2;
   // As wide as the message needs, even narrower than the collapsed bar: a short notification in a
-  // wide island left most of it empty (2026-11-18, design). MIN_WIDTH is the narrowest island (240,
-  // COLLAPSED_WIDTH.min and MIN_COLLAPSED_ISLAND_WIDTH in geometry.rs) on alignNoticeWidth's grid.
+  // wide island left most of it empty (2026-11-18, design). MIN_WIDTH is the narrowest a notice goes
+  // (240, COLLAPSED_WIDTH.min) on alignNoticeWidth's grid; Rust accepts narrower (geometry.rs).
   const width = Math.max(MIN_WIDTH, alignNoticeWidth(Math.min(widest, natural), widest));
   const textRoom = Math.max(1, width - SIDE_PADDING * 2);
   const lines = Math.max(1, paragraphs.reduce((total, line) => total + Math.max(1, Math.ceil(textWidth(line) / textRoom)), 0));

@@ -8,9 +8,12 @@ export const MAX_COLLAPSED_ISLAND_WIDTH = COLLAPSED_WIDTH.default;
 /**
  * The bar with nothing to show in its text slot (no lyric, todo or title): only the status icons
  * need room, so it starts from the narrowest island Rust accepts (geometry.rs) instead of the 280
- * a line of text starts from. The clock and weather add their own room on top of it.
+ * a line of text starts from. The clock and weather add their own room on top of it, and the
+ * measured status width (useCollapsedStatusWidth) keeps the icons from being clipped.
+ * Below the manual width slider's minimum (COLLAPSED_WIDTH.min): an idle bar hugs its content
+ * instead of sitting in a wide, empty pill (2026-11-24, design).
  */
-export const IDLE_COLLAPSED_ISLAND_WIDTH = COLLAPSED_WIDTH.min;
+export const IDLE_COLLAPSED_ISLAND_WIDTH = 160;
 export const MIN_COLLAPSED_TEXT_UNITS = 2;
 export const MAX_COLLAPSED_TEXT_UNITS = 12;
 // The todo page with two rows: the island's padding, header and gap (86), the notebook's padding

@@ -255,7 +255,7 @@ fn tucked_styles_keep_their_visible_height_and_only_capture_their_hot_zone() {
     assert_eq!(TuckStyle::from_value(Some("invalid")), TuckStyle::Edge);
     for (name, style, zone_width, zone_height) in [
         ("edge", TuckStyle::Edge, 340.0, 10.0),
-        ("line", TuckStyle::Line, 140.0, 14.0),
+        ("line", TuckStyle::Line, 72.0, 5.0),
         ("hidden", TuckStyle::Hidden, 160.0, 6.0),
     ] {
         assert_eq!(TuckStyle::from_value(Some(name)), style);

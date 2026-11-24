@@ -5,6 +5,12 @@ import { getCollapsedTextUnits, getTodoTitleLineCount } from "../../utils/text.t
 
 export const MIN_COLLAPSED_ISLAND_WIDTH = 280;
 export const MAX_COLLAPSED_ISLAND_WIDTH = COLLAPSED_WIDTH.default;
+/**
+ * The bar with nothing to show in its text slot (no lyric, todo or title): only the status icons
+ * need room, so it starts from the narrowest island Rust accepts (geometry.rs) instead of the 280
+ * a line of text starts from. The clock and weather add their own room on top of it.
+ */
+export const IDLE_COLLAPSED_ISLAND_WIDTH = COLLAPSED_WIDTH.min;
 export const MIN_COLLAPSED_TEXT_UNITS = 2;
 export const MAX_COLLAPSED_TEXT_UNITS = 12;
 // The todo page with two rows: the island's padding, header and gap (86), the notebook's padding
@@ -68,6 +74,7 @@ export function alignCollapsedIslandWidth(
   width: number,
   stageWidth: number,
   devicePixelRatio: number,
+  minimum = MIN_COLLAPSED_ISLAND_WIDTH,
 ) {
   const isAligned = (candidate: number) => {
     const left = ((stageWidth - candidate) / 2) * devicePixelRatio;
@@ -77,7 +84,7 @@ export function alignCollapsedIslandWidth(
   for (let nudge = 0; nudge <= MAX_ALIGNMENT_NUDGE; nudge++) {
     for (const candidate of [width - nudge, width + nudge]) {
       if (
-        candidate >= MIN_COLLAPSED_ISLAND_WIDTH &&
+        candidate >= minimum &&
         candidate <= MAX_COLLAPSED_ISLAND_WIDTH &&
         isAligned(candidate)
       ) {

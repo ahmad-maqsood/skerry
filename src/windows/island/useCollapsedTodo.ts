@@ -9,7 +9,7 @@ import type { TodoItem } from "../../features/todos/types";
 import { formatTodoCountdown, type TodoTimer } from "../../features/todos/timer";
 import { useTranslation } from "../../i18n";
 import { useTodoRotation } from "./useIslandAutomation";
-import { alignCollapsedIslandWidth, getCollapsedIslandWidth } from "./layout";
+import { alignCollapsedIslandWidth, getCollapsedIslandWidth, IDLE_COLLAPSED_ISLAND_WIDTH, MAX_COLLAPSED_ISLAND_WIDTH } from "./layout";
 import { pickCollapsedItem } from "./collapsedItem";
 import { selectRotatingTodos } from "../../features/todos/todoRotation";
 import type { TodoRotationDisplay } from "./CollapsedTodoContent";
@@ -103,9 +103,19 @@ export function useCollapsedTodo(
     // The automatic widths were set with 18px each side: more side space adds to the width, less
     // keeps it and gives the text the room.
     const sides = 2 * (settings.collapsedPadding - COLLAPSED_PADDING.default);
+    const extra = sides + (coverWanted && collapsedItem === "lyrics" ? COVER_WIDTH
+      : widestTimer && collapsedItem === "todo" && settings.showCollapsedText ? timerPillWidth(widestTimer, fontScale) : 0);
+    // Nothing to show in the text slot: no room reserved for text, just the status icons.
+    if (text.trim() === "") {
+      return alignCollapsedIslandWidth(
+        Math.min(MAX_COLLAPSED_ISLAND_WIDTH, IDLE_COLLAPSED_ISLAND_WIDTH + Math.max(0, extra)),
+        window.innerWidth,
+        window.devicePixelRatio,
+        IDLE_COLLAPSED_ISLAND_WIDTH,
+      );
+    }
     return alignCollapsedIslandWidth(
-      getCollapsedIslandWidth(text, sides + (coverWanted && collapsedItem === "lyrics" ? COVER_WIDTH
-        : widestTimer && collapsedItem === "todo" && settings.showCollapsedText ? timerPillWidth(widestTimer, fontScale) : 0), fontScale),
+      getCollapsedIslandWidth(text, extra, fontScale),
       window.innerWidth,
       window.devicePixelRatio,
     );

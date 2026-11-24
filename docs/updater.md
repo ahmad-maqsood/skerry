@@ -16,7 +16,7 @@ Releases are built, signed, and published entirely via GitHub Actions. Maintaine
 
 ### Building or publishing a release
 
-1. Set the version once: `node scripts/release/bump-version.mjs patch` (or `minor`, `major`), then commit and push it. The version must match in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`.
+1. Set the version once: run `pnpm bump`. It shows the current version, asks for the new one (type `1.4.0`, or `patch` / `minor` / `major`; Enter = patch), updates all the version files and offers to commit and push. Without a terminal, `node scripts/release/bump-version.mjs 1.4.0` (or `patch`) does the same. The version must match in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`.
 2. Open GitHub repository -> **Actions** -> **Release** -> **Run workflow**.
 3. Tick **Publish a GitHub release** to publish. Leave it unticked for a quick trial build.
 4. Click **Run workflow**.

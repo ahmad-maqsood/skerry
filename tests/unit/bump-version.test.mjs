@@ -15,3 +15,13 @@ test("calculateNextVersion handles prereleases", () => {
   assert.equal(calculateNextVersion("1.2.4-beta.1", "patch", true), "1.2.4-beta.2");
   assert.equal(calculateNextVersion("1.2.4-beta.2", "patch", false), "1.2.4");
 });
+
+test("resolveRequestedVersion accepts exact versions and bump words", async () => {
+  const { resolveRequestedVersion, isValidVersion } = await import("../../scripts/release/bump-version.mjs");
+  assert.equal(resolveRequestedVersion("1.4.0", "1.1.0"), "1.4.0");
+  assert.equal(resolveRequestedVersion(" v2.0.0-beta.1 ", "1.1.0"), "2.0.0-beta.1");
+  assert.equal(resolveRequestedVersion("minor", "1.1.0"), "1.2.0");
+  assert.throws(() => resolveRequestedVersion("1.1.0", "1.1.0"), /already/);
+  assert.throws(() => resolveRequestedVersion("banana", "1.1.0"), /not a version/);
+  assert.equal(isValidVersion("1.2"), false);
+});

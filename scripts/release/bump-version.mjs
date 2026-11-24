@@ -1,5 +1,7 @@
+import { spawnSync } from "node:child_process";
 import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { createInterface } from "node:readline/promises";
 
 export function calculateNextVersion(currentVersion, bumpType = "patch", isPrerelease = false) {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(currentVersion);
@@ -72,19 +74,84 @@ export function updateVersionFiles(newVersion, rootDir = ".") {
   writeFileSync(lockPath, lock);
 }
 
-function main() {
+export function isValidVersion(text) {
+  return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(text);
+}
+
+/**
+ * Turns what was typed into the new version: an exact version ("1.4.0" or "v1.4.0") or one of
+ * patch / minor / major. Throws a readable message for anything else, or for the current version.
+ */
+export function resolveRequestedVersion(input, currentVersion) {
+  const text = String(input ?? "").trim().replace(/^v(?=\d)/i, "");
+  if (["patch", "minor", "major"].includes(text)) return calculateNextVersion(currentVersion, text);
+  if (!isValidVersion(text)) {
+    throw new Error(`"${text}" is not a version. Use something like 1.4.0 or 1.4.0-beta.1, or patch / minor / major.`);
+  }
+  if (text === currentVersion) throw new Error(`The version is already ${currentVersion}.`);
+  return text;
+}
+
+const VERSION_FILES = ["package.json", "src-tauri/Cargo.toml", "src-tauri/Cargo.lock", "src-tauri/tauri.conf.json"];
+
+async function askForVersion(rl, currentVersion) {
+  const [patch, minor, major] = ["patch", "minor", "major"].map((type) => calculateNextVersion(currentVersion, type));
+  console.log(`Current version: ${currentVersion}`);
+  console.log(`  patch -> ${patch}   minor -> ${minor}   major -> ${major}`);
+  for (;;) {
+    const answer = (await rl.question(`New version (type e.g. 1.4.0, or patch/minor/major) [patch -> ${patch}]: `)).trim();
+    try {
+      return resolveRequestedVersion(answer || "patch", currentVersion);
+    } catch (error) {
+      console.log(`  ${error.message}`);
+    }
+  }
+}
+
+function git(args) {
+  const result = spawnSync("git", args, { stdio: "inherit" });
+  if (result.status !== 0) throw new Error(`git ${args.join(" ")} failed.`);
+}
+
+async function main() {
   const args = process.argv.slice(2);
-  const bumpType = args.find((arg) => ["patch", "minor", "major"].includes(arg)) ?? "patch";
-  const isPrerelease = args.includes("--prerelease") || process.env.PRERELEASE === "true";
-
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-  const newVersion = calculateNextVersion(pkg.version, bumpType, isPrerelease);
-  updateVersionFiles(newVersion);
+  const explicit = args.find((arg) => isValidVersion(arg.replace(/^v(?=\d)/i, "")));
+  const bumpType = args.find((arg) => ["patch", "minor", "major"].includes(arg));
+  const isPrerelease = args.includes("--prerelease") || process.env.PRERELEASE === "true";
+  const interactive = !explicit && !bumpType && Boolean(process.stdin.isTTY);
+  const rl = process.stdin.isTTY ? createInterface({ input: process.stdin, output: process.stdout }) : null;
 
-  console.log(`Bumped version from ${pkg.version} to ${newVersion} (${bumpType}, prerelease=${isPrerelease})`);
+  try {
+    let newVersion;
+    if (explicit) newVersion = resolveRequestedVersion(explicit, pkg.version);
+    else if (interactive) newVersion = await askForVersion(rl, pkg.version);
+    else newVersion = calculateNextVersion(pkg.version, bumpType ?? "patch", isPrerelease);
 
-  if (process.env.GITHUB_OUTPUT) {
-    appendFileSync(process.env.GITHUB_OUTPUT, `version=${newVersion}\ntag=v${newVersion}\n`);
+    updateVersionFiles(newVersion);
+    console.log(`\nVersion changed from ${pkg.version} to ${newVersion} in:`);
+    for (const file of VERSION_FILES) console.log(`  - ${file}`);
+
+    if (process.env.GITHUB_OUTPUT) {
+      appendFileSync(process.env.GITHUB_OUTPUT, `version=${newVersion}\ntag=v${newVersion}\n`);
+    }
+
+    if (interactive || args.includes("--commit")) {
+      const yes = args.includes("--commit") || /^y(es)?$/i.test((await rl.question("\nCommit and push this to the current branch? [y/N]: ")).trim());
+      if (yes) {
+        git(["add", ...VERSION_FILES]);
+        git(["commit", "-m", `Bump version to ${newVersion}`]);
+        git(["push"]);
+        console.log(`\nPushed. Next: GitHub -> Actions -> Release -> Run workflow (version v${newVersion}).`);
+      } else {
+        console.log(`\nNot committed. Commit and push the four files, then run the Release workflow.`);
+      }
+    }
+  } catch (error) {
+    console.error(`\n✗ ${error.message}`);
+    process.exitCode = 1;
+  } finally {
+    rl?.close();
   }
 }
 

@@ -11,7 +11,7 @@ name: Release
 #                     "What's new" part.
 # Clippy and the Rust tests are not repeated here: CI runs them on every push to main.
 # The version comes from package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json
-# (they must match). Change it with: node scripts/release/bump-version.mjs patch
+# (they must match). Change it with: pnpm bump
 
 on:
   workflow_dispatch:

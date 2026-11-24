@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Clock, FolderOpen, History, Maximize2, Minimize2 } from "lucide-react";
+import { FolderOpen, History, Maximize2, Minimize2 } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import type { TodoMarkdownFileEntry } from "./api";
 import { DailyNoteHistory } from "./DailyNoteHistory";
 import { DailyNoteImages } from "./DailyNoteImages";
-import { formatNoteTime } from "./noteText";
 import { useNoteImagePaste } from "./useNoteImagePaste";
-import { useNoteInsert } from "./useNoteInsert";
 import "./DailyNoteEditor.css";
 
 /** The daily note: the text on the left, a rail of icon actions on the right. */
@@ -37,7 +35,6 @@ export function DailyNoteEditor({
 }) {
   const t = useTranslation();
   const { textareaRef, onPaste } = useNoteImagePaste(value, onChange, onSaveImage);
-  const insertText = useNoteInsert(textareaRef, onChange);
   // Which of the two the text area's place shows: today's note, or the saved days.
   const [showingHistory, setShowingHistory] = useState(false);
   const expandLabel = expanded ? t.notebook.collapseNotes : t.notebook.expandNotes;
@@ -82,16 +79,6 @@ export function DailyNoteEditor({
           onClick={() => setShowingHistory((showing) => !showing)}
         >
           <History size={14} strokeWidth={2.2} />
-        </button>
-        <button
-          className="daily-note-editor__action"
-          type="button"
-          disabled={showingHistory}
-          aria-label={t.notebook.insertTime}
-          title={t.notebook.insertTime}
-          onClick={() => insertText(formatNoteTime(new Date(), t.localeTag))}
-        >
-          <Clock size={14} strokeWidth={2.2} />
         </button>
         <button
           className="daily-note-editor__action"

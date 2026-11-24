@@ -64,15 +64,15 @@ test("clipboard fill stays on and auto-translate off: they are no longer setting
 test("a saved direction becomes the matching output language, and a chosen language wins", () => {
   assert.equal(DEFAULT_SETTINGS.targetLanguage, "en");
   assert.equal(normalizeTranslationSettings(null).targetLanguage, "en");
-  // Settings saved before the output language existed keep translating the way they did.
-  assert.equal(normalizeTranslationSettings({ shortcut: "Ctrl+Shift+F" }).targetLanguage, "auto");
+  // Settings saved before the output language existed, and the removed "auto" choice, become English.
+  assert.equal(normalizeTranslationSettings({ shortcut: "Ctrl+Shift+F" }).targetLanguage, "en");
   assert.equal(normalizeTranslationSettings({ direction: "zh-en" }).targetLanguage, "en");
   assert.equal(normalizeTranslationSettings({ direction: "en-zh" }).targetLanguage, "zh-CN");
-  assert.equal(normalizeTranslationSettings({ direction: "auto" }).targetLanguage, "auto");
+  assert.equal(normalizeTranslationSettings({ direction: "auto" }).targetLanguage, "en");
   assert.equal(normalizeTranslationSettings({ direction: "en-zh", targetLanguage: "ur" }).targetLanguage, "ur");
-  assert.equal(normalizeTranslationSettings({ targetLanguage: "auto" }).targetLanguage, "auto");
-  assert.equal(normalizeTranslationSettings({ targetLanguage: "klingon" }).targetLanguage, "auto");
-  assert.equal(normalizeTranslationSettings({ targetLanguage: 7 }).targetLanguage, "auto");
+  assert.equal(normalizeTranslationSettings({ targetLanguage: "auto" }).targetLanguage, "en");
+  assert.equal(normalizeTranslationSettings({ targetLanguage: "klingon" }).targetLanguage, "en");
+  assert.equal(normalizeTranslationSettings({ targetLanguage: 7 }).targetLanguage, "en");
   assert.equal("direction" in normalizeTranslationSettings({ direction: "zh-en" }), false);
 });
 
@@ -80,7 +80,7 @@ test("English and Urdu are offered, and only listed languages are accepted", () 
   assert.equal(findTranslationLanguage("en")?.name, "English");
   assert.equal(findTranslationLanguage("ur")?.name, "Urdu");
   assert.equal(isTargetLanguage("ur"), true);
-  assert.equal(isTargetLanguage("auto"), true);
+  assert.equal(isTargetLanguage("auto"), false);
   assert.equal(isTargetLanguage("UR"), false);
   assert.equal(isTargetLanguage(undefined), false);
   const codes = TRANSLATION_LANGUAGES.map((language) => language.code);
@@ -102,11 +102,10 @@ test("language search matches names, own names and codes, best match first", () 
   assert.deepEqual(names("zzzz"), []);
 });
 
-test("the picker leads with the automatic choice until the search rules it out", () => {
-  const codes = (query) => languageChoices(query, "Auto: English ↔ Chinese").map((choice) => choice.code);
-  assert.equal(codes("")[0], "auto");
-  assert.equal(codes("").length, TRANSLATION_LANGUAGES.length + 1);
-  assert.equal(codes("au")[0], "auto");
+test("the picker lists only real languages", () => {
+  const codes = (query) => languageChoices(query).map((choice) => choice.code);
+  assert.equal(codes("").includes("auto"), false);
+  assert.equal(codes("").length, TRANSLATION_LANGUAGES.length);
   assert.deepEqual(codes("urdu"), ["ur"]);
   assert.deepEqual(codes("qqq"), []);
 });

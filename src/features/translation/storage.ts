@@ -1,4 +1,4 @@
-import { AUTO_TARGET_LANGUAGE, isTargetLanguage } from "./languages.ts";
+import { isTargetLanguage } from "./languages.ts";
 
 /** Where translations go before the user picks a language. */
 export const DEFAULT_TARGET_LANGUAGE = "en";
@@ -13,7 +13,7 @@ export type TranslationSettings = {
   shortcut: string;
   /** Off releases the global shortcut while translation itself stays on. */
   shortcutEnabled: boolean;
-  /** The language to translate into: a code from languages.ts (English by default), or "auto" (Chinese into English, anything else into Chinese). */
+  /** The language to translate into: a code from languages.ts, English by default. */
   targetLanguage: string;
   provider: TranslationProvider;
   /** Base URL of the OpenAI-compatible service used by the "custom" provider. */
@@ -49,12 +49,14 @@ function normalizeModels(value: unknown): TranslationSettings["models"] {
   );
 }
 
-/** Versions before the output language could be chosen saved `direction`: English, Chinese or auto. */
+/**
+ * A language the user picked is kept. Versions before the output language could be chosen saved
+ * `direction` (English or Chinese); the removed "auto" choice and anything unknown become English.
+ */
 function normalizeTargetLanguage(value: Record<string, unknown>): string {
   if (isTargetLanguage(value.targetLanguage)) return value.targetLanguage;
-  if (value.direction === "zh-en") return "en";
   if (value.direction === "en-zh") return "zh-CN";
-  return AUTO_TARGET_LANGUAGE;
+  return DEFAULT_TARGET_LANGUAGE;
 }
 
 export function normalizeTranslationSettings(stored: unknown): TranslationSettings {

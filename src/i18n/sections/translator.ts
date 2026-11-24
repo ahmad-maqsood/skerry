@@ -31,7 +31,6 @@ export type TranslatorText = {
   /** The source side of the language bar: the source language is always detected. */
   auto: string;
   /** The picker's first choice: Chinese is translated into English, anything else into Chinese. */
-  autoTarget: string;
   searchLanguages: string;
   noLanguageMatch: string;
   source: string;
@@ -83,7 +82,6 @@ export const en: TranslatorText = {
   shortcutHint: "Click the field, then press a new key combination",
   targetLanguage: "Translate into",
   auto: "Auto-detect",
-  autoTarget: "Auto: English ↔ Chinese",
   searchLanguages: "Search languages",
   noLanguageMatch: "No language matches",
   source: "Source",

@@ -74,7 +74,9 @@ if (todosScene) {
   localStorage.setItem("skerry-todo-durations", JSON.stringify({ t2: 25 }));
 }
 
-Object.assign(globalThis, { isTauri: true });
+// mockIPC/mockWindows provide the Tauri test environment. In the native window Vite renames the
+// globals the @tauri-apps packages use (vite.config.ts, SKERRY_NATIVE_SCREENSHOTS), because
+// WebView2 locks window.__TAURI_INTERNALS__; isTauri is read-only.
 const root = createRoot(document.getElementById("root")!);
 const element = (selector: string) => {
   const found = document.querySelector<HTMLElement>(selector);
@@ -206,6 +208,10 @@ const scenes: Record<string, () => Promise<void>> = { clipboard: clipboardScene,
 try {
   await (scenes[scene] ?? islandScene)();
 } catch (error) {
-  document.documentElement.dataset.sceneError = String(error);
+  const message = error instanceof Error ? error.stack ?? error.message : String(error);
+  document.documentElement.dataset.sceneError = message;
   console.error(error);
+  await reportCaptureStatus("error", message).catch((reportError) => {
+    console.error("Could not report screenshot scene error:", reportError);
+  });
 }

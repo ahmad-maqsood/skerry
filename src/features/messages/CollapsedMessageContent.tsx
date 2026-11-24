@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { LevelPopupContent } from "./LevelPopupContent";
 import { MessageSourceIcon } from "./MessageSourceIcon";
 import { messagePreviewText, type MessagePreview } from "./messagePreview";
 import { useTranslation } from "../../i18n";
@@ -14,6 +15,7 @@ type ContentTransition = {
 };
 
 function MessageContent({ preview }: { preview: MessagePreview }) {
+  if (preview.level !== undefined) return <LevelPopupContent preview={preview} />;
   return (
     <>
       <MessageSourceIcon logo={preview.appLogo} name={preview.appDisplayName} size={16} kind={preview.kind} />
@@ -37,16 +39,25 @@ function MessageContent({ preview }: { preview: MessagePreview }) {
 export function CollapsedMessageContent({
   preview,
   enabled,
+  holdIdle = false,
   children,
 }: {
   preview: MessagePreview | null;
   enabled: boolean;
+  /**
+   * Keep the idle content (lyrics, title, todo) out while a pop-up slides away, and bring it in
+   * once this turns false. Without it the idle content slid in under the leaving pop-up, a flash
+   * of the ordinary island before it had settled.
+   */
+  holdIdle?: boolean;
   children: ReactNode;
 }) {
   const t = useTranslation();
   const current = enabled ? preview : null;
+  // A level pop-up keeps one key while its bar moves (each change is a fresh preview with a new
+  // receivedAt), so the bar slides in place instead of the whole pop-up entering again.
   const key = current
-    ? JSON.stringify([current.id, current.receivedAt, current.title, current.body])
+    ? JSON.stringify(current.level !== undefined ? [current.id] : [current.id, current.receivedAt, current.title, current.body])
     : "idle";
   const [transition, setTransition] = useState<ContentTransition>({
     key,
@@ -101,6 +112,7 @@ export function CollapsedMessageContent({
   const label = current ? t.messages.label(messagePreviewText(current, t.messages)) : undefined;
   const row = (message: MessagePreview | null) =>
     message ? <MessageContent preview={message} /> : children;
+  const idleHeld = holdIdle && !current;
 
   return (
     <span
@@ -125,7 +137,8 @@ export function CollapsedMessageContent({
         </span>
       )}
       <span
-        key={version}
+        // A new key when the hold ends replays the enter animation on the idle content.
+        key={idleHeld ? `${version}-held` : version}
         className={`island__summary-layer${moving ? " island__summary-layer--incoming" : ""}`}
       >
         <span
@@ -134,7 +147,7 @@ export function CollapsedMessageContent({
             if (event.target === event.currentTarget) settle();
           }}
         >
-          {row(current)}
+          {idleHeld ? null : row(current)}
         </span>
       </span>
     </span>

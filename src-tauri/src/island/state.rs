@@ -82,7 +82,9 @@ impl TuckStyle {
     pub(super) fn hot_zone_size(self) -> Option<(f64, f64)> {
         match self {
             Self::Edge => None,
-            Self::Line => Some((140.0, 14.0)),
+            // Exactly the drawn bar (72 x 5, IslandTuckStyle.css): the island must not come out
+            // before the cursor is on the line itself.
+            Self::Line => Some((72.0, 5.0)),
             Self::Hidden => Some((160.0, 6.0)),
         }
     }

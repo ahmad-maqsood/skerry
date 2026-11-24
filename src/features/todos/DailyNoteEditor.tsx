@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, FileText, FolderOpen, History, Maximize2, Minimize2 } from "lucide-react";
+import { Clock, FolderOpen, History, Maximize2, Minimize2 } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import type { TodoMarkdownFileEntry } from "./api";
 import { DailyNoteHistory } from "./DailyNoteHistory";
@@ -16,7 +16,6 @@ export function DailyNoteEditor({
   expanded,
   onChange,
   onToggleExpanded,
-  onOpenDayFile,
   onListDayFiles,
   onOpenPastDayFile,
   onOpenFolder,
@@ -30,7 +29,6 @@ export function DailyNoteEditor({
   expanded: boolean;
   onChange: (value: string) => void;
   onToggleExpanded: () => void;
-  onOpenDayFile: () => void;
   onListDayFiles: () => Promise<TodoMarkdownFileEntry[] | null>;
   onOpenPastDayFile: (date: string) => void;
   onOpenFolder: () => void;
@@ -74,15 +72,6 @@ export function DailyNoteEditor({
           onClick={onToggleExpanded}
         >
           {expanded ? <Minimize2 size={14} strokeWidth={2.2} /> : <Maximize2 size={14} strokeWidth={2.2} />}
-        </button>
-        <button
-          className="daily-note-editor__action"
-          type="button"
-          aria-label={t.notebook.openDayFile}
-          title={t.notebook.openDayFile}
-          onClick={onOpenDayFile}
-        >
-          <FileText size={14} strokeWidth={2.2} />
         </button>
         <button
           className={`daily-note-editor__action${showingHistory ? " daily-note-editor__action--active" : ""}`}

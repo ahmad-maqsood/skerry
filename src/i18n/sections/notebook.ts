@@ -15,7 +15,6 @@ export type NotebookText = {
   notesActions: string;
   expandNotes: string;
   collapseNotes: string;
-  openDayFile: string;
   showPastNotes: string;
   hidePastNotes: string;
   noPastNotes: string;
@@ -26,6 +25,8 @@ export type NotebookText = {
   insertTime: string;
   noteImage: string;
   noteImageMissing: string;
+  enlargeNoteImage: string;
+  closeNoteImage: string;
   pickDate: string;
   clearDate: string;
   dateToday: string;
@@ -73,7 +74,6 @@ export const en: NotebookText = {
   notesActions: "Note actions",
   expandNotes: "Make the notes taller",
   collapseNotes: "Make the notes smaller",
-  openDayFile: "Open today's markdown file",
   showPastNotes: "Show saved days",
   hidePastNotes: "Back to today's note",
   noPastNotes: "No earlier days saved yet",
@@ -84,6 +84,8 @@ export const en: NotebookText = {
   insertTime: "Insert the current time",
   noteImage: "Pasted image",
   noteImageMissing: "Image not found",
+  enlargeNoteImage: "Click to enlarge the image",
+  closeNoteImage: "Close image",
   pickDate: "Pick a date",
   clearDate: "Clear date",
   dateToday: "Today",

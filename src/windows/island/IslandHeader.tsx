@@ -2,7 +2,7 @@ import { useCallback, type ReactNode } from "react";
 import { usePointerReorder } from "../../components/reorder/usePointerReorder";
 import { PAGE_ICONS } from "../../features/appearance/pageIcons";
 import type { PageButtonStyle, PageDot } from "../../features/appearance/types";
-import { Bell, CircleDot, Minus, RotateCcw, Settings } from "lucide-react";
+import { Bell, Minus, RotateCcw, Settings } from "lucide-react";
 import { useUpdatePending } from "../../features/updater/useUpdatePending";
 import { useTranslation } from "../../i18n";
 import { isPageEnabled, type IslandFeatures } from "./features";
@@ -36,7 +36,7 @@ type IslandHeaderProps = {
 };
 
 /**
- * Header of the expanded island: status light, page dots (translation among them), collapse
+ * Header of the expanded island: optional title, page dots (translation among them), collapse
  * target and window actions.
  */
 export function IslandHeader({
@@ -80,15 +80,12 @@ export function IslandHeader({
   const { containerRef: dotsRef, itemProps: dotProps, draggingId: draggingDot, wasDragged: wasDotDragged } =
     usePointerReorder(dots, reorderDots, "x");
   return (
-    <header className="island__header">
-      <div className="island__title">
-        {showIcons ? (
-          <CircleDot className="island__status-icon" size={16} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
-        ) : (
-          <span className="island__status-capsule" aria-hidden="true" />
-        )}
-        {showTitle && <span>Skerry</span>}
-      </div>
+    <header className={`island__header${showTitle ? "" : " island__header--no-title"}`}>
+      {showTitle && (
+        <div className="island__title">
+          <span>Skerry</span>
+        </div>
+      )}
 
       <div
         className="editor-dots"

@@ -15,6 +15,10 @@ pnpm screenshots --out=./out
 
 The command launches the Tauri desktop app for each scene, waits for its native window to render, captures that window using Windows screen capture, then closes it before moving to the next scene. It uses the production React components and styling inside WebView2. Only OS-facing Tauri commands and user data are replaced by the fictional fixtures in `tests/screenshots/demoData.ts`.
 
+## How the Tauri commands are mocked
+
+WebView2 makes `window.__TAURI_INTERNALS__` read-only and non-configurable in every frame, so a scene cannot replace it. While `pnpm screenshots` runs, it sets `SKERRY_NATIVE_SCREENSHOTS=1`; `vite.config.ts` then makes the `@tauri-apps` packages read private globals (`__SKERRY_SCREENSHOT_INTERNALS__`), which `mockIPC()`/`mockWindows()` from `@tauri-apps/api/mocks` fill as usual. The real Tauri IPC is never used for a scene, and normal `pnpm dev`/`pnpm build` are unaffected.
+
 ## GitHub Actions
 
 The **Refresh native app screenshots** workflow runs on Windows when relevant UI or capture files change on `main`, and can also be started manually from Actions. It uploads the generated images as a 30-day artifact and opens or updates a pull request containing the refreshed images. It never pushes generated screenshots directly to `main`.

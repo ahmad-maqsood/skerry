@@ -1,6 +1,6 @@
 // The tucked looks for island-tour.tsx: tucking from the open island and coming back out.
 // Line shrinks the shape itself into a 72 x 5 bar and hidden fades it out; sampled halfway, neither
-// has jumped to its end, and both cover Rust's hot zone so the page's mouseenter still reveals.
+// has jumped to its end, and both cover Rust's hot zone (line is the bar itself) so the page's mouseenter still reveals.
 import { act } from "react";
 
 type TuckTour = {
@@ -52,8 +52,10 @@ export async function checkTuckMorph({ tuckStyle, island, check, settle, interac
       && style.backgroundColor !== "rgba(0, 0, 0, 0)" && style.transform === "none"
     : style.opacity === "0";
   const zone = getComputedStyle(island(), "::before");
-  const zoneOk = Math.abs(Number.parseFloat(zone.width) - (tuckStyle === "line" ? 140 : 160) * scale) < 0.5
-    && Math.abs(Number.parseFloat(zone.height) - (tuckStyle === "line" ? 14 : 6) * scale) < 0.5;
+  // Line's hot zone is the 72 x 5 bar itself (endOk above), so the cursor must be on the line to
+  // reveal the island; hidden draws nothing and covers its 160 x 6 strip with ::before.
+  const zoneOk = tuckStyle === "line"
+    || (Math.abs(Number.parseFloat(zone.width) - 160 * scale) < 0.5 && Math.abs(Number.parseFloat(zone.height) - 6 * scale) < 0.5);
   check(interaction().tuckStyle === tuckStyle && endOk && zoneOk && island().classList.contains(`island--tuck-${tuckStyle}`),
     `Tuck style ${tuckStyle}: sent to the native window, ${tuckStyle === "line" ? "island shrinks to a short line" : "island is fully transparent"}, hit zone matches the native hot zone (${style.width}×${style.height} / ${style.opacity} / ${zone.width}×${zone.height})`);
 

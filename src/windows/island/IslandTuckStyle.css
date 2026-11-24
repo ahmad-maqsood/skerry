@@ -73,25 +73,17 @@
 
 /*
  * The cursor reveals a tucked island through the page's mouseenter (IslandShell.tsx), so the
- * page must cover the same hot zone Rust captures (TuckStyle::hot_zone_size): 140 x 14 for line,
- * 160 x 6 for hidden, centred on the strip left on screen. The bar alone would be a 72 x 5 target.
+ * page must cover the same hot zone Rust captures (TuckStyle::hot_zone_size). Line needs no extra
+ * element: its hot zone is the 72 x 5 bar itself, so the island comes out only once the cursor is
+ * on the line. Hidden draws nothing, so its 160 x 6 strip is covered here, centred on the strip
+ * left on screen.
  */
-.island--tuck-line::before,
 .island--tuck-hidden::before {
   content: "";
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-}
-
-.island--tuck-line::before {
-  top: 0;
-  width: calc(140px * var(--island-collapsed-scale));
-  height: calc(14px * var(--island-collapsed-scale));
-}
-
-/* The strip left on screen is the island's bottom 6px. */
-.island--tuck-hidden::before {
+  /* The strip left on screen is the island's bottom 6px. */
   bottom: 0;
   width: calc(160px * var(--island-collapsed-scale));
   height: calc(6px * var(--island-collapsed-scale));

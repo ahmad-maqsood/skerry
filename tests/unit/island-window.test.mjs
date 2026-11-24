@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   MAX_COLLAPSED_ISLAND_WIDTH,
+  IDLE_COLLAPSED_ISLAND_WIDTH,
   MIN_COLLAPSED_ISLAND_WIDTH,
   alignCollapsedIslandWidth,
   getClipboardExpandedHeight,
@@ -106,4 +107,14 @@ test("a clipboard opened in its own window is not kept as the island's page", as
   assert.equal(islandPageFor("clipboard", all, true), "todo");
   assert.equal(islandPageFor("clipboard", { ...all, todo: false, music: false }, true), "shelf");
   assert.equal(islandPageFor("music", all, true), "music");
+});
+
+test("an idle bar with no text starts narrower than one with a line of text", () => {
+  assert.equal(IDLE_COLLAPSED_ISLAND_WIDTH, 240);
+  assert.ok(IDLE_COLLAPSED_ISLAND_WIDTH < getCollapsedIslandWidth(""));
+  // Aligning may nudge a width, but never below the floor it is given.
+  for (const ratio of [1, 1.25, 1.5, 1.75, 2]) {
+    const aligned = alignCollapsedIslandWidth(IDLE_COLLAPSED_ISLAND_WIDTH, 820, ratio, IDLE_COLLAPSED_ISLAND_WIDTH);
+    assert.ok(aligned >= IDLE_COLLAPSED_ISLAND_WIDTH && aligned <= IDLE_COLLAPSED_ISLAND_WIDTH + 4, `${ratio}: ${aligned}`);
+  }
 });

@@ -36,14 +36,43 @@
   corner-shape: var(--island-corner-shape, round);
 }
 
+/* The status light: a lit bead (a highlight on the chosen colour) with a halo that breathes slowly.
+   Both follow the light colour set in Settings → Appearance. */
 .island__pulse {
+  position: relative;
   width: 9px;
   height: 9px;
   flex: 0 0 auto;
   border-radius: var(--radius-pill);
-  background: var(--island-pulse-color);
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, white 55%, var(--island-pulse-color)),
+    var(--island-pulse-color) 65%
+  );
   box-shadow: 0 0 14px var(--island-pulse-glow-color);
   filter: brightness(var(--island-pulse-brightness));
+}
+
+.island__pulse::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 1px solid var(--island-pulse-glow-color);
+  opacity: 0;
+  pointer-events: none;
+  animation: islandPulseHalo 3.2s ease-out infinite;
+}
+
+/* Hidden under the open island: no reason to keep animating there. */
+.island--expanded .island__pulse::after,
+.island--tucked .island__pulse::after {
+  animation: none;
+}
+
+@keyframes islandPulseHalo {
+  0% { opacity: 0.7; transform: scale(0.7); }
+  70%, 100% { opacity: 0; transform: scale(1.9); }
 }
 
 .island__brand {
@@ -121,6 +150,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .island__pulse::after {
+    animation: none;
+  }
   .island__active-task--ending .island__active-task-title,
   .island__active-task--ending .todo-rotation__title {
     animation: none;
@@ -205,4 +237,23 @@
   outline: 2px solid var(--color-focus-ring-soft);
   outline-offset: -2px;
   border-radius: var(--radius-pill);
+}
+
+/* Once an alert has gone, the status icons and the song cover fade in together rather than popping
+   in beside the text (IslandCollapsedBar.tsx RESTORE_MS). The text slot has its own enter motion. */
+.island__collapsed--restoring > :not(.island__text-slot):not(.island-collapsed-minimize),
+.island__collapsed--restoring .collapsed-cover {
+  animation: islandCollapsedRestore 320ms cubic-bezier(.2, .75, .25, 1) backwards;
+}
+
+@keyframes islandCollapsedRestore {
+  from { opacity: 0; transform: scale(.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .island__collapsed--restoring > :not(.island__text-slot):not(.island-collapsed-minimize),
+  .island__collapsed--restoring .collapsed-cover {
+    animation: none;
+  }
 }

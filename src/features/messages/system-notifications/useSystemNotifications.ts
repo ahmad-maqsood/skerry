@@ -23,7 +23,7 @@ import {
   saveSystemNotificationsEnabled,
 } from "./storage";
 import type { SystemNotificationSnapshot } from "./types";
-import type { PreviewKind } from "../messagePreview";
+import { previewPriority, type PreviewKind } from "../messagePreview";
 
 export type SystemNotificationPreview = {
   id: string;
@@ -35,6 +35,8 @@ export type SystemNotificationPreview = {
   appLogo?: string | null;
   receivedAt: number;
   kind?: PreviewKind;
+  /** A level pop-up's position, 0 to 100 (see MessagePreview.level). */
+  level?: number;
 };
 
 const EMPTY_SNAPSHOT: SystemNotificationSnapshot = {
@@ -294,7 +296,11 @@ export function useSystemNotifications(
   }, []);
 
   const showPreview = useCallback((next: Omit<SystemNotificationPreview, "receivedAt">) => {
-    if (canPreviewRef.current) setPreview({ ...next, receivedAt: Date.now() });
+    if (!canPreviewRef.current) return;
+    // A pop-up of lower priority (a device notice) waits its turn behind one that is still showing.
+    setPreview((current) => current && previewPriority(current.kind) > previewPriority(next.kind)
+      ? current
+      : { ...next, receivedAt: Date.now() });
   }, []);
 
   const requestAccess = useCallback(async () => {

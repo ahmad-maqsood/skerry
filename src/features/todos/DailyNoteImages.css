@@ -11,8 +11,8 @@
 }
 
 .daily-note-images__item {
-  width: 44px;
-  height: 36px;
+  width: 96px;
+  height: 64px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -24,8 +24,30 @@
   corner-shape: var(--corner-shape);
 }
 
+.daily-note-images__open {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: block;
+  background: transparent;
+  border: 0;
+  outline: none;
+  cursor: zoom-in;
+}
+
+.daily-note-images__open:hover img {
+  filter: brightness(1.12);
+}
+
+.daily-note-images__open:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
 .daily-note-images__item img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
+  transition: filter 140ms ease;
 }

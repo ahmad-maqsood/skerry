@@ -45,7 +45,7 @@ test("a song counts once, and resuming it after a pause is not a new song", () =
 });
 
 test("the pop-ups are on unless switched off", () => {
-  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup"]) {
+  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup", "bluetoothPopup", "airplanePopup", "volumePopup", "brightnessPopup"]) {
     for (const value of [undefined, null, "false", 0, {}, true]) {
       assert.equal(normalizeSettings({ [key]: value })[key], true, key);
     }
@@ -60,4 +60,56 @@ test("the charger is announced only when it changes, never for the first reading
   assert.equal(chargerChange(false, false), null);
   assert.equal(chargerChange(false, true), "plugged");
   assert.equal(chargerChange(true, false), "unplugged");
+});
+
+test("a Bluetooth device is announced once it connects, never for the first reading", async () => {
+  const { newBluetoothDevices, BLUETOOTH_COOLDOWN_MS } = await import("../../src/features/device-status/bluetoothPopup.ts");
+  const none = new Map();
+  assert.deepEqual(newBluetoothDevices(undefined, [{ name: "Buds" }], none, 0), [], "already connected at start");
+  assert.deepEqual(newBluetoothDevices(new Set(["buds"]), [{ name: "Buds" }], none, 0), [], "still connected");
+  assert.deepEqual(newBluetoothDevices(new Set(), [{ name: " Buds " }, { name: "BUDS" }, { name: "  " }], none, 0), ["Buds"], "one name, trimmed, blanks and repeats ignored");
+  assert.deepEqual(newBluetoothDevices(new Set(["buds"]), [{ name: "Buds" }, { name: "Mouse" }], none, 0), ["Mouse"]);
+  const announced = new Map([["buds", 1000]]);
+  assert.deepEqual(newBluetoothDevices(new Set(), [{ name: "Buds" }], announced, 1000 + BLUETOOTH_COOLDOWN_MS - 1), [], "a device that keeps dropping is not repeated");
+  assert.deepEqual(newBluetoothDevices(new Set(), [{ name: "Buds" }], announced, 1000 + BLUETOOTH_COOLDOWN_MS), ["Buds"]);
+});
+
+test("airplane mode is announced only when it switches, never for the first reading", async () => {
+  const { airplaneChange } = await import("../../src/features/device-status/airplanePopup.ts");
+  assert.equal(airplaneChange(undefined, true), null, "already on at start");
+  assert.equal(airplaneChange(undefined, false), null, "already off at start");
+  assert.equal(airplaneChange(true, true), null);
+  assert.equal(airplaneChange(false, false), null);
+  assert.equal(airplaneChange(false, true), "on");
+  assert.equal(airplaneChange(true, false), "off");
+});
+
+test("a level is announced only when it moves, never for the first reading", async () => {
+  const { levelChange } = await import("../../src/features/device-status/levelPopup.ts");
+  assert.equal(levelChange(undefined, 40), null, "the level at start is not news");
+  assert.equal(levelChange(40, 40), null);
+  assert.equal(levelChange(40, 41), 41);
+  assert.equal(levelChange(40, 0), 0, "muting to 0 is a change");
+  assert.equal(levelChange(50, 51, 2), null, "a nudge below the step is not announced");
+  assert.equal(levelChange(50, 52, 2), 52);
+  assert.equal(levelChange(50, 48, 2), 48, "down counts as much as up");
+});
+
+test("level pop-ups are short, give way to everything else and never expand", async () => {
+  const { isLevelKind, previewPriority, LEVEL_PREVIEW_SECONDS } = await import("../../src/features/messages/messagePreview.ts");
+  const { previewSecondsFor, expandsPreview } = await import("../../src/windows/island/noticeRules.ts");
+  assert.equal(isLevelKind("volume"), true);
+  assert.equal(isLevelKind("brightness"), true);
+  assert.equal(isLevelKind("bluetooth"), false);
+  assert.equal(isLevelKind(undefined), false);
+  assert.ok(previewPriority("volume") < previewPriority("bluetooth"), "a device notice is not replaced by a level");
+  assert.ok(previewPriority("bluetooth") < previewPriority(undefined), "a notification is not replaced by a device notice");
+  assert.equal(previewPriority("volume"), previewPriority("brightness"), "levels replace each other");
+  const settings = { messagePreviewSeconds: 5, messageAutoExpand: true, messageExpandSeconds: 12, gameShowNotices: true, gameNoticeSeconds: 3 };
+  assert.equal(previewSecondsFor(settings, false, true, "volume"), LEVEL_PREVIEW_SECONDS);
+  assert.equal(previewSecondsFor(settings, true, true, "brightness"), LEVEL_PREVIEW_SECONDS, "also in game mode");
+  assert.equal(previewSecondsFor(settings, false, false), 5, "other previews keep their seconds");
+  const expand = { messageAutoExpand: true, messageExpandApps: true, messageExpandClipboard: true, messageExpandMusic: true, messageExpandCharger: true };
+  assert.equal(expandsPreview(expand, "volume"), false);
+  assert.equal(expandsPreview(expand, "brightness"), false);
 });

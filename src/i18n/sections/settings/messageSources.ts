@@ -20,6 +20,14 @@ export type SettingsMessageSourcesText = {
   popupMusicHint: string;
   popupCharger: string;
   popupChargerHint: string;
+  popupBluetooth: string;
+  popupBluetoothHint: string;
+  popupAirplane: string;
+  popupAirplaneHint: string;
+  popupVolume: string;
+  popupVolumeHint: string;
+  popupBrightness: string;
+  popupBrightnessHint: string;
   masterToggle: string;
   masterToggleHint: string;
   accessStatus: string;
@@ -58,6 +66,14 @@ export const en: SettingsMessageSourcesText = {
   popupMusicHint: "The island pops out for a moment to show the song when a new one starts playing.",
   popupCharger: "Show charger changes",
   popupChargerHint: "The island pops out for a moment when the charger is plugged in or unplugged. Only on laptops with a battery.",
+  popupBluetooth: "Show Bluetooth connections",
+  popupBluetoothHint: "The island pops out for a moment with the device's name when a Bluetooth device (headphones, a mouse, a keyboard) connects.",
+  popupAirplane: "Show airplane mode",
+  popupAirplaneHint: "The island pops out for a moment when airplane mode is switched on or off.",
+  popupVolume: "Show volume changes",
+  popupVolumeHint: "The island pops out for a moment with a level bar when the system volume changes, from a keyboard key, the taskbar or an app.",
+  popupBrightness: "Show brightness changes",
+  popupBrightnessHint: "The island pops out for a moment with a level bar when the built-in display's brightness changes. Only on laptops whose screen reports a brightness.",
   masterToggle: "Receive system notifications",
   masterToggleHint: "Listens to incoming Windows toast notifications (WhatsApp, Telegram, Outlook, browsers, etc.) and displays them on the island.",
   accessStatus: "Notification access",

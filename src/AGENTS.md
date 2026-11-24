@@ -21,6 +21,7 @@ src/
 │   ├── messages/            # Notification cards, previews, and reader; system-notifications/ holds the Windows toast listener hook (useSystemNotifications.ts), api.ts, storage.ts, and types
 │   ├── appearance/          # Appearance settings, layout editor, presets; island settings (skerry-settings) limits in settingsLimits.ts, initial launch values in settingsDefaults.ts, domain-specific loading in normalizeLayout / BehaviorSettings.ts; add new settings across these files with settings.ts acting solely as the entry point
 │   ├── translation/         # Quick translation: typed wrappers for services, model settings, credentials, shortcuts; request and auto-translate hooks, in-island translation page
+│   ├── device-status/       # Typed IPC and pure change detection for device pop-ups (a Bluetooth device connecting, airplane mode switching, a volume or brightness step); wired in windows/island/useDevicePopups.ts and useLevelPopups.ts
 │   ├── weather/             # Built-in time and weather: city settings/cache, Open-Meteo IPC, WMO mapping, leaf time and weather, shared low-frequency refresh
 │   ├── system-monitor/      # System page: CPU / memory / disk / network / battery sampling, sparklines, collapsed chip; quick-controls/ (volume and brightness sliders) is a separate feature directory
 │   ├── privacy/             # Microphone and camera indicator on the collapsed island

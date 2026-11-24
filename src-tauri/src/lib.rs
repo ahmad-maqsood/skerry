@@ -3,6 +3,7 @@ mod brightness;
 mod clipboard_history;
 mod clipboard_window;
 mod config_transfer;
+mod device_status;
 mod file_shelf;
 mod island;
 mod lyrics;
@@ -112,6 +113,7 @@ pub fn run() {
             ; system_monitor
             ; privacy_indicator
             ; brightness
+            ; device_status
         ))
         .build(context)
         .map(|app| {

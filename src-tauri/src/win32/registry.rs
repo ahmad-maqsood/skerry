@@ -8,7 +8,7 @@ use windows::{
     core::HSTRING,
     Win32::{
         Foundation::ERROR_FILE_NOT_FOUND,
-        System::Registry::{RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW, HKEY, REG_SZ, RRF_RT_REG_SZ},
+        System::Registry::{RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW, HKEY, REG_SZ, RRF_RT_REG_DWORD, RRF_RT_REG_SZ},
     },
 };
 
@@ -48,6 +48,33 @@ pub(crate) fn read_string(root: HKEY, subkey: &str, value: &str) -> Option<Strin
 }
 
 
+
+/// Reads a `REG_DWORD` value under `root\subkey`. Returns `None` when the key or value does not
+/// exist or is not a DWORD.
+pub(crate) fn read_dword(root: HKEY, subkey: &str, value: &str) -> Option<u32> {
+    let subkey = HSTRING::from(subkey);
+    let value = HSTRING::from(value);
+    let mut data = 0u32;
+    let mut bytes = std::mem::size_of::<u32>() as u32;
+    // SAFETY: `subkey` and `value` are NUL-terminated wide strings that outlive the call. `data`
+    // is a writable u32 and `bytes` its exact size in bytes, a valid in/out pointer; RegGetValueW
+    // writes at most that many bytes, and only a DWORD value is accepted (RRF_RT_REG_DWORD).
+    let result = unsafe {
+        RegGetValueW(
+            root,
+            &subkey,
+            &value,
+            RRF_RT_REG_DWORD,
+            None,
+            Some((&mut data as *mut u32).cast()),
+            Some(&mut bytes),
+        )
+    };
+    if result.is_err() {
+        return None;
+    }
+    Some(data)
+}
 
 /// Writes `data` as the `REG_SZ` value `value` under `root\subkey`, creating the key if needed.
 pub(crate) fn write_string(root: HKEY, subkey: &str, value: &str, data: &str) -> windows::core::Result<()> {

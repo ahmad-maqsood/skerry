@@ -26,7 +26,41 @@
     </style>
   </head>
   <body>
+    <script>
+      // The scene runs in a child frame of native-host.html. Its read-only window.__TAURI_INTERNALS__
+      // is never touched: vite.config.ts points @tauri-apps at private globals for the capture, so
+      // mockIPC() works. Tell @tauri-apps/api it is inside Tauri, as the top frame would.
+      if (!("isTauri" in window)) Object.defineProperty(window, "isTauri", { value: true, configurable: true });
+    </script>
     <div id="root"></div>
+    <script>
+      // Report page startup failures even when the screenshot module cannot finish loading.
+      (() => {
+        const params = new URLSearchParams(location.search);
+        const port = params.get("capturePort");
+        const token = params.get("captureToken");
+        if (!port || !token) return;
+        const report = (message) => {
+          const url = new URL(`http://127.0.0.1:${port}/scene-signal`);
+          url.searchParams.set("token", token);
+          url.searchParams.set("status", "error");
+          url.searchParams.set("message", String(message).slice(0, 500));
+          fetch(url, { method: "GET", mode: "cors", cache: "no-store" }).catch((error) => {
+            console.error("Could not report screenshot startup failure:", error);
+          });
+        };
+        window.addEventListener("error", (event) => {
+          const target = event.target;
+          const detail = target && target !== window && "src" in target
+            ? `Failed to load script/resource: ${target.src}`
+            : event.message || "Unknown JavaScript startup error";
+          report(detail);
+        }, true);
+        window.addEventListener("unhandledrejection", (event) => {
+          report(`Unhandled promise rejection: ${event.reason?.stack || event.reason}`);
+        });
+      })();
+    </script>
     <script type="module" src="./scene.tsx"></script>
   </body>
 </html>

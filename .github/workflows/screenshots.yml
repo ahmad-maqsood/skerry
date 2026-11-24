@@ -16,6 +16,10 @@ jobs:
     name: Capture screenshots from Skerry
     runs-on: windows-latest
     timeout-minutes: 40
+    env:
+      # Keep the cold native build within the memory available on hosted Windows runners.
+      CARGO_BUILD_JOBS: 2
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,8 +29,10 @@ jobs:
         with:
           node-version: 26
           cache: pnpm
-      - uses: dtolnay/rust-toolchain@stable
+      # Match the version pinned by rust-toolchain.toml and the regular CI workflow.
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.99.1
           targets: x86_64-pc-windows-msvc
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

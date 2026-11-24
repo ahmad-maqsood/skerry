@@ -130,6 +130,14 @@ export type IslandSettings = {
   musicPopup: boolean;
   /** The island pops out when the charger is plugged in or unplugged (laptops only). */
   chargerPopup: boolean;
+  /** The island pops out with the device's name when a Bluetooth device connects. */
+  bluetoothPopup: boolean;
+  /** The island pops out when airplane mode is switched on or off. */
+  airplanePopup: boolean;
+  /** The island pops out with a level bar when the system volume changes. */
+  volumePopup: boolean;
+  /** The island pops out with a level bar when the built-in display's brightness changes. */
+  brightnessPopup: boolean;
   expandTrigger: ExpandTrigger;
   /** Pointer rest time (ms) before a hover opens the island. */
   hoverExpandDelayMs: number;

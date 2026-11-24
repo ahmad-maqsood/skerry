@@ -30,6 +30,27 @@ test("the scene page the shots open exists", () => {
   assert.ok(existsSync(path.join(root, "tests/screenshots/scene.tsx")));
 });
 
+test("the native window opens the iframe host, never scene.html as its top page", () => {
+  const script = readFileSync(path.join(root, "scripts/capture-screenshots.mjs"), "utf8");
+  assert.match(script, /tests\/screenshots\/native-host\.html\?\$\{query\}/);
+  assert.doesNotMatch(script, /const url = `tests\/screenshots\/scene\.html/);
+  const host = readFileSync(path.join(root, "tests/screenshots/native-host.html"), "utf8");
+  assert.match(host, /document\.getElementById\("scene"\)\.src = \`scene\.html\$\{window\.location\.search\}\`/);
+});
+
+test("native screenshots run Vite with the private Tauri globals, since WebView2 locks the real ones", () => {
+  const script = readFileSync(path.join(root, "scripts/capture-screenshots.mjs"), "utf8");
+  assert.match(script, /SKERRY_NATIVE_SCREENSHOTS: "1"/);
+  const scene = readFileSync(path.join(root, "tests/screenshots/scene.tsx"), "utf8");
+  assert.match(scene, /from "@tauri-apps\/api\/mocks"/);
+  // The scene must not try to replace Tauri's read-only window.__TAURI_INTERNALS__ itself.
+  assert.doesNotMatch(scene, /__TAURI_INTERNALS__\s*=/);
+  const config = readFileSync(path.join(root, "vite.config.ts"), "utf8");
+  assert.match(config, /SKERRY_NATIVE_SCREENSHOTS/);
+  assert.match(config, /__SKERRY_SCREENSHOT_INTERNALS__/);
+  assert.match(config, /exclude: \["@tauri-apps\/api"/);
+});
+
 test("words pick shots by scene or by file name; no words means all", () => {
   assert.equal(selectShots(SHOTS, []).length, SHOTS.length);
   assert.deepEqual(selectShots(SHOTS, ["music"]).map((shot) => shot.scene), ["music"]);

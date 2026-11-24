@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useTranslation } from "../../i18n";
 import { formatClock, formatDateChip, nextTickDelay, type ClockHourFormat } from "./model";
 import "./CollapsedClock.css";
@@ -68,7 +68,12 @@ export function CollapsedClock({
       <time
         className={`collapsed-clock${animating ? " collapsed-clock--tick" : ""}${showSeconds ? " collapsed-clock--seconds" : ""}`}
       >
-        {timeText}
+        {timeText.split(":").map((part, index) => (
+          <Fragment key={index}>
+            {index > 0 && <span className="collapsed-clock__colon">:</span>}
+            {part}
+          </Fragment>
+        ))}
       </time>
     </div>
   );

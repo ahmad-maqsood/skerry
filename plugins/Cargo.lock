@@ -692,6 +692,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "github"
+version = "0.1.0"
+dependencies = [
+ "skerry-plugin-sdk",
+ "serde_json",
+ "ureq",
+]
+
+[[package]]
 name = "grok-bot"
 version = "0.1.0"
 dependencies = [

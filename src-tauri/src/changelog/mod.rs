@@ -68,6 +68,24 @@ fn parse_releases(data: &[u8]) -> Result<Vec<ReleaseNote>, String> {
         .collect())
 }
 
+/// The message for a response GitHub gave because the caller sent too many requests, or `None` for
+/// any other answer. 429 always means that; 403 only when the rate limit header says none are left
+/// (or a retry time is given), since GitHub also answers 403 for other refusals.
+fn rate_limit_message(status: u16, remaining: Option<&str>, retry_after: Option<&str>) -> Option<String> {
+    let limited = status == 429 || (status == 403 && (remaining.map(str::trim) == Some("0") || retry_after.is_some()));
+    if !limited {
+        return None;
+    }
+    let minutes = retry_after
+        .and_then(|value| value.trim().parse::<u64>().ok())
+        .map(|seconds| seconds.div_ceil(60).max(1));
+    Some(match minutes {
+        Some(1) => "GitHub is limiting requests right now. Try again in a minute.".to_string(),
+        Some(minutes) => format!("GitHub is limiting requests right now. Try again in {minutes} minutes."),
+        None => "GitHub is limiting requests right now. Try again in a few minutes.".to_string(),
+    })
+}
+
 fn client() -> Result<reqwest::Client, String> {
     let mut builder = reqwest::Client::builder().user_agent(USER_AGENT).timeout(REQUEST_TIMEOUT);
     if let Some(proxy_url) = get_updater_proxy() {
@@ -82,12 +100,17 @@ async fn download() -> Result<Vec<u8>, String> {
     // reqwest is built without its query feature, so the parameter goes into the URL by hand.
     let url = reqwest::Url::parse_with_params(RELEASES_URL, [("per_page", RELEASES_PER_PAGE)])
         .map_err(|error| error.to_string())?;
-    let mut response = client()?
+    let response = client()?
         .get(url)
         .header(reqwest::header::ACCEPT, "application/vnd.github+json")
         .send()
         .await
-        .map_err(|error| format!("Could not reach GitHub: {error}"))?
+        .map_err(|error| format!("Could not reach GitHub: {error}"))?;
+    let header = |name: &str| response.headers().get(name).and_then(|value| value.to_str().ok());
+    if let Some(message) = rate_limit_message(response.status().as_u16(), header("x-ratelimit-remaining"), header("retry-after")) {
+        return Err(message);
+    }
+    let mut response = response
         .error_for_status()
         .map_err(|error| format!("GitHub did not return the releases: {error}"))?;
     let mut data = Vec::new();
@@ -142,6 +165,30 @@ mod tests {
         assert_eq!(list[1].body, "");
         assert_eq!(list[1].published_at, "");
         assert!(list[1].prerelease);
+    }
+
+    #[test]
+    fn rate_limits_get_a_plain_message() {
+        // 429 is always a limit; retry-after seconds round up to whole minutes.
+        assert_eq!(
+            rate_limit_message(429, None, Some("90")).as_deref(),
+            Some("GitHub is limiting requests right now. Try again in 2 minutes.")
+        );
+        assert_eq!(
+            rate_limit_message(429, None, Some("30")).as_deref(),
+            Some("GitHub is limiting requests right now. Try again in a minute.")
+        );
+        assert_eq!(
+            rate_limit_message(429, None, None).as_deref(),
+            Some("GitHub is limiting requests right now. Try again in a few minutes.")
+        );
+        // 403 is a limit only when no requests remain (or a retry time is given).
+        assert!(rate_limit_message(403, Some("0"), None).is_some());
+        assert!(rate_limit_message(403, None, Some("60")).is_some());
+        assert!(rate_limit_message(403, Some("12"), None).is_none());
+        assert!(rate_limit_message(403, None, None).is_none());
+        assert!(rate_limit_message(404, Some("0"), None).is_none());
+        assert!(rate_limit_message(200, None, None).is_none());
     }
 
     #[test]

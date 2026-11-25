@@ -5,6 +5,19 @@ import type { MusicShortcuts } from "../../src/features/media/shortcuts";
 
 let revision = 0;
 export const commands: string[] = [];
+/** Commands the page called that have no mock below; settings.tsx fails the run if any are listed. */
+export const unmockedCommands: string[] = [];
+/** Commands that return nothing and have no result worth checking. */
+const NOOP_COMMANDS = new Set([
+  "set_settings_window_theme",
+  "plugin:window|set_title",
+  "show_settings_window",
+  "dock_settings_window",
+  "quit_island",
+  // Answered null on purpose: real data adds storage rows the clipboard page's row-count check does not expect.
+  "get_clipboard_storage_directory",
+  "get_clipboard_storage_size",
+]);
 export const systemNotificationCalls: { command: string; args: Record<string, unknown> }[] = [];
 let systemNotificationsState = {
   revision: 1,
@@ -107,7 +120,13 @@ mockIPC((command, payload) => {
     case "plugin:app|version": return "0.0.0-test";
     case "get_plugins": return { registry: { installed: {}, developerMode: false, indexUrl: "" }, live: {} };
     case "get_plugins_index": return [];
-    default: return null;
+    case "get_clipboard_shortcut_error": return null;
+    case "get_app_log_state": return { enabled: false, path: "", bytes: 0 };
+    default:
+      // A command nobody mocked is a gap in this file, not a null: answering null hid a crash once.
+      if (NOOP_COMMANDS.has(command)) return null;
+      unmockedCommands.push(command);
+      throw new Error(`settingsMocks: no mock for the command "${command}"`);
   }
 }, { shouldMockEvents: true });
 mockWindows("settings");

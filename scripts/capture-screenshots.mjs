@@ -1,5 +1,5 @@
 // Captures the README screenshots from the real, current Skerry UI in headless Chrome or Edge.
-// Run it by hand; nothing in CI or on a schedule starts it.
+// Run it by hand, or from the manual "Screenshots" workflow in GitHub Actions; nothing else starts it.
 //
 //   pnpm screenshots                     every shot, into docs/assets/screenshots
 //   pnpm screenshots music settings      only the shots whose scene or file name matches
@@ -21,7 +21,7 @@ export const SHOTS = [
   { file: "screenshot-messages.png", scene: "messages" },
   { file: "screenshot-music.png", scene: "music" },
   { file: "screenshot-todos.png", scene: "todos" },
-  { file: "screenshot-clipboard.png", scene: "clipboard" },
+  { file: "screenshot-translation.png", scene: "translation" },
   { file: "screenshot-file-shelf.png", scene: "shelf" },
   { file: "screenshot-system.png", scene: "system" },
   { file: "screenshot-settings.png", scene: "settings" },

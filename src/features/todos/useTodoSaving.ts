@@ -7,7 +7,6 @@ import { useTodoAutoSave } from "./useTodoAutoSave";
 import { useTodoSaveDirectory } from "./useTodoSaveDirectory";
 import { useTodoFileSync } from "./useTodoFileSync";
 import { useTodoDayFiles } from "./useTodoDayFiles";
-import { useTodoNoteImages } from "./useTodoNoteImages";
 import type { DailyTodoDocument } from "./mergeDailyMarkdown";
 
 type UpsertArchive = (
@@ -122,13 +121,6 @@ export function useTodoSaving({
     onNeedsFolder,
     onFailed,
   });
-  const { saveNoteImage, readNoteImage } = useTodoNoteImages({
-    saveDirectory,
-    date: currentTodoDate,
-    onNeedsFolder,
-    onFailed,
-  });
-
   useTodoAutoSave({
     currentTodoDate,
     todos,
@@ -147,5 +139,5 @@ export function useTodoSaving({
     [],
   );
 
-  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openDayFile, listDayFiles, openFolder, saveNoteImage, readNoteImage, fileSyncEnabled };
+  return { saveDirectory, saveState, saveTodosToDisk, saveTodayTodos, openDayFile, listDayFiles, openFolder, fileSyncEnabled };
 }

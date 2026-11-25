@@ -57,7 +57,7 @@ const PROVIDERS: &[Provider] = &[
     },
 ];
 
-pub(super) const DEFAULT_PROVIDER_ID: &str = "google";
+pub(super) const DEFAULT_PROVIDER_ID: &str = "mymemory";
 
 const MAX_BASE_URL_LENGTH: usize = 500;
 const MAX_MODEL_LENGTH: usize = 200;

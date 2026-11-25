@@ -30,17 +30,22 @@ test("the scene page the shots open exists", () => {
   assert.ok(existsSync(path.join(root, "tests/screenshots/scene.tsx")));
 });
 
-test("the capture runs in a browser by hand: no native window, no workflow, no schedule", () => {
+test("the capture runs in a browser, by hand or from the manual workflow: no native window, no automatic trigger", () => {
   const script = readFileSync(path.join(root, "scripts/capture-screenshots.mjs"), "utf8");
   assert.match(script, /withRegressionBrowser/);
   assert.doesNotMatch(script, /powershell|tauri dev|SKERRY_NATIVE_SCREENSHOTS/i);
-  for (const gone of ["scripts/capture-window.ps1", "scripts/compose-screenshot-themes.ps1", "tests/screenshots/native-host.html", ".github/workflows/screenshots.yml"]) {
+  for (const gone of ["scripts/capture-window.ps1", "scripts/compose-screenshot-themes.ps1", "tests/screenshots/native-host.html"]) {
     assert.ok(!existsSync(path.join(root, gone)), `${gone} is removed`);
   }
   for (const workflow of readdirSync(path.join(root, ".github/workflows"))) {
     const text = readFileSync(path.join(root, ".github/workflows", workflow), "utf8");
+    if (workflow === "screenshots.yml") continue;
     assert.doesNotMatch(text, /capture-screenshots|pnpm screenshots/, `${workflow} never takes screenshots`);
   }
+  // The screenshots workflow starts only when someone runs it: no push, pull request or schedule.
+  const manual = readFileSync(path.join(root, ".github/workflows/screenshots.yml"), "utf8");
+  assert.match(manual, /^on:\s*\n\s+workflow_dispatch:/m);
+  assert.doesNotMatch(manual, /^\s+(push|pull_request|pull_request_target|schedule|workflow_run):/m);
 });
 
 test("the scenes show the app's default icon tabs, not capsules", () => {
@@ -70,7 +75,7 @@ test("a PNG's size is read from its header", () => {
 test("words pick shots by scene or by file name; no words means all", () => {
   assert.equal(selectShots(SHOTS, []).length, SHOTS.length);
   assert.deepEqual(selectShots(SHOTS, ["music"]).map((shot) => shot.scene), ["music"]);
-  assert.deepEqual(selectShots(SHOTS, ["clipboard", "settings"]).map((shot) => shot.scene), ["clipboard", "settings"]);
+  assert.deepEqual(selectShots(SHOTS, ["translation", "settings"]).map((shot) => shot.scene), ["translation", "settings"]);
   assert.deepEqual(selectShots(SHOTS, ["themes"]).map((shot) => shot.file), ["screenshot-themes.png"]);
 });
 

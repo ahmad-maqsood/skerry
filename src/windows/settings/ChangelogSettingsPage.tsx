@@ -18,7 +18,7 @@ import { useTranslation } from "../../i18n";
 export function ChangelogSettingsPage() {
   const t = useTranslation();
   const text = t.settings.changelog;
-  const { releases, loading, error, refresh } = useReleaseNotes();
+  const { releases, loading, error, fetchedAt, refresh } = useReleaseNotes();
   const { version } = useSyncExternalStore(subscribeToUpdate, getUpdateState);
   const failedWithoutList = error !== null && releases.length === 0;
 
@@ -29,12 +29,15 @@ export function ChangelogSettingsPage() {
         : releases.length === 0 ? text.empty
           : text.loaded(releases.length);
 
+  const lastUpdated = fetchedAt > 0 && releases.length > 0 ? text.lastUpdated(new Date(fetchedAt).toLocaleString()) : null;
+  const description = [error, lastUpdated].filter(Boolean).join(" ") || undefined;
+
   return (
     <>
       <SettingsGroup>
         <SettingsRow
           title={<span role="status">{status}</span>}
-          description={error ?? undefined}
+          description={description}
           control={<SettingsLinkButton disabled={loading} onClick={refresh}>{text.refresh}</SettingsLinkButton>}
         />
       </SettingsGroup>

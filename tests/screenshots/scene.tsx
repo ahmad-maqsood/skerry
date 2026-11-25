@@ -4,7 +4,7 @@
 // then tells scripts/capture-screenshots.mjs where to crop (<html data-scene-ready, data-capture>;
 // <html data-scene-error> when the scene failed).
 //
-//   scene = clock | notification | messages | music | todos | shelf | system | clipboard | settings
+//   scene = clock | notification | messages | music | todos | shelf | system | translation | clipboard | settings
 //   ?material=classic|liquidGlass|frostedGlass  ?theme=dark|light  ?wallpaper=1  ?page=<settings page>
 //
 // Open it under `pnpm dev` to look at a scene by eye; `pnpm screenshots` (run by hand) captures
@@ -22,7 +22,7 @@ import { SYSTEM_UPDATE_EVENT } from "../../src/features/system-monitor/api";
 import { trackIslandTopEdge } from "../../src/windows/island/topEdge";
 import {
   DEMO_CLIPBOARD, DEMO_LRC, DEMO_MESSAGES, DEMO_SHELF, DEMO_SYSTEM, DEMO_TODOS,
-  demoMedia, incomingToast, notificationSnapshot,
+  DEMO_TRANSLATION, demoMedia, incomingToast, notificationSnapshot,
 } from "./demoData";
 
 const query = new URLSearchParams(location.search);
@@ -121,6 +121,8 @@ async function islandScene() {
       case "get_launch_at_startup": return false;
       case "get_default_todo_save_directory": return "D:\\Notes";
       case "has_translation_secret": return false;
+      // The translation page sends the typed phrase to this command; the answer is fixed.
+      case "translate_text": return DEMO_TRANSLATION.result;
       case "updater_configured": return false;
       case "plugin:window|is_visible": return true;
       default: return null;
@@ -142,7 +144,7 @@ async function islandScene() {
     return ready(framed());
   }
   await click(".island__open-button", 1000);
-  const page: Record<string, string> = { messages: "messages", music: "music", todos: "todo", shelf: "shelf", system: "system" };
+  const page: Record<string, string> = { messages: "messages", music: "music", todos: "todo", shelf: "shelf", system: "system", translation: "translation" };
   await click(`.dot-button--${page[scene]}`, 1000);
   if (scene === "system") {
     // The sparkline is the last minute of samples; feed it a minute's worth.
@@ -150,6 +152,16 @@ async function islandScene() {
     await sleep(500);
   }
   if (scene === "music") await sleep(800);
+  if (scene === "translation") {
+    // Type the phrase and press Translate, as a user does. React tracks a textarea's value, so
+    // it is set through the native setter before the input event.
+    const source = element(".translation-panel__source textarea") as HTMLTextAreaElement;
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set?.call(source, DEMO_TRANSLATION.source);
+    source.dispatchEvent(new Event("input", { bubbles: true }));
+    await sleep(300);
+    await click(".translation-panel__primary", 1000);
+    if (!document.querySelector(".translation-panel__result--filled")) throw new Error("The translation did not appear");
+  }
   if (todosScene) {
     // Start the second task's 25-minute round through its timer button, as a user does. (A timer
     // saved in storage is dropped on load, so it cannot be set up that way.)

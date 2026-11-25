@@ -9,7 +9,7 @@ import "../../src/styles/base.css";
 import { SettingsWindow } from "../../src/windows/settings/SettingsWindow";
 import { settingsCategoryFor } from "../../src/windows/settings/categories";
 import { I18nProvider, LOCALE_STORAGE_KEY } from "../../src/i18n";
-import { commands, translationShortcutCalls } from "./settingsMocks";
+import { commands, translationShortcutCalls, unmockedCommands } from "./settingsMocks";
 import { checkAppearance, prepareColorRegression } from "./settingsAppearance";
 import { checkGeneralControls } from "./settingsGeneral";
 import { checkGroups } from "./settingsGroups";
@@ -298,6 +298,8 @@ if (!automated) {
       [...document.querySelectorAll<HTMLButtonElement>(".settings-link-button")].find((button) => button.textContent === label);
     await act(async () => { aboutLink("Quit")?.click(); });
     check(commands.includes("quit_island"), "Quit asks the island to exit");
+
+    check(unmockedCommands.length === 0, `Every command the settings pages call is mocked (${[...new Set(unmockedCommands)].join() || "none missing"})`);
 
     await act(async () => { root.unmount(); });
     document.documentElement.dataset.testResult = "passed";

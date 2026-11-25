@@ -17,7 +17,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The bar fills up to the thumb through --quick-controls-fill, set from the value. */
+/* The bar fills up to the thumb centre through --quick-controls-fill (0 to 1). The thumb centre moves from 6px to 6px short of the end, so the fill follows that, not the plain percentage. */
 .quick-controls__slider {
   width: 100%;
   height: 14px;
@@ -31,8 +31,8 @@
   height: 4px;
   background: linear-gradient(
     to right,
-    var(--island-accent, #3b82f6) var(--quick-controls-fill, 0%),
-    rgba(255, 255, 255, 0.12) var(--quick-controls-fill, 0%)
+    var(--island-accent, #3b82f6) calc(6px + (100% - 12px) * var(--quick-controls-fill, 0)),
+    rgba(255, 255, 255, 0.12) calc(6px + (100% - 12px) * var(--quick-controls-fill, 0))
   );
   border-radius: 999px;
 }

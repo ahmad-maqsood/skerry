@@ -60,6 +60,7 @@ export const PAGES = [
   "settings.html?test=1",
   "settings.html?test=1&features=enabled",
   "settings.html?test=1&clockWeather=1&features=enabled",
+  "settings-error-boundary.html",
   "settings-sidebar.html",
   "settings-sidebar.html?features=enabled",
   "settings-sync.html",

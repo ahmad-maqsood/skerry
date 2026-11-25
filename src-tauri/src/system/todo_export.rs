@@ -12,7 +12,7 @@ pub struct SaveTodoMarkdownResult {
 }
 
 /// A day's date goes into file names, so it may only hold digits and dashes.
-pub(super) fn is_todo_date(date: &str) -> bool {
+fn is_todo_date(date: &str) -> bool {
     !date.is_empty() && date.chars().all(|ch| ch.is_ascii_digit() || ch == '-')
 }
 

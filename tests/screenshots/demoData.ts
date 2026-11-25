@@ -126,3 +126,9 @@ export const DEMO_SYSTEM = (step: number): SystemSnapshot => ({
   battery: { hasBattery: true, isCharging: false, isPluggedIn: true, percent: 85, remainingSeconds: null },
   uptimeSeconds: 275_400,
 });
+
+/** The phrase typed into the translation page and the answer the mocked service gives (fictional). */
+export const DEMO_TRANSLATION = {
+  source: "La reunión se movió a las 3 de la tarde. Trae el informe de la semana pasada, por favor.",
+  result: "The meeting has moved to 3 PM. Please bring last week's report.",
+};

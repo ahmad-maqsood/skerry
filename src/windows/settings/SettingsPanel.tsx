@@ -12,6 +12,7 @@ import { TodosSettingsPage } from "./TodosSettingsPage";
 import { TranslationSettingsPage } from "./TranslationSettingsPage";
 import { AboutSettingsPage } from "./AboutSettingsPage";
 import { ChangelogSettingsPage } from "./ChangelogSettingsPage";
+import { SettingsErrorBoundary } from "./SettingsErrorBoundary";
 import { SystemSettingsPage } from "../../features/system-monitor/SystemSettingsPage.tsx";
 import { DEFAULT_SETTINGS, withAppearanceFrom } from "../../features/appearance/settings";
 import { ResetAppearanceButton } from "../../features/appearance/ResetAppearanceButton";
@@ -85,37 +86,39 @@ export function SettingsPanel({
       onContentHeight={onContentHeight}
       titleAction={category === "appearance" && <ResetAppearanceButton onReset={resetAppearance} />}
     >
-      {category === "general" && (
-        <GeneralSettingsPage
-          locale={locale}
-          settings={settings}
-          detachedSettings={detached}
-          systemNotifications={systemNotifications}
-          onLocaleChange={setLocale}
-          onSettingsChange={setSettings}
-          onDetachedSettingsChange={onDetachedChange}
-        />
-      )}
-      {category === "appearance" && (
-        <AppearanceSettingsPage settings={settings} onSettingsChange={setSettings} />
-      )}
-      {category === "todos" && (
-        <TodosSettingsPage
-          settings={settings}
-          saveDirectory={saveDirectory}
-          onSettingsChange={setSettings}
-        />
-      )}
-      {category === "messages" && (
-        <MessagesSettingsPage settings={settings} systemNotifications={systemNotifications} onSettingsChange={setSettings} />
-      )}
-      {category === "translation" && <TranslationSettingsPage settings={settings} onSettingsChange={setSettings} />}
-      {category === "clipboard" && <ClipboardSettingsPage settings={settings} onSettingsChange={setSettings} />}
-      {category === "music" && <MusicSettingsPage settings={settings} onSettingsChange={setSettings} />}
-      {category === "system" && <SystemSettingsPage islandSettings={settings} onIslandSettingsChange={setSettings} />}
-      {category === "plugins" && <PluginsSettingsPage />}
-      {category === "changelog" && <ChangelogSettingsPage />}
-      {category === "about" && <AboutSettingsPage />}
+      <SettingsErrorBoundary key={category}>
+        {category === "general" && (
+          <GeneralSettingsPage
+            locale={locale}
+            settings={settings}
+            detachedSettings={detached}
+            systemNotifications={systemNotifications}
+            onLocaleChange={setLocale}
+            onSettingsChange={setSettings}
+            onDetachedSettingsChange={onDetachedChange}
+          />
+        )}
+        {category === "appearance" && (
+          <AppearanceSettingsPage settings={settings} onSettingsChange={setSettings} />
+        )}
+        {category === "todos" && (
+          <TodosSettingsPage
+            settings={settings}
+            saveDirectory={saveDirectory}
+            onSettingsChange={setSettings}
+          />
+        )}
+        {category === "messages" && (
+          <MessagesSettingsPage settings={settings} systemNotifications={systemNotifications} onSettingsChange={setSettings} />
+        )}
+        {category === "translation" && <TranslationSettingsPage settings={settings} onSettingsChange={setSettings} />}
+        {category === "clipboard" && <ClipboardSettingsPage settings={settings} onSettingsChange={setSettings} />}
+        {category === "music" && <MusicSettingsPage settings={settings} onSettingsChange={setSettings} />}
+        {category === "system" && <SystemSettingsPage islandSettings={settings} onIslandSettingsChange={setSettings} />}
+        {category === "plugins" && <PluginsSettingsPage />}
+        {category === "changelog" && <ChangelogSettingsPage />}
+        {category === "about" && <AboutSettingsPage />}
+      </SettingsErrorBoundary>
     </LayoutEditor>
   );
 }

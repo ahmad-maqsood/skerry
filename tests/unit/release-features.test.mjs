@@ -4,8 +4,8 @@ import { PLUGINS_ENABLED } from "../../src/features/releaseFlags.ts";
 import { SETTINGS_CATEGORIES, SETTINGS_GROUPS, settingsCategoryFor } from "../../src/windows/settings/categories.ts";
 import { isPageEnabled } from "../../src/windows/island/features.ts";
 
-test("unavailable runtime features preserve choices and expose the plugin guide route", () => {
-  assert.equal(PLUGINS_ENABLED, false);
+test("plugins are switched on and the plugin settings route stays available", () => {
+  assert.equal(PLUGINS_ENABLED, true);
   assert.equal(SETTINGS_CATEGORIES.includes("plugins"), true);
   assert.equal(SETTINGS_GROUPS.some((group) => group.categories.includes("plugins")), true);
   assert.equal(settingsCategoryFor("plugins"), "plugins");

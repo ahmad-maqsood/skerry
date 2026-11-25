@@ -1,0 +1,101 @@
+{
+  "id": "github",
+  "name": {
+    "en": "GitHub"
+  },
+  "description": {
+    "en": "Workflow runs, review requests, mentions and failed runs from the repositories you choose"
+  },
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "runtime": {
+    "command": "github.exe"
+  },
+  "permissions": [
+    "network",
+    "sessions",
+    "notifications"
+  ],
+  "contributes": [
+    "sessions",
+    "notifications"
+  ],
+  "settings": [
+    {
+      "key": "token",
+      "label": {
+        "en": "GitHub token (classic; notifications scope, plus repo for private repositories)"
+      },
+      "type": "secret",
+      "default": ""
+    },
+    {
+      "key": "repos",
+      "label": {
+        "en": "Repositories to watch (owner/repo, separated by commas or spaces)"
+      },
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "notify_reviews",
+      "label": {
+        "en": "Notify on review requests"
+      },
+      "type": "toggle",
+      "default": true
+    },
+    {
+      "key": "notify_mentions",
+      "label": {
+        "en": "Notify on mentions"
+      },
+      "type": "toggle",
+      "default": true
+    },
+    {
+      "key": "notify_failures",
+      "label": {
+        "en": "Notify on failed workflow runs"
+      },
+      "type": "toggle",
+      "default": true
+    },
+    {
+      "key": "interval",
+      "label": {
+        "en": "Refresh interval"
+      },
+      "type": "select",
+      "default": "120",
+      "options": [
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute"
+          }
+        },
+        {
+          "value": "120",
+          "label": {
+            "en": "2 minutes"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "5 minutes"
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "refresh",
+      "label": {
+        "en": "Refresh now"
+      }
+    }
+  ]
+}

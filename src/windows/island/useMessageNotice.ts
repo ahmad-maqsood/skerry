@@ -3,7 +3,8 @@ import type { IslandSettings } from "../../features/appearance/types";
 import { noticeText, type MessagePreview } from "../../features/messages/messagePreview";
 import { useTranslation } from "../../i18n";
 import { getNoticeSize } from "./noticeLayout";
-import { expandsPreview, noticePassesClicks } from "./noticeRules";
+import { expandsPreview, noticePassesClicks, widensToFit } from "./noticeRules";
+import { MESSAGE_EXPAND_MAX_WIDTH } from "../../features/appearance/settingsLimits";
 import type { IslandMode } from "./types";
 import type { IslandNotice } from "./useIslandWindow";
 
@@ -16,27 +17,34 @@ type MessageNoticeOptions = { mode: IslandMode; isTucked: boolean; quiet: boolea
  */
 export function useMessageNotice(preview: MessagePreview | null, settings: IslandSettings, { mode, isTucked, quiet, collapsedIslandWidth }: MessageNoticeOptions) {
   const t = useTranslation();
-  const grows = preview !== null && expandsPreview(settings, preview.kind) && mode === "collapsed" && !isTucked;
+  const shows = preview !== null && mode === "collapsed" && !isTucked;
+  const grows = shows && expandsPreview(settings, preview.kind);
+  // A short status pop-up that does not expand still widens the one-line bar to fit.
+  const widens = shows && !grows && widensToFit(preview.kind);
   // What the laid-out one-line preview still overflowed by, for this preview; see measuredOverflow.
   const [measured, setMeasured] = useState({ at: -1, overflow: 0, tries: 0 });
   const measuredOverflow = preview && measured.at === preview.receivedAt ? measured.overflow : 0;
-  const size = useMemo(() => grows && preview ? getNoticeSize(noticeText(preview, t.messages), {
-    maxWidth: settings.messageExpandMaxWidth,
-    maxHeight: settings.messageExpandMaxHeight,
-    baseWidth: collapsedIslandWidth,
-    baseHeight: settings.collapsedHeight,
-    fontScale: settings.islandFontPercent / 100,
-    collapsedScale: settings.collapsedScale,
+  const size = useMemo(() => {
+    if (!preview || !(grows || widens)) return null;
+    const limits = {
+      maxHeight: settings.messageExpandMaxHeight,
+      baseWidth: collapsedIslandWidth,
+      baseHeight: settings.collapsedHeight,
+      fontScale: settings.islandFontPercent / 100,
+      collapsedScale: settings.collapsedScale,
+      measuredOverflow,
+    };
+    // The one-line bar shows the title and body, without the app's name.
+    if (widens) return getNoticeSize({ sender: preview.title, body: preview.body }, { ...limits, maxWidth: MESSAGE_EXPAND_MAX_WIDTH.default, oneLineOnly: true });
     // Every source gets the selectable reader: the one-line bar is a button, whose text cannot be
     // selected and which opens the app on click (QQ / WeChat users wanted to copy too).
-    forceReader: true,
-    measuredOverflow,
-  }) : null, [collapsedIslandWidth, grows, measuredOverflow, preview, settings.collapsedHeight, settings.collapsedScale, settings.islandFontPercent,
+    return getNoticeSize(noticeText(preview, t.messages), { ...limits, maxWidth: settings.messageExpandMaxWidth, forceReader: true });
+  }, [collapsedIslandWidth, grows, widens, measuredOverflow, preview, settings.collapsedHeight, settings.collapsedScale, settings.islandFontPercent,
     settings.messageExpandMaxHeight, settings.messageExpandMaxWidth, t.messages]);
   // The estimate can fall short of the island as drawn (status icons beside the text, real glyph
   // widths): measure the one-line preview after layout and grow by what is still cut off.
   const receivedAt = preview?.receivedAt ?? null;
-  const oneLine = grows && !size?.reader;
+  const oneLine = (grows || widens) && !size?.reader;
   useLayoutEffect(() => {
     if (!oneLine || receivedAt === null) return;
     const overflow = oneLinePreviewOverflow();

@@ -39,6 +39,8 @@ export type NoticeLimits = {
    * had stayed short of the text in the app.
    */
   measuredOverflow?: number;
+  /** Only ever widen the one-line preview: text past the widest size is cut off, never a reader. */
+  oneLineOnly?: boolean;
 };
 /** `reader`: the two-part reader (sender, then the wrapped text); false keeps the one-line preview, only wider. */
 export type NoticeSize = { width: number; height: number; scrolls: boolean; reader: boolean };
@@ -60,6 +62,11 @@ export function getNoticeSize({ sender, body }: NoticeText, limits: NoticeLimits
 
   const scale = limits.collapsedScale > 0 ? limits.collapsedScale : 1;
   const widest = Math.min(limits.maxWidth, Math.floor((STAGE_WIDTH - STAGE_SIDE_ROOM) / scale));
+  if (limits.oneLineOnly) {
+    // At least what was measured as cut off: rounding to the pixel grid can land just short of it.
+    const width = Math.max(limits.baseWidth, Math.min(widest, Math.max(limits.baseWidth + overflow, alignNoticeWidth(oneLine + 8, widest))));
+    return { width, height: limits.baseHeight, scrolls: false, reader: false };
+  }
   // Wider first: a message that fits one line within the limit stays one line.
   if (!limits.forceReader && paragraphs.length <= 1 && oneLine <= widest) {
     return { width: Math.max(limits.baseWidth + overflow, alignNoticeWidth(oneLine + 8, widest)), height: limits.baseHeight, scrolls: false, reader: false };

@@ -120,3 +120,17 @@ test("a short message's reader is only as wide as the message, even narrower tha
   const long = getNoticeSize({ sender: "Bob", body: "Meeting tomorrow at 3 PM in conference room on 3rd floor for project review, please prepare materials. ".repeat(2) }, { ...limits, baseWidth: 480, forceReader: true });
   assert.ok(long.width > short.width);
 });
+
+test("short status pop-ups widen the one-line bar and never become a reader", async () => {
+  const { widensToFit } = await import("../../src/windows/island/noticeRules.ts");
+  for (const kind of ["battery", "bluetooth", "airplane"]) assert.equal(widensToFit(kind), true, kind);
+  for (const kind of [undefined, "clipboard", "music", "volume", "brightness"]) assert.equal(widensToFit(kind), false, String(kind));
+  const narrow = { ...limits, baseWidth: 240, oneLineOnly: true };
+  const charger = { sender: "Charger plugged in", body: "90%" };
+  // Cut off as laid out, so the island grows by at least what was measured.
+  const widened = getNoticeSize(charger, { ...narrow, measuredOverflow: 70 });
+  assert.ok(widened.width >= 310 && widened.reader === false);
+  assert.equal(widened.height, narrow.baseHeight);
+  const endless = getNoticeSize({ sender: "Very long device name ".repeat(20), body: "Connected" }, narrow);
+  assert.ok(endless.reader === false && endless.width <= narrow.maxWidth);
+});

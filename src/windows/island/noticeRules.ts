@@ -25,6 +25,15 @@ export function expandsPreview(settings: ExpandSettings, kind?: PreviewKind) {
   }
 }
 
+/**
+ * Short status pop-ups (the charger, a device, airplane mode) say little, so the bar always widens
+ * enough to show all of it, whatever the "Expand long messages" switches say: on a narrow bar
+ * "Charger plugged in · 90%" was cut to "Charger plugg… · 9…".
+ */
+export function widensToFit(kind?: PreviewKind) {
+  return kind === "battery" || kind === "bluetooth" || kind === "airplane";
+}
+
 /** The page a click on a pop-up opens: the island's own pop-ups open a page, not an app. */
 export function previewPage(kind: PreviewKind): IslandPage {
   switch (kind) {

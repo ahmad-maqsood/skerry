@@ -87,7 +87,7 @@ $manifest = @"
   IgnorableNamespaces="uap uap3 rescap">
   <Identity Name="$(Esc $env:MSIX_IDENTITY_NAME)" Publisher="$(Esc $env:MSIX_PUBLISHER)" Version="$msixVersion" ProcessorArchitecture="x64" />
   <Properties>
-    <DisplayName>$(Esc $productName)</DisplayName>
+    <DisplayName>Skerry Island</DisplayName>
     <PublisherDisplayName>$(Esc $env:MSIX_PUBLISHER_DISPLAY_NAME)</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>

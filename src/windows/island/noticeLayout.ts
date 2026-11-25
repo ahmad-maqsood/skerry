@@ -87,6 +87,17 @@ export function getNoticeSize({ sender, body }: NoticeText, limits: NoticeLimits
 }
 
 /**
+ * How far a one-line preview runs past its room, from what is cut off of each clipped element. The
+ * title and the body share one row and shrink side by side, so what is cut off of both adds up: the
+ * widest of them alone grew the bar too little and left "Charger unplugged · 90%" cut to
+ * "Charger unplugg… · 9…". Any other clipped element has a room of its own.
+ */
+export function oneLineOverflow(textParts: number[], others: number[]) {
+  const shared = textParts.reduce((total, cutOff) => total + Math.max(0, cutOff), 0);
+  return Math.max(shared, ...others.map((cutOff) => Math.max(0, cutOff)));
+}
+
+/**
  * The stage (820 wide) centres the island; a width of 4 more than a multiple of 8 puts its left
  * edge on a whole device pixel at the 1x, 1.25x, 1.5x and 2x display scales, so it does not jump
  * when the resize animation ends (alignCollapsedIslandWidth explains the jump).

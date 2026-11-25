@@ -134,3 +134,17 @@ test("short status pop-ups widen the one-line bar and never become a reader", as
   const endless = getNoticeSize({ sender: "Very long device name ".repeat(20), body: "Connected" }, narrow);
   assert.ok(endless.reader === false && endless.width <= narrow.maxWidth);
 });
+
+test("the title and the body cut off side by side add up; other clipped elements count by the widest", async () => {
+  const { oneLineOverflow } = await import("../../src/windows/island/noticeLayout.ts");
+  // "Charger unplugg… · 9…": both parts are cut, and the bar has to grow by both together.
+  assert.equal(oneLineOverflow([30, 25], []), 55);
+  assert.equal(oneLineOverflow([30, 0], [12]), 30);
+  assert.equal(oneLineOverflow([5, 5], [40]), 40);
+  assert.equal(oneLineOverflow([], []), 0);
+  assert.equal(oneLineOverflow([-3, 8], [-1]), 8);
+  // Grown by the sum, the one-line bar is at least as wide as what was cut off.
+  const narrow = { ...limits, baseWidth: 240, oneLineOnly: true };
+  const widened = getNoticeSize({ sender: "Charger unplugged", body: "90%" }, { ...narrow, measuredOverflow: oneLineOverflow([30, 25], []) });
+  assert.ok(widened.width >= 240 + 55 && widened.reader === false);
+});

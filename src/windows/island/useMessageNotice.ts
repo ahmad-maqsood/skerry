@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useState } from "react";
 import type { IslandSettings } from "../../features/appearance/types";
 import { noticeText, type MessagePreview } from "../../features/messages/messagePreview";
 import { useTranslation } from "../../i18n";
-import { getNoticeSize } from "./noticeLayout";
+import { getNoticeSize, oneLineOverflow } from "./noticeLayout";
 import { expandsPreview, noticePassesClicks, widensToFit } from "./noticeRules";
 import { MESSAGE_EXPAND_MAX_WIDTH } from "../../features/appearance/settingsLimits";
 import type { IslandMode } from "./types";
@@ -70,13 +70,15 @@ const MAX_MEASURES = 3;
 
 /**
  * How far the collapsed bar's one-line preview runs past its room, in the island's own px (the
- * bar is scaled by a transform, which scrollWidth leaves out): the widest overflow among the
- * elements in the text slot that clip, since which one clips depends on what the preview shows.
+ * bar is scaled by a transform, which scrollWidth leaves out): the title and the body add up, as
+ * they shrink together; among the other elements in the text slot that clip, the widest one counts.
  */
 function oneLinePreviewOverflow() {
   const slot = document.querySelector<HTMLElement>(".island--collapsed .island__text-slot");
   if (!slot) return 0;
-  return [slot, ...slot.querySelectorAll<HTMLElement>("*")]
-    .filter((element) => getComputedStyle(element).overflowX !== "visible")
-    .reduce((widest, element) => Math.max(widest, element.scrollWidth - element.clientWidth), 0);
+  const clipping = [slot, ...slot.querySelectorAll<HTMLElement>("*")]
+    .filter((element) => getComputedStyle(element).overflowX !== "visible");
+  const isTextPart = (element: HTMLElement) => element.matches(".island-message-preview__sender, .island-message-preview__body");
+  const cutOff = (element: HTMLElement) => element.scrollWidth - element.clientWidth;
+  return oneLineOverflow(clipping.filter(isTextPart).map(cutOff), clipping.filter((element) => !isTextPart(element)).map(cutOff));
 }

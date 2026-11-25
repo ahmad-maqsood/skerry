@@ -1,5 +1,5 @@
 // Builds the updater manifest that the app downloads from
-// https://github.com/ahmad-maqsood/skerry/releases/latest/download/latest.json
+// https://github.com/ahmad-maqsood/skerry-island/releases/latest/download/latest.json
 //
 // Usage: node scripts/release/make-latest-json.mjs [--notes-file docs/releases/vX.Y.Z.md] [--base-url <url>]
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -7,7 +7,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { msiNames } from "./msi-version.mjs";
 
-const REPO = process.env.GITHUB_REPOSITORY ?? "ahmad-maqsood/skerry";
+const REPO = process.env.GITHUB_REPOSITORY ?? "ahmad-maqsood/skerry-island";
 const CONFIG = "src-tauri/tauri.conf.json";
 const RELEASE_DIR = resolve(process.env.CARGO_TARGET_DIR || "src-tauri/target", "release");
 const BUNDLE_DIR = join(RELEASE_DIR, "bundle/nsis");

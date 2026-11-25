@@ -13,7 +13,7 @@ Security fixes are released for the latest stable version of Skerry.
 
 If you discover a security vulnerability in Skerry, please report it privately rather than opening a public issue.
 
-- **GitHub Security Advisory**: Submit a private advisory through the [Security tab](https://github.com/ahmad-maqsood/skerry/security/advisories/new) on GitHub.
+- **GitHub Security Advisory**: Submit a private advisory through the [Security tab](https://github.com/ahmad-maqsood/skerry-island/security/advisories/new) on GitHub.
 
 ### What to Include
 

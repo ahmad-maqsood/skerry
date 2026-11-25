@@ -6,12 +6,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::system::updater::get_updater_proxy;
 
-const RELEASES_URL: &str = "https://api.github.com/repos/ahmad-maqsood/skerry/releases";
+const RELEASES_URL: &str = "https://api.github.com/repos/ahmad-maqsood/skerry-island/releases";
 const RELEASES_PER_PAGE: &str = "30";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(12);
 /// The most a response may hold; thirty descriptions are far smaller.
 const MAX_RESPONSE_BYTES: usize = 2 * 1024 * 1024;
-const USER_AGENT: &str = concat!("Skerry/", env!("CARGO_PKG_VERSION"), " (https://github.com/ahmad-maqsood/skerry)");
+const USER_AGENT: &str = concat!("Skerry/", env!("CARGO_PKG_VERSION"), " (https://github.com/ahmad-maqsood/skerry-island)");
 
 /// One published release. Mirrored by ReleaseNote in features/changelog/api.ts.
 #[derive(Debug, Serialize, PartialEq)]

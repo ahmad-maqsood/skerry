@@ -54,7 +54,7 @@ try {
     await act(async () => { failOpen = true; link.click(); });
     check(guide.querySelector("[role='alert']")?.textContent === t.openGuideFailed, "Provides localized error in-place on link opening failure");
     await act(async () => { failOpen = false; link.click(); });
-    check(opened === "https://github.com/ahmad-maqsood/skerry/blob/main/docs/plugins/README.md" && !guide.querySelector("[role='alert']"), "Retry opens specification overview via opener and clears error");
+    check(opened === "https://github.com/ahmad-maqsood/skerry-island/blob/main/docs/plugins/README.md" && !guide.querySelector("[role='alert']"), "Retry opens specification overview via opener and clears error");
     const fixture = document.getElementById("fixture")!;
     check(guide.scrollWidth <= fixture.clientWidth && link.getBoundingClientRect().right <= fixture.getBoundingClientRect().right + 1,
       "The guide links do not overflow in the narrow layout");
@@ -80,7 +80,7 @@ try {
     await act(async () => requests[0].reject("old request failed")); await wait();
     check(!document.body.textContent?.includes(t.unavailable), "Stale requests cannot overwrite newer index results");
     await act(async () => document.querySelector<HTMLButtonElement>(`button[aria-label='${t.develop}']`)!.click());
-    check(opened === "https://github.com/ahmad-maqsood/skerry/blob/main/docs/plugins/README.md", "Development guide uses existing external link opener");
+    check(opened === "https://github.com/ahmad-maqsood/skerry-island/blob/main/docs/plugins/README.md", "Development guide uses existing external link opener");
     check(input.getBoundingClientRect().right <= document.getElementById("fixture")!.getBoundingClientRect().right + 1, "Path input box does not overflow in narrow layouts");
   }
   await act(async () => app.unmount());

@@ -6,20 +6,20 @@
   <p>The modern, lightweight Dynamic Island for Windows.</p>
 
   <p>
-    <a href="https://github.com/ahmad-maqsood/skerry/releases/latest">
+    <a href="https://github.com/ahmad-maqsood/skerry-island/releases/latest">
       <img src="https://img.shields.io/badge/Download-Latest%20Installer-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download Skerry">
     </a>
   </p>
 
   <p>
-    <a href="https://github.com/ahmad-maqsood/skerry/releases/latest"><img src="https://img.shields.io/github/v/release/ahmad-maqsood/skerry?color=0078D4&label=release" alt="Latest Release"></a>
-    <a href="https://github.com/ahmad-maqsood/skerry/releases"><img src="https://img.shields.io/github/downloads/ahmad-maqsood/skerry/total?color=24C8DB" alt="Total Downloads"></a>
+    <a href="https://github.com/ahmad-maqsood/skerry-island/releases/latest"><img src="https://img.shields.io/github/v/release/ahmad-maqsood/skerry-island?color=0078D4&label=release" alt="Latest Release"></a>
+    <a href="https://github.com/ahmad-maqsood/skerry-island/releases"><img src="https://img.shields.io/github/downloads/ahmad-maqsood/skerry-island/total?color=24C8DB" alt="Total Downloads"></a>
     <img src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-0078D4" alt="Platform: Windows 10/11">
     <a href="https://tauri.app"><img src="https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white" alt="Tauri 2"></a>
     <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19"></a>
     <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-1.99.1-orange?logo=rust&logoColor=white" alt="Rust 1.99.1"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License: GPL-3.0"></a>
-    <a href="https://github.com/ahmad-maqsood/skerry/actions/workflows/ci.yml"><img src="https://github.com/ahmad-maqsood/skerry/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+    <a href="https://github.com/ahmad-maqsood/skerry-island/actions/workflows/ci.yml"><img src="https://github.com/ahmad-maqsood/skerry-island/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   </p>
 
   <p>
@@ -122,7 +122,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 
 ### Method 1: Installer Package (Recommended)
 
-1. Navigate to the [Latest Release](https://github.com/ahmad-maqsood/skerry/releases/latest) page.
+1. Navigate to the [Latest Release](https://github.com/ahmad-maqsood/skerry-island/releases/latest) page.
 2. Download `skerry_<version>_x64-setup.exe` (or the `.msi` package for enterprise environments).
 3. Run the installer:
    - Skerry releases are signed with cryptographic minisign signatures verified by the in-app updater.
@@ -155,8 +155,8 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 Clone the repository and install frontend dependencies:
 
 ```powershell
-git clone https://github.com/ahmad-maqsood/skerry.git
-cd skerry
+git clone https://github.com/ahmad-maqsood/skerry-island.git
+cd skerry-island
 pnpm install
 ```
 
@@ -183,7 +183,7 @@ pnpm tauri build
 
 ### Source Code for Releases
 
-Each published GitHub Release page also provides GitHub-generated source archives (**Source code (zip)** and **Source code (tar.gz)**) for the release tag. These archives let users obtain the source corresponding to that tagged release alongside the installer. See [all Skerry releases](https://github.com/ahmad-maqsood/skerry/releases).
+Each published GitHub Release page also provides GitHub-generated source archives (**Source code (zip)** and **Source code (tar.gz)**) for the release tag. These archives let users obtain the source corresponding to that tagged release alongside the installer. See [all Skerry releases](https://github.com/ahmad-maqsood/skerry-island/releases).
 
 ---
 
@@ -338,7 +338,7 @@ Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a r
   - **Publish unticked**: a quick trial that builds and signs only the NSIS installer and attaches it to the run.
   - **Publish ticked**: runs `pnpm check`, builds and signs the NSIS and MSI installers, generates `latest.json` and publishes the GitHub Release. Clippy and the Rust tests are not repeated; CI already ran them.
   - Signing needs the repository secrets `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` and `TAURI_UPDATER_PUBKEY`; see [docs/updater.md](docs/updater.md).
-  - The in-app updater queries `https://github.com/ahmad-maqsood/skerry/releases/latest/download/latest.json` and performs silent background downloads with idle auto-install.
+  - The in-app updater queries `https://github.com/ahmad-maqsood/skerry-island/releases/latest/download/latest.json` and performs silent background downloads with idle auto-install.
 
 ---
 

@@ -11,7 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-const REPO = process.env.GITHUB_REPOSITORY ?? "ahmad-maqsood/skerry";
+const REPO = process.env.GITHUB_REPOSITORY ?? "ahmad-maqsood/skerry-island";
 /** The most commits listed when there is no earlier release to start from. */
 const FIRST_RELEASE_LIMIT = 50;
 

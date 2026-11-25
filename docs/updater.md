@@ -53,7 +53,7 @@ The description of a published release is written automatically by `scripts/rele
 ## Update Manifest and Endpoints
 
 The in-app updater operates on a single stable channel that checks:
-`https://github.com/ahmad-maqsood/skerry/releases/latest/download/latest.json`
+`https://github.com/ahmad-maqsood/skerry-island/releases/latest/download/latest.json`
 
 - **Pre-releases**: Pre-releases (versions containing `-`, such as `v0.1.0-beta.1`) are published with the GitHub pre-release flag. GitHub does not mark pre-releases as `latest`, ensuring existing stable users are never automatically upgraded to pre-releases.
 - **Manifest structure**: `latest.json` specifies version, notes, publication date, and platform payloads for `windows-x86_64`, `windows-x86_64-nsis`, and `windows-x86_64-msi` with respective download URLs and cryptographic signatures.

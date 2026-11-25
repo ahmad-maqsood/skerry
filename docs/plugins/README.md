@@ -37,7 +37,7 @@ Because a plugin modifies the island itself, **it cannot be merged and released 
 
 ### 1. Prepare Environment
 
-1. Fork [skerry](https://github.com/ahmad-maqsood/skerry) and clone it locally.
+1. Fork [skerry](https://github.com/ahmad-maqsood/skerry-island) and clone it locally.
 2. Install Node.js, pnpm, Rust (version pinned in `rust-toolchain.toml`), and Tauri 2 Windows dependencies (WebView2, MSVC build tools).
 3. Run in the repository root:
 

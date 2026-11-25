@@ -23,7 +23,7 @@ const RELEASE_DIR = resolve(process.env.CARGO_TARGET_DIR || "src-tauri/target", 
 const BUNDLE_DIR = `${RELEASE_DIR}/bundle/nsis`;
 const MSI_DIR = `${RELEASE_DIR}/bundle/msi`;
 const MSI_OVERLAY = `${RELEASE_DIR}/msi-version.conf.json`;
-const REPO = process.env.GITHUB_REPOSITORY ?? "ahmad-maqsood/skerry";
+const REPO = process.env.GITHUB_REPOSITORY ?? "ahmad-maqsood/skerry-island";
 const releaseFeatures = JSON.parse(readFileSync("release-features.json", "utf8"));
 
 export function validateSigningSecrets(env = process.env) {

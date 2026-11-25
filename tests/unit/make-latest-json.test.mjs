@@ -25,7 +25,7 @@ test("createLatestManifest generates valid updater manifest from bundle artifact
     writeFileSync(join(msiDir, msiFile), "fake-msi-content");
     writeFileSync(join(msiDir, `${msiFile}.sig`), msiSig);
 
-    const baseUrl = `https://github.com/ahmad-maqsood/skerry/releases/download/v${version}`;
+    const baseUrl = `https://github.com/ahmad-maqsood/skerry-island/releases/download/v${version}`;
     const manifest = createLatestManifest({
       version,
       bundleDir,

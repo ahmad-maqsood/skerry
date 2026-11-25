@@ -81,7 +81,7 @@ export const DEMO_TODOS = (now: number) => [
 export const DEMO_CLIPBOARD = (now: number): ClipboardHistorySnapshot => ({
   settings: { enabled: true, captureImages: true, maxItems: 100, shortcut: "Ctrl+Shift+V", shortcutEnabled: true },
   items: [
-    ["c1", "https://github.com/ahmad-maqsood/skerry/releases", true],
+    ["c1", "https://github.com/ahmad-maqsood/skerry-island/releases", true],
     ["c2", "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings", false],
     ["c3", '{"apiVersion": 1, "runtime": {"command": "skerry-bot.exe"}}', false],
     ["c4", 'export const API_BASE_URL = "https://api.skerry.local/v1";', false],

@@ -20,5 +20,5 @@ A complete, version-specific inventory of all direct and transitive dependency l
 
 ## Source code for releases
 
-For each published release, GitHub provides automatically generated source archives from the corresponding release tag on the [Skerry Releases](https://github.com/ahmad-maqsood/skerry/releases) page. The source for a distributed binary must correspond to the exact version of that binary, including relevant build scripts and configuration.
+For each published release, GitHub provides automatically generated source archives from the corresponding release tag on the [Skerry Releases](https://github.com/ahmad-maqsood/skerry-island/releases) page. The source for a distributed binary must correspond to the exact version of that binary, including relevant build scripts and configuration.
 

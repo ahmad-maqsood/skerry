@@ -81,3 +81,16 @@ test("createLatestRunner.flush sends a pending value at once and survives a fail
   await sleep(10);
   assert.deepEqual(sent, [5, 6]);
 });
+
+test("createLatestRunner sends values while a slider keeps moving, not only once it rests", async () => {
+  const sent = [];
+  const runner = createLatestRunner(async (value) => void sent.push(value), 20);
+  // A drag that never pauses for as long as the delay.
+  for (let value = 1; value <= 30; value += 1) {
+    runner.push(value);
+    await sleep(5);
+  }
+  assert.ok(sent.length >= 2, `sent during the drag: ${sent}`);
+  await sleep(60);
+  assert.equal(sent.at(-1), 30);
+});

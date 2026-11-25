@@ -49,8 +49,8 @@ const NO_TODOS: TodoItem[] = [];
  */
 export function IslandApp() {
   const navigation = useIslandNavigation();
-  // The brightness read is slow (PowerShell): read it once the island has settled in, so the System
-  // page's sliders are already there when it first opens.
+  // The first brightness read opens the WMI connection: do it once the island has settled in, so the
+  // System page's sliders are already there when it first opens.
   useEffect(() => {
     const timer = window.setTimeout(() => void warmQuickControls(), 1500);
     return () => window.clearTimeout(timer);

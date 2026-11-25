@@ -14,8 +14,8 @@ import {
 
 /**
  * The last readings, kept across the System page closing and opening again, and across restarts
- * (storage.ts). The brightness read is a PowerShell call, so without these the sliders were missing
- * on every first visit and popped in a moment later.
+ * (storage.ts). The first read has to open the WMI connection, so without these the sliders could be
+ * missing on a first visit and pop in a moment later.
  */
 const lastKnown: { volume: number | null; brightness: number | null } = loadLastReadings();
 

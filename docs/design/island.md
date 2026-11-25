@@ -165,5 +165,5 @@ Clock uses fixed tabular digit widths, updating on the minute in leaf components
 
 - A full-width card at the top of the System page with a volume slider and, only on a laptop's built-in screen, a brightness slider. Each row is an icon, the slider and its percentage; the volume icon follows the level (muted, low, high).
 - Nothing is drawn until a value has been read, and nothing at all where neither can be read. Brightness never goes below 5%.
-- Sliders send their newest value after a short rest (volume 60 ms, brightness 350 ms, since each brightness change costs a PowerShell call), never two calls at once, and a change made just before the page closes still goes through. Shown by default; Settings → System → Visible Cards → Volume & Brightness hides the card.
+- Sliders send their newest value while they move (gathered for 60 ms, without waiting for the slider to rest), never two calls at once, and a change made just before the page closes still goes through. Shown by default; Settings → System → Visible Cards → Volume & Brightness hides the card.
 

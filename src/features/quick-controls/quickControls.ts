@@ -1,9 +1,9 @@
 /** Mirrors MIN_PERCENT in src-tauri/src/brightness/mod.rs: 0 turns some panels fully dark. */
 export const MIN_BRIGHTNESS_PERCENT = 5;
 
-/** How long a slider rests before its value is sent; a brightness change costs a PowerShell call. */
+/** How long a slider's moves are gathered before the newest value is sent. */
 export const VOLUME_DELAY_MS = 60;
-export const BRIGHTNESS_DELAY_MS = 350;
+export const BRIGHTNESS_DELAY_MS = 60;
 
 /** A whole percentage from `min` to 100; anything that is not a number becomes `min`. */
 export function clampPercent(value: number, min = 0): number {

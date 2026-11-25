@@ -1,4 +1,8 @@
 //! Release notes for Settings → Changelog: the descriptions of Skerry's published GitHub releases.
+//!
+//! They come from the newest release's changelog.json (scripts/release/changelog-json.mjs), a plain
+//! file download. GitHub's API is only the fallback: it allows an unsigned-in IP address 60
+//! requests an hour, and users behind a shared address found that already used up.
 
 use std::time::Duration;
 
@@ -6,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::system::updater::get_updater_proxy;
 
+const CHANGELOG_URL: &str = "https://github.com/ahmad-maqsood/skerry-island/releases/latest/download/changelog.json";
 const RELEASES_URL: &str = "https://api.github.com/repos/ahmad-maqsood/skerry-island/releases";
 const RELEASES_PER_PAGE: &str = "30";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(12);
@@ -96,10 +101,13 @@ fn client() -> Result<reqwest::Client, String> {
     builder.build().map_err(|error| format!("Could not create the request: {error}"))
 }
 
-async fn download() -> Result<Vec<u8>, String> {
+fn api_url() -> Result<reqwest::Url, String> {
     // reqwest is built without its query feature, so the parameter goes into the URL by hand.
-    let url = reqwest::Url::parse_with_params(RELEASES_URL, [("per_page", RELEASES_PER_PAGE)])
-        .map_err(|error| error.to_string())?;
+    reqwest::Url::parse_with_params(RELEASES_URL, [("per_page", RELEASES_PER_PAGE)])
+        .map_err(|error| error.to_string())
+}
+
+async fn download(url: reqwest::Url) -> Result<Vec<u8>, String> {
     let response = client()?
         .get(url)
         .header(reqwest::header::ACCEPT, "application/vnd.github+json")
@@ -129,7 +137,19 @@ async fn download() -> Result<Vec<u8>, String> {
 
 #[tauri::command]
 pub async fn fetch_release_notes() -> Result<Vec<ReleaseNote>, String> {
-    parse_releases(&download().await?)
+    match published_changelog().await {
+        Ok(releases) => Ok(releases),
+        // A release from before changelog.json, or a damaged file: ask the API instead.
+        Err(error) => {
+            eprintln!("changelog.json was not usable, asking the GitHub API: {error}");
+            parse_releases(&download(api_url()?).await?)
+        }
+    }
+}
+
+async fn published_changelog() -> Result<Vec<ReleaseNote>, String> {
+    let url = reqwest::Url::parse(CHANGELOG_URL).map_err(|error| error.to_string())?;
+    parse_releases(&download(url).await?)
 }
 
 macro_rules! tauri_commands {

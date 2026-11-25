@@ -6,6 +6,8 @@ export type SettingsChangelogText = {
   showingSaved: string;
   failed: string;
   refresh: string;
+  /** Under the status row: when the list was fetched from GitHub; the time is already formatted. */
+  lastUpdated: (time: string) => string;
   empty: string;
   /** A release whose description has nothing to show. */
   noDetails: string;
@@ -23,6 +25,7 @@ export const en: SettingsChangelogText = {
   showingSaved: "Could not reach GitHub, so this is the list saved from the last time.",
   failed: "Could not load the release notes.",
   refresh: "Refresh",
+  lastUpdated: (time) => `Last updated ${time}.`,
   empty: "No releases have been published yet.",
   noDetails: "No description for this release.",
   installed: "Installed",

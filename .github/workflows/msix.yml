@@ -1,0 +1,66 @@
+name: Microsoft Store package
+
+# Manual only: Actions > "Microsoft Store package" > Run workflow. Nothing to do on your own computer.
+# Builds the app with the in-app updater switched off (src-tauri/tauri.store.conf.json) and wraps it
+# in an unsigned .msix; the Store signs it for free when you upload it in Partner Center.
+# One-time setup and per-release steps: docs/microsoft-store.md
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: msix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  msix:
+    name: Build MSIX
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
+      MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
+      MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      # Same version as rust-toolchain.toml; change both together.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          shared-key: skerry-msix
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The overlay clears the updater public key, so the Store build never offers in-app
+      # updates (the Store delivers them). GitHub installers are built by release.yml and keep
+      # the updater. --no-bundle builds only the executable, with no NSIS or MSI installers.
+      - name: Build the Store executable
+        run: pnpm tauri build --ci --no-bundle --config src-tauri/tauri.store.conf.json
+
+      - name: Package MSIX
+        run: ./scripts/build-msix.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skerry-msix
+          path: build/msix/*.msix
+          if-no-files-found: error
+          retention-days: 30

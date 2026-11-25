@@ -57,7 +57,8 @@ export function getNoticeSize({ sender, body }: NoticeText, limits: NoticeLimits
   const textWidth = (text: string) => Math.ceil(getCollapsedTextUnits(text) * unit);
   const paragraphs = body.split(/\r?\n/);
   const overflow = Math.max(0, limits.measuredOverflow ?? 0);
-  const oneLine = textWidth(`${sender} · ${body}`) + ONE_LINE_CHROME + overflow;
+  // The bar draws the " · " only when there is a body (airplane mode has none).
+  const oneLine = textWidth(body.trim() ? `${sender} · ${body}` : sender) + ONE_LINE_CHROME + overflow;
   if (!limits.forceReader && paragraphs.length <= 1 && oneLine <= limits.baseWidth && overflow === 0) return null;
 
   const scale = limits.collapsedScale > 0 ? limits.collapsedScale : 1;

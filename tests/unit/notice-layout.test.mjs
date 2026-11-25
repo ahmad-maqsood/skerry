@@ -148,3 +148,31 @@ test("the title and the body cut off side by side add up; other clipped elements
   const widened = getNoticeSize({ sender: "Charger unplugged", body: "90%" }, { ...narrow, measuredOverflow: oneLineOverflow([30, 25], []) });
   assert.ok(widened.width >= 240 + 55 && widened.reader === false);
 });
+
+test("short status pop-ups stay one line, inside the limits, and grow with the island font size", () => {
+  const status = [
+    { sender: "Charger unplugged", body: "90%" },
+    { sender: "Charger plugged in", body: "100%" },
+    { sender: "Airplane mode on", body: "" },
+    { sender: "WH-1000XM5", body: "Connected" },
+    { sender: "Sony WH-1000XM5 Wireless Headphones, Pixel Buds Pro 2", body: "Connected" },
+  ];
+  for (const message of status) {
+    let previous = 0;
+    for (const fontScale of [0.8, 1, 1.25, 1.5]) {
+      const size = getNoticeSize(message, { ...limits, baseWidth: 240, fontScale, oneLineOnly: true });
+      const width = size ? size.width : 240;
+      if (size) assert.ok(size.reader === false && size.height === limits.baseHeight && size.width <= limits.maxWidth, `${message.sender} at ${fontScale}`);
+      assert.ok(width >= previous, `${message.sender} does not shrink at ${fontScale}`);
+      previous = width;
+    }
+  }
+});
+
+test("a pop-up without a body does not make room for the separator it does not draw", () => {
+  const options = { ...limits, baseWidth: 240, fontScale: 1.5, oneLineOnly: true };
+  // null means it fits the bar as it is, the narrowest answer.
+  const widthOf = (body) => getNoticeSize({ sender: "Airplane mode on", body }, options)?.width ?? options.baseWidth;
+  assert.ok(widthOf("") <= widthOf("x"));
+  assert.equal(widthOf("") >= options.baseWidth, true);
+});

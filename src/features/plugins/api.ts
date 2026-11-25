@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { openUrlFromResult } from "./pluginFeed.ts";
 
 // Mirrors plugin_host/{manifest,protocol,storage,service,packages}.rs.
 export type Localized = { "zh-CN": string; en: string };
@@ -20,6 +22,11 @@ export const uninstallPlugin = (id: string) => invoke<void>("uninstall_plugin", 
 export const setPluginEnabled = (id: string, enabled: boolean) => invoke<void>("set_plugin_enabled", { id, enabled });
 export const setPluginSetting = (id: string, key: string, value: boolean | string) => invoke<void>("set_plugin_setting", { id, key, value });
 export const runPluginAction = (id: string, action: string) => invoke<unknown>("run_plugin_action", { id, action });
+/** Runs an item's action; when the plugin answers `{ openUrl }` with an https address, opens it in the browser. */
+export async function openPluginLink(id: string, action: string): Promise<void> {
+  const url = openUrlFromResult(await runPluginAction(id, action));
+  if (url) await openUrl(url);
+}
 export const configurePlugins = (developerMode: boolean, indexUrl: string) => invoke<void>("configure_plugins", { developerMode, indexUrl });
 export const loadDevelopmentPlugin = (directory: string) => invoke<void>("load_development_plugin", { directory });
 export const onPluginsChanged = (refresh: () => void) => listen(PLUGINS_EVENT, refresh);

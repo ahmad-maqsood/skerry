@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useTranslation } from "../../i18n";
 import { MessageCard } from "./MessageCard";
 import { MessageSourceIcon } from "./MessageSourceIcon";
@@ -6,8 +6,20 @@ import type { SystemNotification } from "./system-notifications/types";
 import type { SystemNotificationsController } from "./system-notifications/useSystemNotifications";
 import "./Messages.css";
 
+/** More content for the page from outside the messages feature, such as what plugins report. */
+export type MessagesExtra = {
+  /** Cards it shows, counted next to the title. */
+  count: number;
+  /** True when it shows anything at all, so the page is not called empty. */
+  hasContent: boolean;
+  node: ReactNode;
+  /** Called by "Clear all", along with clearing the system notifications. */
+  onClear: () => void;
+};
+
 export type MessagesPanelProps = {
   controller: SystemNotificationsController;
+  extra?: MessagesExtra;
 };
 
 export function messagePanelHeight(_reading = false): number {
@@ -21,10 +33,11 @@ type AppGroup = {
   items: SystemNotification[];
 };
 
-export function MessagesPanel({ controller }: MessagesPanelProps) {
+export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
   const t = useTranslation();
   const { snapshot, clearAll, dismissOne, dismissApp, openApp } = controller;
   const { items } = snapshot;
+  const total = items.length + (extra?.count ?? 0);
 
   // Group notifications by app, newest first
   const groups = useMemo(() => {
@@ -50,20 +63,23 @@ export function MessagesPanel({ controller }: MessagesPanelProps) {
       <div className="messages-toolbar">
         <span className="messages-toolbar__title">
           {t.messages.title}
-          {items.length > 0 && ` (${items.length})`}
+          {total > 0 && ` (${total})`}
         </span>
-        {items.length > 0 && (
+        {total > 0 && (
           <button
             className="messages-toolbar__action"
             type="button"
-            onClick={() => void clearAll()}
+            onClick={() => {
+              if (items.length > 0) void clearAll();
+              extra?.onClear();
+            }}
           >
             {t.messages.clearAll}
           </button>
         )}
       </div>
 
-      {groups.length === 0 ? (
+      {groups.length === 0 && !extra?.hasContent ? (
         <div className="messages-empty">
           <p>{t.messages.noNotifications}</p>
         </div>
@@ -109,6 +125,7 @@ export function MessagesPanel({ controller }: MessagesPanelProps) {
               ))}
             </div>
           ))}
+          {extra?.node}
         </div>
       )}
     </div>

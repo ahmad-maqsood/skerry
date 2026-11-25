@@ -47,6 +47,7 @@ export const PAGES = [
   "island-tour.html?test=1&theme=light&material=frostedGlass",
   "message-clear.html",
   "message-clear.html?lang=en",
+  "plugin-feed.html?features=enabled",
   "message-preview-duration.html",
   "lyric-clock.html",
   "lyric-word-fill.html",

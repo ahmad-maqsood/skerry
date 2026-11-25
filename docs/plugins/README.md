@@ -124,7 +124,7 @@ No. You only need to build the feature; optional-install adaptation is completed
 
 ## 7. Plugin API v1 (executable plugins)
 
-Besides source-level contributions (sections 1-6), the app ships a plugin host that runs a separate executable and shows what it publishes in native island components. The three example plugins in this repository (`plugins/gemini`, `plugins/grok-bot`, `plugins/hermes`) use it. The host lives in `src-tauri/src/plugin_host/`, the frontend in `src/features/plugins/`, and the commands and events are listed in [contracts.md](../architecture/contracts.md#plugin-api-v1).
+Besides source-level contributions (sections 1-6), the app ships a plugin host that runs a separate executable and shows what it publishes in native island components. The four example plugins in this repository (`plugins/gemini`, `plugins/github`, `plugins/grok-bot`, `plugins/hermes`) use it. The host lives in `src-tauri/src/plugin_host/`, the frontend in `src/features/plugins/`, and the commands and events are listed in [contracts.md](../architecture/contracts.md#plugin-api-v1).
 
 ### Layout
 
@@ -152,8 +152,16 @@ JSON-RPC 2.0, one JSON object per line over the plugin's stdin and stdout (only 
 
 1. The host sends `initialize` with `{ apiVersion: 1, settings }` and waits up to 10 seconds. A plugin must not publish before it has answered.
 2. The plugin sends `publish` notifications (no `id`) with `{ quota, sessions, notifications }`. At most 32 quota items, 200 sessions and 100 notifications; each kind must be declared in `contributes`; ids are unique; strings are at most 4096 characters; percentages are 0-100; a session `status` is `running`, `waiting` or `completed`.
-3. The host sends `action` with `{ id }` when the user triggers a manifest action; the plugin has 15 seconds to answer.
+3. The host sends `action` with `{ id }` when the user triggers a manifest action, or clicks a session or notification that was published with that `action` id; the plugin has 15 seconds to answer. The answer may be `{ "openUrl": "https://..." }`: the island then opens that https address (no login in it) in the default browser, and ignores any other answer.
 4. On stop the host sends a `shutdown` notification and waits about 3 seconds before ending the process. A plugin that exits is restarted with backoff (1, 2, 4, 8, 16, then 32 seconds) and then left stopped.
+
+### Where plugin data shows
+
+On the island, plugin notifications appear in the Messages page as cards grouped by `appName`, and sessions appear under "<plugin name> activity" (the newest 8 per plugin). The user can clear notifications; the island remembers each cleared one by plugin id and notification id, so a plugin should keep republishing the same ids while something is still current, and change the id when something new happens. A plugin publishes a full snapshot each time: what it leaves out is removed from the island. Quota items are not shown on the island yet.
+
+### Example: GitHub
+
+`plugins/github` shows workflow runs as sessions, and failed runs, review requests and mentions as notifications. The user adds their own token (a classic token with the `notifications` scope, plus `repo` for private repositories) and the repositories to watch (`owner/repo`, up to 15); nothing is shipped with the plugin. It only talks to `api.github.com`, uses ETags so unchanged answers cost no rate limit, and pauses when GitHub says the token is out of requests. Clicking an item answers an `open:/owner/repo/...` action with `{ "openUrl": "https://github.com/..." }`.
 
 ### Storage, secrets and distribution
 

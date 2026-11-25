@@ -14,7 +14,6 @@ import "./TodoNotebook.css";
 
 // A stable stand-in, so the saved days are not read again on every render.
 const listNoDayFiles = async () => null;
-const keepNoNoteImage = async () => null;
 
 export function TodoNotebook({
   todos,
@@ -56,8 +55,6 @@ export function TodoNotebook({
   onListDayFiles = listNoDayFiles,
   onOpenPastDayFile = () => {},
   onOpenNotesFolder = () => {},
-  onSaveNoteImage = keepNoNoteImage,
-  onReadNoteImage = keepNoNoteImage,
 }: {
   todos: TodoItem[];
   dailyNote: string;
@@ -106,10 +103,6 @@ export function TodoNotebook({
   onOpenPastDayFile?: (date: string) => void;
   /** Opens the folder the days are saved in. */
   onOpenNotesFolder?: () => void;
-  /** Saves an image pasted into the note; resolves to the path the note refers to, or null. */
-  onSaveNoteImage?: (image: Blob) => Promise<string | null>;
-  /** A saved note image as a data URL, for its thumbnail. */
-  onReadNoteImage?: (relativePath: string) => Promise<string | null>;
 }) {
   const t = useTranslation();
   const calendarTodos = useMemo(
@@ -169,8 +162,6 @@ export function TodoNotebook({
           onListDayFiles={onListDayFiles}
           onOpenPastDayFile={onOpenPastDayFile}
           onOpenFolder={onOpenNotesFolder}
-          onSaveImage={onSaveNoteImage}
-          onReadImage={onReadNoteImage}
         />
       ) : pageMode === "upcoming" ? (
         <ScheduledTodoList todos={scheduledTodos} onDelete={onDeleteScheduledTodo} />

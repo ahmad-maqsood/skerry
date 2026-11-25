@@ -203,8 +203,7 @@
   padding: 8px 10px 12px;
   resize: none;
   color: var(--text-1);
-  /* The box (background, border, corners, focus ring) is .daily-note-editor__main, so the pictures
-     under the text sit inside it; the text area only fills it. */
+  /* The box (background, border, corners, focus ring) is .daily-note-editor__main; the text area only fills it. */
   background: transparent;
   border: 0;
   border-radius: 0;

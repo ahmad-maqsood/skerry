@@ -3,8 +3,6 @@ import { FolderOpen, History, Maximize2, Minimize2 } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import type { TodoMarkdownFileEntry } from "./api";
 import { DailyNoteHistory } from "./DailyNoteHistory";
-import { DailyNoteImages } from "./DailyNoteImages";
-import { useNoteImagePaste } from "./useNoteImagePaste";
 import "./DailyNoteEditor.css";
 
 /** The daily note: the text on the left, a rail of icon actions on the right. */
@@ -17,8 +15,6 @@ export function DailyNoteEditor({
   onListDayFiles,
   onOpenPastDayFile,
   onOpenFolder,
-  onSaveImage,
-  onReadImage,
 }: {
   value: string;
   /** The list's own day, YYYY-MM-DD. */
@@ -30,11 +26,8 @@ export function DailyNoteEditor({
   onListDayFiles: () => Promise<TodoMarkdownFileEntry[] | null>;
   onOpenPastDayFile: (date: string) => void;
   onOpenFolder: () => void;
-  onSaveImage: (image: Blob) => Promise<string | null>;
-  onReadImage: (relativePath: string) => Promise<string | null>;
 }) {
   const t = useTranslation();
-  const { textareaRef, onPaste } = useNoteImagePaste(value, onChange, onSaveImage);
   // Which of the two the text area's place shows: today's note, or the saved days.
   const [showingHistory, setShowingHistory] = useState(false);
   const expandLabel = expanded ? t.notebook.collapseNotes : t.notebook.expandNotes;
@@ -47,16 +40,13 @@ export function DailyNoteEditor({
       ) : (
         <div className="daily-note-editor__main">
           <textarea
-            ref={textareaRef}
             className="daily-note"
             value={value}
             placeholder={t.notebook.dailyPlaceholder}
             aria-label={t.notebook.dailyNoteLabel}
             spellCheck={false}
             onChange={(event) => onChange(event.currentTarget.value)}
-            onPaste={onPaste}
           />
-          <DailyNoteImages note={value} onRead={onReadImage} />
         </div>
       )}
       <div className="daily-note-editor__rail" role="toolbar" aria-orientation="vertical" aria-label={t.notebook.notesActions}>

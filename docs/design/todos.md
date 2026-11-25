@@ -88,8 +88,3 @@ English: Before-end reminders and their optional sound are off by default. The t
 - An "Add todo" input box sits below headings for today and future dates. Pressing Enter places today's todos into today's list and future ones into "Upcoming". Upcoming todos use a purple dashed box, displaying a delete button on hover. Past dates read completion status from archives; unfinished items can be "Moved to today". When an unfinished item with the same name already exists today, the button indicates it has already been added.
 - Calendar expanded height is 384px, constrained by maximum panel height. A six-week calendar displays completely at default height, and the right list can display approximately five single-line todos. (Agent inference: dimensions)
 - Selected state has a short transition; lists fade in subtly when switching dates; switches directly when reduce motion is enabled. Regression page is `tests/regression/todo-history-calendar.html`.
-
-## Note Images
-
-- Images pasted into the daily note are saved next to the day's file and referenced as `![image](assets/<name>)`. Each one is shown as a 96 x 64px picture in a row under the note text (newest 12).
-- Clicking a picture enlarges it over the island (`NoteImageViewer`, portalled into `.island` so it stays inside the shape): the whole original fits the panel, the backdrop is dark, and a click anywhere, the close button, or Escape puts it away. Escape closes only the picture, not the island.

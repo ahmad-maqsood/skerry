@@ -8,7 +8,7 @@ export const TRANSLATION_PROVIDERS = [
 
 export type TranslationProvider = (typeof TRANSLATION_PROVIDERS)[number];
 
-export const DEFAULT_TRANSLATION_PROVIDER: TranslationProvider = "google";
+export const DEFAULT_TRANSLATION_PROVIDER: TranslationProvider = "mymemory";
 export const LEGACY_TRANSLATION_PROVIDER: TranslationProvider = "google";
 
 export const DEFAULT_PROVIDER_MODELS: Partial<Record<TranslationProvider, string>> = {};

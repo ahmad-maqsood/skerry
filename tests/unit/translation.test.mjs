@@ -25,7 +25,7 @@ test("settings saved before providers existed keep Google and their shortcut and
     autoTranslate: false,
   });
   assert.deepEqual(normalizeTranslationSettings(null), DEFAULT_SETTINGS);
-  assert.equal(DEFAULT_SETTINGS.provider, "google");
+  assert.equal(DEFAULT_SETTINGS.provider, "mymemory");
   assert.equal(normalizeTranslationSettings({ shortcut: "Alt+Space" }).shortcut, "Ctrl+Shift+F");
   assert.equal(normalizeTranslationSettings({ shortcut: "Alt+C" }).shortcut, "Ctrl+Shift+F");
 });

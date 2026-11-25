@@ -13,6 +13,11 @@ type SliderRowProps = {
   onChange: (percent: number) => void;
 };
 
+/** Where the thumb sits along the track, 0 to 1. The range starts at `min`, so the value alone is not the position. */
+function fillRatio(value: number, min: number): number {
+  return Math.min(1, Math.max(0, (value - min) / (100 - min)));
+}
+
 function SliderRow({ icon: Icon, label, value, min = 0, onChange }: SliderRowProps): ReactNode {
   return (
     <label className="quick-controls__row">
@@ -25,7 +30,7 @@ function SliderRow({ icon: Icon, label, value, min = 0, onChange }: SliderRowPro
         step={1}
         value={value}
         aria-label={label}
-        style={{ "--quick-controls-fill": `${value}%` } as React.CSSProperties}
+        style={{ "--quick-controls-fill": fillRatio(value, min) } as React.CSSProperties}
         onChange={(event) => onChange(Number(event.currentTarget.value))}
       />
       <span className="quick-controls__value">{value}%</span>

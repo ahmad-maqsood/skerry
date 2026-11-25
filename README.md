@@ -95,12 +95,12 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
   <b>Music and Lyrics</b>: WinRT GSMTC playback integration with synchronized line-by-line lyrics from LRCLIB.
 </p>
 
-### Tasks, Clipboard, and File Staging
+### Tasks, Translation, and File Staging
 
-<!-- screenshot-todos.png and screenshot-clipboard.png placeholders -->
-| To-Dos and Focus Timer | Searchable Clipboard History |
+<!-- screenshot-todos.png and screenshot-translation.png placeholders -->
+| To-Dos and Focus Timer | Quick Translation |
 | :---: | :---: |
-| <img src="docs/assets/screenshots/screenshot-todos.png" alt="To-dos and focus timer" width="460"><br><b>Tasks &amp; Focus</b>: Daily checklist with timers and local Markdown sync. | <img src="docs/assets/screenshots/screenshot-clipboard.png" alt="Independent clipboard history window" width="460"><br><b>Clipboard Window</b>: Hotkey-driven (`Ctrl+Shift+W` by default) history with search, favorites, and type filters. |
+| <img src="docs/assets/screenshots/screenshot-todos.png" alt="To-dos and focus timer" width="460"><br><b>Tasks &amp; Focus</b>: Daily checklist with timers and local Markdown sync. | <img src="docs/assets/screenshots/screenshot-translation.png" alt="Quick translation page on the island" width="460"><br><b>Quick Translation</b>: Type or paste text, pick a language, and translate without leaving the island. Keyless MyMemory by default. |
 
 <!-- screenshot-file-shelf.png and screenshot-system.png placeholders -->
 | Drag-and-Drop File Shelf | Live PC Health Monitor |

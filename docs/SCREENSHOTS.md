@@ -1,6 +1,6 @@
 # Screenshot Guide
 
-Skerry's README screenshots come from the **real, current UI** (the production React components and styles), rendered in headless Chrome or Edge at a high pixel density. Nothing is drawn by hand and nothing is captured automatically: you run the command yourself when the UI has changed.
+Skerry's README screenshots come from the **real, current UI** (the production React components and styles), rendered in headless Chrome or Edge at a high pixel density. Nothing is drawn by hand and nothing is captured automatically: you run the command yourself (or start the manual workflow) when the UI has changed.
 
 ## Run the capture
 
@@ -21,7 +21,11 @@ pnpm screenshots --out=./out
 
 The command starts this checkout's Vite server, opens each scene in a headless browser, waits for the scene to report that it is ready, and crops the picture on whole pixels. The desktop colour behind the island gives the glass materials something to blur. Only the screenshot scenes (`tests/screenshots/`) use mocked data; the app code is unchanged.
 
-There is no CI workflow for screenshots: they are never refreshed on a schedule or on a push. Commit the new images yourself.
+## Run it in GitHub Actions
+
+The **Screenshots** workflow (`.github/workflows/screenshots.yml`) runs the same command on a Windows runner, so the pictures use Segoe UI like the installed app. It starts **only when you run it** from the Actions tab (Run workflow); it never runs on a push, a pull request or a schedule. Two optional inputs pick the shots (the same words as the command line, empty for all) and the pixel density.
+
+The images come back as the `skerry-screenshots` artifact on the run page (kept for 14 days). Nothing is committed: download them, copy the ones you want into `docs/assets/screenshots/`, and commit them yourself.
 
 ## How the Tauri commands are mocked
 
@@ -42,7 +46,7 @@ There is no CI workflow for screenshots: they are never refreshed on a schedule 
 | `screenshot-messages.png` | `messages` | Expanded notification feed |
 | `screenshot-music.png` | `music` | Media controls and synchronized demo lyrics |
 | `screenshot-todos.png` | `todos` | Checklist and running focus timer |
-| `screenshot-clipboard.png` | `clipboard` | Standalone clipboard history window |
+| `screenshot-translation.png` | `translation` | Quick translation page on the island, with the keyless MyMemory service |
 | `screenshot-file-shelf.png` | `shelf` | File staging shelf |
 | `screenshot-system.png` | `system` | System monitor dashboard |
 | `screenshot-settings.png` | `settings` | Settings and appearance controls |

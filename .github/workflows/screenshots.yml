@@ -1,0 +1,58 @@
+name: Screenshots
+
+# Manual only: run it from the Actions tab ("Run workflow"). It never runs on a push, a pull
+# request or a schedule. The images come back as a downloadable artifact; nothing is committed.
+on:
+  workflow_dispatch:
+    inputs:
+      shots:
+        description: 'Shots to capture, by scene or file name, separated by spaces (empty = all)'
+        required: false
+        default: ''
+      scale:
+        description: 'Pixel density, a whole number from 1 to 4'
+        required: false
+        default: '3'
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    name: Capture screenshots
+    # Windows has Segoe UI like the installed app, and the runner already has Chrome.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The inputs go through env, never straight into the script text.
+      - name: Capture
+        shell: bash
+        env:
+          SHOTS: ${{ inputs.shots }}
+          SCALE: ${{ inputs.scale }}
+        run: |
+          # SHOTS is split into words on purpose (it may hold several scene names).
+          # shellcheck disable=SC2086
+          node scripts/capture-screenshots.mjs $SHOTS --scale="$SCALE" --out=./screenshots-out
+
+      - name: Upload the images
+        uses: actions/upload-artifact@v4
+        with:
+          name: skerry-screenshots
+          path: screenshots-out/*.png
+          if-no-files-found: error
+          retention-days: 14

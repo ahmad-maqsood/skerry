@@ -21,10 +21,22 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
     env:
-      MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
-      MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
-      MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+      MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME || secrets.MSIX_IDENTITY_NAME }}
+      MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER || secrets.MSIX_PUBLISHER }}
+      MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME || secrets.MSIX_PUBLISHER_DISPLAY_NAME }}
     steps:
+      # Fails in seconds, before the long build, if a Store identity value is missing. Each value
+      # can be a repository variable or a repository secret.
+      - name: Check the Store identity values
+        shell: pwsh
+        run: |
+          $missing = 'MSIX_IDENTITY_NAME', 'MSIX_PUBLISHER', 'MSIX_PUBLISHER_DISPLAY_NAME' |
+            Where-Object { [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_)) }
+          foreach ($name in $missing) {
+            Write-Host "::error::$name is empty. Add it under Settings > Secrets and variables > Actions, then run again."
+          }
+          if ($missing) { exit 1 }
+
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4

@@ -21,8 +21,9 @@ are built by `release.yml` without this overlay and keep the updater.
    app name (new product -> MSIX or PWA app).
 2. In Partner Center open Product management -> Product identity and copy the
    three values.
-3. In GitHub open Settings -> Secrets and variables -> Actions -> Variables and
-   add these repository variables:
+3. In GitHub open Settings -> Secrets and variables -> Actions and add these
+   three values, either as repository variables (Variables tab) or as
+   repository secrets (Secrets tab); the workflow reads both:
 
    | Variable | Partner Center value |
    | --- | --- |

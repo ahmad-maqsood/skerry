@@ -3,7 +3,7 @@
   Wraps the Tauri release build in an MSIX package for the Microsoft Store.
   Runs on the windows-latest runner after `pnpm tauri build --no-bundle`.
   Needs the env vars MSIX_IDENTITY_NAME, MSIX_PUBLISHER and
-  MSIX_PUBLISHER_DISPLAY_NAME (GitHub repository variables, copied from
+  MSIX_PUBLISHER_DISPLAY_NAME (GitHub repository variables or secrets, copied from
   Partner Center -> Product management -> Product identity).
 #>
 param(
@@ -14,7 +14,7 @@ $ErrorActionPreference = 'Stop'
 
 foreach ($n in 'MSIX_IDENTITY_NAME', 'MSIX_PUBLISHER', 'MSIX_PUBLISHER_DISPLAY_NAME') {
   if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($n))) {
-    throw "Repository variable $n is not set. See docs/microsoft-store.md."
+    throw "$n is empty. Add it as a repository variable or secret. See docs/microsoft-store.md."
   }
 }
 

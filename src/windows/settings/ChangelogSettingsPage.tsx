@@ -34,14 +34,7 @@ export function ChangelogSettingsPage() {
 
   return (
     <>
-      <SettingsGroup>
-        <SettingsRow
-          title={<span role="status">{status}</span>}
-          description={description}
-          control={<SettingsLinkButton disabled={loading} onClick={refresh}>{text.refresh}</SettingsLinkButton>}
-        />
-      </SettingsGroup>
-      <ReleaseNotesList releases={releases} installedVersion={version} />
+      {/* Above the list: below it, the link moved further away with every release. */}
       <SettingsGroup>
         <ProjectLink
           href={PROJECT_RELEASES_URL}
@@ -50,6 +43,14 @@ export function ChangelogSettingsPage() {
           icon={<ExternalLink className="project-link__icon" size={18} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />}
         />
       </SettingsGroup>
+      <SettingsGroup>
+        <SettingsRow
+          title={<span role="status">{status}</span>}
+          description={description}
+          control={<SettingsLinkButton disabled={loading} onClick={refresh}>{text.refresh}</SettingsLinkButton>}
+        />
+      </SettingsGroup>
+      <ReleaseNotesList releases={releases} installedVersion={version} />
     </>
   );
 }

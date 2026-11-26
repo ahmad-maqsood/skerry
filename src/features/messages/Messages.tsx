@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "../../i18n";
 import { MessageCard } from "./MessageCard";
 import { MessageSourceIcon } from "./MessageSourceIcon";
-import { visibleSection, type MessageSection } from "./messageSections";
+import { loadMessageSection, saveMessageSection, visibleSection, type MessageSection } from "./messageSections";
 import type { SystemNotification } from "./system-notifications/types";
 import type { SystemNotificationsController } from "./system-notifications/useSystemNotifications";
 import "./Messages.css";
@@ -39,9 +39,9 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
   const { snapshot, clearAll, dismissOne, dismissApp, openApp } = controller;
   const { items } = snapshot;
   const total = items.length + (extra?.count ?? 0);
-  const [chosen, setChosen] = useState<MessageSection | null>(null);
+  const [chosen, setChosen] = useState<MessageSection | null>(loadMessageSection);
   const pluginsHaveContent = extra?.hasContent ?? false;
-  const section = visibleSection(chosen, items.length, pluginsHaveContent);
+  const section = visibleSection(chosen, pluginsHaveContent);
   const shownCount = section === "plugins" ? (extra?.count ?? 0) : items.length;
   const sectionCounts: Record<MessageSection, number> = { system: items.length, plugins: extra?.count ?? 0 };
   const sectionNames: Record<MessageSection, string> = { system: t.messages.sectionSystem, plugins: t.messages.sectionPlugins };
@@ -80,7 +80,10 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
                 className="messages-switch__option"
                 type="button"
                 aria-pressed={section === id}
-                onClick={() => setChosen(id)}
+                onClick={() => {
+                  setChosen(id);
+                  saveMessageSection(id);
+                }}
               >
                 {sectionNames[id]}
                 {sectionCounts[id] > 0 && <span className="messages-switch__count">{sectionCounts[id]}</span>}

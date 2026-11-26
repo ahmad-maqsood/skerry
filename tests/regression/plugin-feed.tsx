@@ -13,7 +13,7 @@ import { PluginMessagesSection } from "../../src/windows/island/PluginMessagesSe
 
 // Opened with ?features=enabled: the plugin host is switched on, as in development builds.
 Object.assign(globalThis, { isTauri: true, IS_REACT_ACT_ENVIRONMENT: true });
-const keys = ["skerry-locale", "skerry-system-notification-access-requested", PLUGIN_DISMISSED_KEY];
+const keys = ["skerry-locale", "skerry-system-notification-access-requested", PLUGIN_DISMISSED_KEY, "skerry-messages-section"];
 const original = keys.map((key) => localStorage.getItem(key));
 window.addEventListener("beforeunload", () => keys.forEach((key, index) => {
   if (original[index] === null) localStorage.removeItem(key); else localStorage.setItem(key, original[index]!);
@@ -21,6 +21,7 @@ window.addEventListener("beforeunload", () => keys.forEach((key, index) => {
 localStorage.setItem(keys[0], "en");
 localStorage.setItem(keys[1], "true");
 localStorage.removeItem(PLUGIN_DISMISSED_KEY);
+localStorage.removeItem("skerry-messages-section");
 
 const now = Date.now();
 const manifest = { id: "github", name: { en: "GitHub", "zh-CN": "GitHub" }, description: { en: "x", "zh-CN": "x" }, version: "0.1.0", apiVersion: 1,
@@ -120,7 +121,7 @@ try {
   await act(async () => root.unmount());
   root = createRoot(document.getElementById("fixture")!);
   await mount();
-  await show("Plugins");
+  check(option("Plugins").getAttribute("aria-pressed") === "true", "The last picked section is remembered after a restart");
   check(cards().length === 1 && cards()[0].textContent?.includes("CI failed"), "A dismissed notification stays gone after a restart");
 
   const clearAll = document.querySelector<HTMLButtonElement>(".messages-toolbar__action")!;

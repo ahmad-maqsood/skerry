@@ -107,11 +107,11 @@ test("what the laid-out preview still overflowed by grows the island past the es
   // The estimate says it fits; status icons beside the text cut it off, as measured.
   const short = { sender: "Alice", body: "OK" };
   assert.equal(getNoticeSize(short, limits), null);
-  const widened = getNoticeSize(short, { ...limits, measuredOverflow: 60 });
+  const widened = getNoticeSize(short, { ...limits, measuredWidth: limits.baseWidth + 60 });
   assert.ok(widened && widened.width >= limits.baseWidth + 60 && widened.reader === false);
   // Past the width limit it turns into the reader instead of staying cut off.
   const medium = { sender: "Alice", body: "Meeting tomorrow at 3 PM in room 302" };
-  assert.equal(getNoticeSize(medium, { ...limits, measuredOverflow: 300 }).reader, true);
+  assert.equal(getNoticeSize(medium, { ...limits, measuredWidth: 640 }).reader, true);
 });
 
 test("a short message's reader is only as wide as the message, even narrower than a wide island", () => {
@@ -128,7 +128,7 @@ test("short status pop-ups widen the one-line bar and never become a reader", as
   const narrow = { ...limits, baseWidth: 240, oneLineOnly: true };
   const charger = { sender: "Charger plugged in", body: "90%" };
   // Cut off as laid out, so the island grows by at least what was measured.
-  const widened = getNoticeSize(charger, { ...narrow, measuredOverflow: 70 });
+  const widened = getNoticeSize(charger, { ...narrow, measuredWidth: 310 });
   assert.ok(widened.width >= 310 && widened.reader === false);
   assert.equal(widened.height, narrow.baseHeight);
   const endless = getNoticeSize({ sender: "Very long device name ".repeat(20), body: "Connected" }, narrow);
@@ -145,7 +145,7 @@ test("the title and the body cut off side by side add up; other clipped elements
   assert.equal(oneLineOverflow([-3, 8], [-1]), 8);
   // Grown by the sum, the one-line bar is at least as wide as what was cut off.
   const narrow = { ...limits, baseWidth: 240, oneLineOnly: true };
-  const widened = getNoticeSize({ sender: "Charger unplugged", body: "90%" }, { ...narrow, measuredOverflow: oneLineOverflow([30, 25], []) });
+  const widened = getNoticeSize({ sender: "Charger unplugged", body: "90%" }, { ...narrow, measuredWidth: 240 + oneLineOverflow([30, 25], []) });
   assert.ok(widened.width >= 240 + 55 && widened.reader === false);
 });
 
@@ -175,4 +175,14 @@ test("a pop-up without a body does not make room for the separator it does not d
   const widthOf = (body) => getNoticeSize({ sender: "Airplane mode on", body }, options)?.width ?? options.baseWidth;
   assert.ok(widthOf("") <= widthOf("x"));
   assert.equal(widthOf("") >= options.baseWidth, true);
+});
+
+test("a bar already wider than its base grows past what was measured, even by a few px", () => {
+  const options = { ...limits, baseWidth: 220, oneLineOnly: true };
+  const charger = { sender: "Charger unplugged", body: "78%" };
+  const estimated = getNoticeSize(charger, options).width;
+  for (const cutOff of [1, 3, 5, 12]) {
+    const needed = estimated + cutOff;
+    assert.ok(getNoticeSize(charger, { ...options, measuredWidth: needed }).width >= needed, `cut off by ${cutOff}`);
+  }
 });

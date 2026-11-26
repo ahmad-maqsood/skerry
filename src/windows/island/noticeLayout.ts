@@ -34,11 +34,11 @@ export type NoticeLimits = {
   /** Use the selectable reader even for a message that fits one line (the adaptive preview always does). */
   forceReader?: boolean;
   /**
-   * How much the one-line preview overflowed when laid out (useMessageNotice measures it): the
-   * estimate leaves out the status icons beside the text and real glyph widths, so the island
-   * had stayed short of the text in the app.
+   * The narrowest the one-line preview can be without cutting its text, as measured once laid out
+   * (useMessageNotice): its width then, plus what was cut off. The estimate leaves out real glyph
+   * widths, so the island had stayed short of the text in the app.
    */
-  measuredOverflow?: number;
+  measuredWidth?: number;
   /** Only ever widen the one-line preview: text past the widest size is cut off, never a reader. */
   oneLineOnly?: boolean;
 };
@@ -56,21 +56,23 @@ export function getNoticeSize({ sender, body }: NoticeText, limits: NoticeLimits
   const unit = UNIT_WIDTH * limits.fontScale;
   const textWidth = (text: string) => Math.ceil(getCollapsedTextUnits(text) * unit);
   const paragraphs = body.split(/\r?\n/);
-  const overflow = Math.max(0, limits.measuredOverflow ?? 0);
+  const measured = Math.max(0, limits.measuredWidth ?? 0);
   // The bar draws the " · " only when there is a body (airplane mode has none).
-  const oneLine = textWidth(body.trim() ? `${sender} · ${body}` : sender) + ONE_LINE_CHROME + overflow;
-  if (!limits.forceReader && paragraphs.length <= 1 && oneLine <= limits.baseWidth && overflow === 0) return null;
+  const estimate = textWidth(body.trim() ? `${sender} · ${body}` : sender) + ONE_LINE_CHROME;
+  const oneLine = Math.max(estimate, measured);
+  if (!limits.forceReader && paragraphs.length <= 1 && oneLine <= limits.baseWidth && measured === 0) return null;
 
   const scale = limits.collapsedScale > 0 ? limits.collapsedScale : 1;
   const widest = Math.min(limits.maxWidth, Math.floor((STAGE_WIDTH - STAGE_SIDE_ROOM) / scale));
   if (limits.oneLineOnly) {
-    // At least what was measured as cut off: rounding to the pixel grid can land just short of it.
-    const width = Math.max(limits.baseWidth, Math.min(widest, Math.max(limits.baseWidth + overflow, alignNoticeWidth(oneLine + 8, widest))));
+    // Never under the measured width: rounding to the pixel grid can land just short of it.
+    const wanted = Math.max(alignNoticeWidth(estimate + 8, widest), alignNoticeWidthUp(measured, widest));
+    const width = Math.max(limits.baseWidth, Math.min(widest, wanted));
     return { width, height: limits.baseHeight, scrolls: false, reader: false };
   }
   // Wider first: a message that fits one line within the limit stays one line.
   if (!limits.forceReader && paragraphs.length <= 1 && oneLine <= widest) {
-    return { width: Math.max(limits.baseWidth + overflow, alignNoticeWidth(oneLine + 8, widest)), height: limits.baseHeight, scrolls: false, reader: false };
+    return { width: Math.max(limits.baseWidth, alignNoticeWidth(estimate + 8, widest), alignNoticeWidthUp(measured, widest)), height: limits.baseHeight, scrolls: false, reader: false };
   }
   const tallest = Math.min(limits.maxHeight, Math.floor((STAGE_MIN_HEIGHT - STAGE_PADDING_Y) / scale));
   const natural = Math.max(
@@ -106,4 +108,9 @@ export function oneLineOverflow(textParts: number[], others: number[]) {
 function alignNoticeWidth(width: number, widest: number) {
   const aligned = Math.round((width - 4) / 8) * 8 + 4;
   return aligned > widest ? aligned - 8 : aligned;
+}
+
+/** The same grid, never rounding below `width` (unless the widest size is narrower). */
+function alignNoticeWidthUp(width: number, widest: number) {
+  return width > 0 ? alignNoticeWidth(Math.ceil((width - 4) / 8) * 8 + 4, widest) : 0;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Puzzle, ShieldCheck } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { SettingsChoice } from "../../components/settings/SettingsChoice";
 import { SettingsGroup } from "../../components/settings/SettingsGroup";
 import { SettingsRow } from "../../components/settings/SettingsRow";
 import { PROJECT_PLUGIN_SPEC_URL, pluginGuideUrl } from "../../features/updater/projectLinks";
@@ -30,6 +31,7 @@ function EnabledPluginsSettingsPage() {
   // The last answer shows at once; the index is on the network and is read again behind it.
   const [stored, setStored] = useState(loadCatalog);
   const [error, setError] = useState("");
+  const [section, setSection] = useState<"installed" | "available">("installed");
   const [busy, setBusy] = useState(false);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogRevision, setCatalogRevision] = useState(0);
@@ -67,8 +69,17 @@ function EnabledPluginsSettingsPage() {
     return () => { disposed = true; };
   }, [registry.developerMode, registry.indexUrl, source, catalogRevision]);
   const installed = Object.values(registry.installed);
+  const available = catalog.filter((e) => !registry.installed[e.id]);
+  const counted = (label: string, count: number) => count > 0 ? `${label} (${count})` : label;
   return <section className="settings-section settings-section--list plugins-settings">
-    <SettingsGroup title={t.installed} action={<SettingsLinkButton disabled={busy || catalogLoading} onClick={() => { void refreshCatalog(); }} >{t.retry}</SettingsLinkButton>}>
+    <div className="plugins-settings__toolbar">
+      <SettingsChoice value={section} ariaLabel={t.sections} onChange={setSection} options={[
+        { value: "installed", label: counted(t.installed, installed.length) },
+        { value: "available", label: counted(t.available, available.length) },
+      ]} />
+      <SettingsLinkButton disabled={busy || catalogLoading} onClick={() => { void refreshCatalog(); }}>{t.retry}</SettingsLinkButton>
+    </div>
+    {section === "installed" && <SettingsGroup>
       {installed.length === 0 && <SettingsRow title={t.empty} control={<Puzzle size={18} aria-hidden="true" />} />}
       {installed.map((p) => <div key={p.manifest.id}>
         <SettingsRow title={p.manifest.name[locale]} description={`${p.manifest.version} · ${t.status[live[p.manifest.id]?.status ?? "stopped"] ?? ""}`} control={<span className="plugins-settings__actions">
@@ -83,12 +94,15 @@ function EnabledPluginsSettingsPage() {
         {p.manifest.settings.map((s) => <PluginSettingRow key={`${p.manifest.id}/${s.key}/${JSON.stringify(p.settings[s.key])}`} setting={s} value={p.settings[s.key] ?? s.default} disabled={disabled} onSave={(value) => { void perform(() => setPluginSetting(p.manifest.id, s.key, value)); }} />)}
         {p.manifest.actions.map((action) => <SettingsRow key={action.id} title={action.label[locale]} control={<SettingsLinkButton disabled={disabled || !p.enabled} onClick={() => { void perform(() => runPluginAction(p.manifest.id, action.id)); }}>{action.label[locale]}</SettingsLinkButton>} />)}
       </div>)}
-    </SettingsGroup>
-    {catalog.some((e) => !registry.installed[e.id]) && <SettingsGroup title={t.available}>
-      {catalog.filter((e) => !registry.installed[e.id]).map((entry) => <SettingsRow key={entry.id} title={entry.name[locale]} description={entry.description[locale]} control={<SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => installPlugin(entry.id)); }}>{t.install}</SettingsLinkButton>} />)}
     </SettingsGroup>}
-    {!known && catalogLoading && <SettingsGroup><SettingsRow title={t.loading} control={<Puzzle size={18} aria-hidden="true" />} /></SettingsGroup>}
-    {catalogUnavailable && <SettingsGroup><SettingsRow title={t.unavailable} control={<SettingsLinkButton disabled={busy || catalogLoading} onClick={() => { void refreshCatalog(); }}>{t.retry}</SettingsLinkButton>} /></SettingsGroup>}
+    {section === "available" && <>
+      {available.length > 0 && <SettingsGroup>
+        {available.map((entry) => <SettingsRow key={entry.id} title={entry.name[locale]} description={entry.description[locale]} control={<SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => installPlugin(entry.id)); }}>{t.install}</SettingsLinkButton>} />)}
+      </SettingsGroup>}
+      {!known && catalogLoading && <SettingsGroup><SettingsRow title={t.loading} control={<Puzzle size={18} aria-hidden="true" />} /></SettingsGroup>}
+      {catalogUnavailable && <SettingsGroup><SettingsRow title={t.unavailable} control={<SettingsLinkButton disabled={busy || catalogLoading} onClick={() => { void refreshCatalog(); }}>{t.retry}</SettingsLinkButton>} /></SettingsGroup>}
+      {known && !catalogUnavailable && available.length === 0 && <SettingsGroup><SettingsRow title={t.noneAvailable} control={<Puzzle size={18} aria-hidden="true" />} /></SettingsGroup>}
+    </>}
     {error && <p className="plugins-settings__error" role="alert">{error}</p>}
     <details className="plugins-settings__developer"><summary>{t.developer}</summary><SettingsGroup>
       <SettingsToggleRow title={t.developerMode} checked={registry.developerMode} disabled={busy} onChange={(enabled) => { void perform(() => configurePlugins(enabled, registry.indexUrl)); }} />

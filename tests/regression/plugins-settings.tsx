@@ -62,8 +62,13 @@ try {
       "The guide links do not overflow in the narrow layout");
   } else {
     check(requests.length >= 1, "Index request started");
-    check(document.body.textContent?.includes(t.loading), "A first visit says the plugin list is loading");
     await act(async () => resolveRegistry?.()); await wait();
+    const tab = (label: string) => [...document.querySelectorAll<HTMLButtonElement>(".settings-choice__option")].find((item) => item.textContent?.startsWith(label))!;
+    check(tab(t.installed).getAttribute("aria-pressed") === "true" && document.body.textContent?.includes(t.empty) && !document.body.textContent.includes(t.loading),
+      "The Installed section opens first and leaves the plugin list out");
+    await act(async () => tab(t.available).click());
+    check(!document.body.textContent?.includes(t.empty), "The Available section leaves the installed plugins out");
+    check(document.body.textContent?.includes(t.loading), "A first visit says the plugin list is loading");
     const developer = document.querySelector<HTMLDetailsElement>("details")!;
     check(!developer.open, "Developer section collapsed by default");
     await act(async () => developer.querySelector("summary")!.click());
@@ -82,6 +87,7 @@ try {
     await act(async () => newest.resolve([])); await wait();
     await act(async () => requests[0].reject("old request failed")); await wait();
     check(!document.body.textContent?.includes(t.unavailable), "Stale requests cannot overwrite newer index results");
+    check(document.body.textContent?.includes(t.noneAvailable), "An empty list says there is nothing else to install");
     await act(async () => document.querySelector<HTMLButtonElement>(`button[aria-label='${t.develop}']`)!.click());
     check(opened === "https://github.com/ahmad-maqsood/skerry-island/blob/main/docs/plugins/README.md", "Development guide uses existing external link opener");
     check(input.getBoundingClientRect().right <= document.getElementById("fixture")!.getBoundingClientRect().right + 1, "Path input box does not overflow in narrow layouts");
@@ -94,6 +100,8 @@ try {
     ] }));
     const again = createRoot(document.getElementById("fixture")!);
     await act(async () => again.render(<I18nProvider><PluginsSettingsPage /></I18nProvider>)); await wait();
+    const showAvailable = () => act(async () => [...document.querySelectorAll<HTMLButtonElement>(".settings-choice__option")].find((item) => item.textContent?.startsWith(t.available))!.click());
+    await showAvailable();
     check(document.body.textContent?.includes(name.en) && !document.body.textContent.includes(t.loading),
       "A later visit shows the last plugin list while the index is still being read");
     await act(async () => requests[requests.length - 1].resolve([])); await wait();

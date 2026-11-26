@@ -99,6 +99,14 @@ try {
     await act(async () => requests[requests.length - 1].resolve([])); await wait();
     check(!document.body.textContent?.includes(name.en), "The fresh index replaces the saved list");
     await act(async () => again.unmount());
+    Object.assign(registry.installed, { github: { enabled: true, directory: "", development: false, settings: {}, manifest: {
+      id: "github", name: { en: "GitHub", "zh-CN": "GitHub" }, description: name, version: "0.1.0", apiVersion: 1,
+      runtime: { command: "github.exe" }, permissions: [], contributes: [], settings: [], actions: [] } } });
+    const installed = createRoot(document.getElementById("fixture")!);
+    await act(async () => installed.render(<I18nProvider><PluginsSettingsPage /></I18nProvider>)); await wait();
+    await act(async () => button(t.pluginGuide).click());
+    check(opened === "https://github.com/ahmad-maqsood/skerry-island/blob/main/docs/plugins/github.md", "An installed plugin's Guide button opens its own guide");
+    await act(async () => installed.unmount());
   }
   document.getElementById("results")!.textContent = [...messages, "ALL PASS"].join("\n");
   document.documentElement.dataset.testResult = "passed";

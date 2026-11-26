@@ -3,7 +3,7 @@ import { ArrowUpRight, Puzzle, ShieldCheck } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { SettingsGroup } from "../../components/settings/SettingsGroup";
 import { SettingsRow } from "../../components/settings/SettingsRow";
-import { PROJECT_PLUGIN_SPEC_URL } from "../../features/updater/projectLinks";
+import { PROJECT_PLUGIN_SPEC_URL, pluginGuideUrl } from "../../features/updater/projectLinks";
 import { SettingsToggleRow } from "../../components/settings/SettingsToggleRow";
 import { SettingsInput } from "../../components/settings/SettingsInput";
 import { SettingsLinkButton } from "../../components/settings/SettingsLinkButton";
@@ -72,6 +72,7 @@ function EnabledPluginsSettingsPage() {
       {installed.length === 0 && <SettingsRow title={t.empty} control={<Puzzle size={18} aria-hidden="true" />} />}
       {installed.map((p) => <div key={p.manifest.id}>
         <SettingsRow title={p.manifest.name[locale]} description={`${p.manifest.version} · ${t.status[live[p.manifest.id]?.status ?? "stopped"] ?? ""}`} control={<span className="plugins-settings__actions">
+          {!p.development && <SettingsLinkButton ariaLabel={`${p.manifest.name[locale]} ${t.pluginGuide}`} onClick={() => { void openUrl(pluginGuideUrl(p.manifest.id)).catch(console.error); }}>{t.pluginGuide}</SettingsLinkButton>}
           {catalog.some((e) => e.id === p.manifest.id && e.version !== p.manifest.version) && <SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => installPlugin(p.manifest.id)); }}>{t.update}</SettingsLinkButton>}
           <SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => uninstallPlugin(p.manifest.id)); }}>{t.uninstall}</SettingsLinkButton>
         </span>} />

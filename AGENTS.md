@@ -98,6 +98,7 @@ The following identifiers are referenced by existing user data, configurations, 
 
 ## General Development Conventions
 
+- Every plugin in `plugins/<id>/` ships with its own user guide at `docs/plugins/<id>.md`. Add or update it in the same change as the plugin, following [User guide (required)](docs/plugins/README.md#user-guide-required).
 - Prioritize reusing existing components, types, utility functions, and CSS classes.
 - Persist frontend state using `localStorage`.
 - When adding new Tauri commands, update the Rust handler, frontend typed wrapper, and capability permissions in tandem.

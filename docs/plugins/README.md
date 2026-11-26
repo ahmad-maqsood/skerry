@@ -146,6 +146,22 @@ The manifest is at most 64 KiB and unknown fields are rejected.
 | `settings` (optional) | `{ key, label, type, default, options? }` with `type` one of `toggle`, `text`, `secret` or `select`; a `secret` default must be empty |
 | `actions` (optional) | `{ id, label }` entries the user can trigger |
 
+### User guide (required)
+
+Every plugin in `plugins/<id>/` has its own user guide at `docs/plugins/<id>.md`, named after the manifest `id`. The **Guide** button on an installed plugin opens that file from the `main` branch on GitHub, so no app code or manifest field is needed. The button is hidden for plugins loaded in developer mode from a local folder.
+
+Add the guide in the same pull request as the plugin, and update it when the plugin changes. Write it for people using the app, with these sections ([github.md](github.md) is the example):
+
+| Section | What it covers |
+| --- | --- |
+| `## What it shows` | What appears on the island, and any limits |
+| `## Setup` | Every step from install to first result, including how to get any token or key and the least access it needs |
+| `## Settings` | Each setting in the manifest, using the start of its English label (the text before any parenthesis) |
+| `## Troubleshooting` | Common problems and what to check |
+| `## Privacy` | What is stored, which files are read and which domains are contacted |
+
+`tests/unit/plugin-guides.test.mjs` (part of `pnpm check`) fails if a guide, a section or a setting is missing. It cannot tell whether the text is correct, so reviewers check that.
+
 ### Protocol
 
 JSON-RPC 2.0, one JSON object per line over the plugin's stdin and stdout (only JSON-RPC may be written to stdout). A line is at most 256 KiB.

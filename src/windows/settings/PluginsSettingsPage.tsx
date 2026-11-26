@@ -10,6 +10,7 @@ import { SettingsInput } from "../../components/settings/SettingsInput";
 import { SettingsLinkButton } from "../../components/settings/SettingsLinkButton";
 import { PluginSettingRow } from "../../features/plugins/PluginSettingRow";
 import { usePlugins, refreshPlugins } from "../../features/plugins/usePlugins";
+import { usePluginPopupSettings } from "../../features/plugins/usePluginPopupSettings";
 import { PLUGINS_ENABLED } from "../../features/plugins";
 import { catalogSource, loadCatalog, saveCatalog } from "../../features/plugins/catalogCache";
 import { configurePlugins, getPluginsIndex, installPlugin, loadDevelopmentPlugin, PLUGIN_INDEX_UNAVAILABLE, runPluginAction, setPluginEnabled, setPluginSetting, uninstallPlugin, type PluginIndexEntry } from "../../features/plugins/api";
@@ -28,6 +29,7 @@ function EnabledPluginsSettingsPage() {
   const t = useTranslation().settings.plugins;
   const { locale } = useLocale();
   const { registry, live } = usePlugins();
+  const popups = usePluginPopupSettings();
   // The last answer shows at once; the index is on the network and is read again behind it.
   const [stored, setStored] = useState(loadCatalog);
   const [error, setError] = useState("");
@@ -92,6 +94,7 @@ function EnabledPluginsSettingsPage() {
           <SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => uninstallPlugin(p.manifest.id)); }}>{t.uninstall}</SettingsLinkButton>
         </span>} />
         <SettingsToggleRow title={t.enabled} checked={p.enabled} disabled={disabled} onChange={(enabled) => { void perform(() => setPluginEnabled(p.manifest.id, enabled)); }} />
+        {p.manifest.contributes.includes("notifications") && <SettingsToggleRow title={t.popup} description={t.popupHint} checked={popups.isOn(p.manifest.id)} onChange={(on) => popups.setPopup(p.manifest.id, on)} />}
         <SettingsRow title={<span className="plugins-settings__permissions"><ShieldCheck size={14} aria-hidden="true" />{t.permissions}</span>} description={t.permissionsNotice}>
           <div className="plugins-settings__permissions">{p.manifest.permissions.map((permission) => <span key={permission} className="plugins-settings__permission">{t.permission[permission] ?? permission}</span>)}</div>
         </SettingsRow>

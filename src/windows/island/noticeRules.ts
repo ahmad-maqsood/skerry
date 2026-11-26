@@ -7,8 +7,9 @@ type ExpandSettings = Pick<IslandSettings, "messageAutoExpand" | "messageExpandA
 
 /**
  * Whether a preview grows with its text (Settings → Messages → Expand long messages): the switch is
- * on and so is the one for its kind. No kind is a notification from an app; the island's own
- * pop-ups (a copied text, a new song, the charger) each have a switch of their own.
+ * on and so is the one for its kind. No kind is a notification from an app, and a plugin's pop-up
+ * follows the same switch; the island's own pop-ups (a copied text, a new song, the charger) each
+ * have a switch of their own.
  */
 export function expandsPreview(settings: ExpandSettings, kind?: PreviewKind) {
   if (!settings.messageAutoExpand) return false;
@@ -39,6 +40,7 @@ export function previewPage(kind: PreviewKind): IslandPage {
   switch (kind) {
     case "clipboard": return "clipboard";
     case "music": return "music";
+    case "plugin": return "qq";
     default: return "system";
   }
 }

@@ -3,5 +3,7 @@ export { PLUGINS_ENABLED } from "../releaseFlags.ts";
 export { runPluginAction } from "./api";
 export type { PluginsSnapshot, PluginQuota, PluginNotification } from "./api";
 export { usePluginFeed } from "./usePluginFeed.ts";
+export { usePluginPopups } from "./usePluginPopups.ts";
+export { usePluginPopupSettings } from "./usePluginPopupSettings.ts";
 export type { PluginFeedController } from "./usePluginFeed.ts";
 export type { FeedNotification, FeedSession } from "./pluginFeed.ts";

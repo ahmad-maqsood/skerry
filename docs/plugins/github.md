@@ -56,6 +56,8 @@ Pasted `https://github.com/owner/repo` addresses also work. The plugin uses the 
 | Notify on failed workflow runs | Shows failed runs from your listed repositories. | On |
 | Refresh interval | How often to check: 1, 2 or 5 minutes. | 2 minutes |
 
+Skerry adds one more switch to every plugin that sends notifications, **Pop up on new notifications** (on by default). While it is on, a new review request, mention or failed run slides a short notice out of the island, and clicking it opens Notifications. Only the newest of several new items pops up, and anything GitHub reported before Skerry started does not. Switch it off to keep them in Notifications without the pop-up.
+
 **Refresh now** checks without waiting for the next interval. Saving a setting restarts the plugin.
 
 ## Troubleshooting

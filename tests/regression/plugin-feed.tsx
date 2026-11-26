@@ -7,13 +7,14 @@ import { mockIPC } from "@tauri-apps/api/mocks";
 import { I18nProvider } from "../../src/i18n";
 import { MessagesPanel } from "../../src/features/messages/Messages";
 import { useSystemNotifications } from "../../src/features/messages/system-notifications/useSystemNotifications";
-import { usePluginFeed } from "../../src/features/plugins";
-import { PLUGIN_DISMISSED_KEY } from "../../src/features/plugins/storage";
+import { usePluginFeed, usePluginPopups } from "../../src/features/plugins";
+import { PLUGIN_DISMISSED_KEY, PLUGIN_POPUPS_OFF_KEY } from "../../src/features/plugins/storage";
+import { refreshPlugins } from "../../src/features/plugins/usePlugins";
 import { PluginMessagesSection } from "../../src/windows/island/PluginMessagesSection";
 
 // Opened with ?features=enabled: the plugin host is switched on, as in development builds.
 Object.assign(globalThis, { isTauri: true, IS_REACT_ACT_ENVIRONMENT: true });
-const keys = ["skerry-locale", "skerry-system-notification-access-requested", PLUGIN_DISMISSED_KEY, "skerry-messages-section"];
+const keys = ["skerry-locale", "skerry-system-notification-access-requested", PLUGIN_DISMISSED_KEY, "skerry-messages-section", PLUGIN_POPUPS_OFF_KEY];
 const original = keys.map((key) => localStorage.getItem(key));
 window.addEventListener("beforeunload", () => keys.forEach((key, index) => {
   if (original[index] === null) localStorage.removeItem(key); else localStorage.setItem(key, original[index]!);
@@ -22,6 +23,7 @@ localStorage.setItem(keys[0], "en");
 localStorage.setItem(keys[1], "true");
 localStorage.removeItem(PLUGIN_DISMISSED_KEY);
 localStorage.removeItem("skerry-messages-section");
+localStorage.removeItem(PLUGIN_POPUPS_OFF_KEY);
 
 const now = Date.now();
 const manifest = { id: "github", name: { en: "GitHub", "zh-CN": "GitHub" }, description: { en: "x", "zh-CN": "x" }, version: "0.1.0", apiVersion: 1,
@@ -48,7 +50,8 @@ const opened: string[] = [];
 mockIPC(async (command, payload) => {
   calls.push(command);
   const args = (payload ?? {}) as Record<string, unknown>;
-  if (command === "get_plugins") return snapshot;
+  // A copy each time, as the host sends: the page tells a change from none by comparing answers.
+  if (command === "get_plugins") return structuredClone(snapshot);
   if (command === "run_plugin_action") { actions.push(`${args.id}:${args.action}`); return { openUrl: `https://github.com${String(args.action).slice(5)}` }; }
   if (command === "plugin:opener|open_url") { opened.push(String(args.url)); return null; }
   if (command === "clear_system_notifications") { systemItems = []; revision += 1; }
@@ -58,9 +61,12 @@ mockIPC(async (command, payload) => {
   return null;
 }, { shouldMockEvents: true });
 
+const announced: string[] = [];
+
 function Fixture() {
   const controller = useSystemNotifications(false);
   const feed = usePluginFeed();
+  usePluginPopups((item) => announced.push(item.id));
   return (
     <MessagesPanel
       controller={controller}
@@ -141,6 +147,30 @@ try {
   check(calls.includes("clear_system_notifications") && Boolean(document.querySelector(".messages-empty")), "Clear all in the System section clears only the system notifications");
   await show("Plugins");
   check(rows().length === 3, "The plugin tasks stay after the system notifications are cleared");
+
+  check(announced.length === 0, "What the plugin published before the island started does not pop up");
+  const publish = async (id: string) => {
+    snapshot.live.github.notifications.unshift({ id, sourceId: "github", appName: "GitHub", icon: "github", title: `CI failed · ${id}`, body: "acme/app", receivedAt: Date.now() + 1000, action: "open:/acme/app/actions/runs/7" });
+    await act(async () => { await refreshPlugins(); });
+    await settle();
+  };
+  const offFromSettingsWindow = async (ids: string[]) => {
+    // The settings window writes the list; the island hears of it through the storage event.
+    localStorage.setItem(PLUGIN_POPUPS_OFF_KEY, JSON.stringify(ids));
+    await act(async () => { window.dispatchEvent(new StorageEvent("storage", { key: PLUGIN_POPUPS_OFF_KEY })); });
+  };
+  await publish("fail-8");
+  check(announced.join() === "fail-8", "A notification published after the start pops up once");
+  await act(async () => { await refreshPlugins(); });
+  await settle();
+  check(announced.length === 1, "The same notification does not pop up again");
+  await offFromSettingsWindow(["github"]);
+  await publish("fail-9");
+  check(announced.length === 1, "With the plugin's pop-ups switched off, a new notification stays quiet");
+  await offFromSettingsWindow([]);
+  check(announced.length === 1, "Switching pop-ups back on does not bring back what was missed");
+  await publish("fail-10");
+  check(announced.join() === "fail-8,fail-10", "The next new notification pops up again");
 
   document.documentElement.dataset.testResult = "passed";
   document.getElementById("results")!.textContent = `${passed.join("\n")}\n\nAll ${passed.length} checks passed.`;

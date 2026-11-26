@@ -6,6 +6,7 @@ import { I18nProvider, LOCALE_STORAGE_KEY, TRANSLATIONS } from "../../src/i18n";
 import type { PluginIndexEntry } from "../../src/features/plugins/api";
 import { PLUGINS_ENABLED } from "../../src/features/releaseFlags.ts";
 import { PLUGIN_CATALOG_KEY } from "../../src/features/plugins/catalogCache";
+import { PLUGIN_POPUPS_OFF_KEY } from "../../src/features/plugins/storage";
 import "../../src/styles/tokens.css";
 import "../../src/styles/base.css";
 import "../../src/windows/settings/LayoutEditor.css";
@@ -110,7 +111,8 @@ try {
     await act(async () => again.unmount());
     Object.assign(registry.installed, { github: { enabled: true, directory: "", development: false, settings: {}, manifest: {
       id: "github", name: { en: "GitHub", "zh-CN": "GitHub" }, description: name, version: "0.1.0", apiVersion: 1,
-      runtime: { command: "github.exe" }, permissions: [], contributes: [], settings: [], actions: [] } } });
+      runtime: { command: "github.exe" }, permissions: [], contributes: ["notifications"], settings: [], actions: [] } } });
+    localStorage.removeItem(PLUGIN_POPUPS_OFF_KEY);
     const installed = createRoot(document.getElementById("fixture")!);
     await act(async () => installed.render(<I18nProvider><PluginsSettingsPage /></I18nProvider>)); await wait();
     await act(async () => button(t.pluginGuide).click());
@@ -123,6 +125,14 @@ try {
     check(plugin.open && plugin.textContent?.includes(t.version) && plugin.textContent.includes("0.1.0"), "Clicking the name opens the plugin's settings");
     await act(async () => plugin.querySelector("summary")!.click());
     check(!plugin.open, "Clicking it again folds the plugin");
+    const popupSwitch = () => document.getElementById([...document.querySelectorAll<HTMLLabelElement>("label.settings-row__title")].find((label) => label.textContent === t.popup)!.htmlFor) as HTMLInputElement;
+    const savedOff = () => localStorage.getItem(PLUGIN_POPUPS_OFF_KEY);
+    check(popupSwitch().checked && savedOff() === null, "A plugin that sends notifications has its pop-up on by default");
+    await act(async () => popupSwitch().click());
+    check(!popupSwitch().checked && savedOff() === JSON.stringify(["github"]), "Switching the pop-up off is remembered for that plugin");
+    await act(async () => popupSwitch().click());
+    check(popupSwitch().checked && savedOff() === "[]", "Switching it back on takes the plugin off the list");
+    localStorage.removeItem(PLUGIN_POPUPS_OFF_KEY);
     await act(async () => installed.unmount());
   }
   document.getElementById("results")!.textContent = [...messages, "ALL PASS"].join("\n");

@@ -5,6 +5,7 @@ import { copiedTextSince, copyPopupText, newestCopiedAt } from "../../features/c
 import { DEFAULT_CLIPBOARD_HISTORY } from "../../features/clipboard/settings";
 import type { MediaState } from "../../features/media/api";
 import { isNewTrack, playingTrackKey } from "../../features/media/trackPopup";
+import { usePluginPopups } from "../../features/plugins";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { getBatteryStatus } from "../../features/system-monitor/api";
 import { chargerChange } from "../../features/system-monitor/chargerPopup";
@@ -35,8 +36,9 @@ type IslandPopupsOptions = {
 /**
  * The island's own pop-ups, shown like a notification (same timing, same slide-out from a tucked
  * island, same game-mode rules, all decided by showPreview): a text just copied, a song that
- * just started playing, the charger being plugged in or unplugged, devices (useDevicePopups), and
- * the volume and brightness changing (useLevelPopups).
+ * just started playing, the charger being plugged in or unplugged, devices (useDevicePopups), the
+ * volume and brightness changing (useLevelPopups), and a new notification from a plugin (each
+ * plugin has its own switch in Settings → Plugins).
  */
 export function useIslandPopups({ settings, showPreview, canPreview, clipboardHistory, ownCopyAtRef, mediaState }: IslandPopupsOptions) {
   const t = useTranslation();
@@ -45,6 +47,15 @@ export function useIslandPopups({ settings, showPreview, canPreview, clipboardHi
   useChargerPopup(settings.chargerPopup, showPreview, t.messages);
   useDevicePopups({ bluetooth: settings.bluetoothPopup, airplane: settings.airplanePopup, showPreview, copy: t.messages });
   useLevelPopups({ volume: settings.volumePopup, brightness: settings.brightnessPopup, active: canPreview, showPreview, copy: t.messages });
+  usePluginPopups((item) => showPreview({
+    id: `plugin-${item.pluginId}-${item.id}`,
+    appId: `plugin:${item.pluginId}`,
+    appDisplayName: item.appName,
+    title: item.title,
+    body: item.body,
+    timestamp: item.receivedAt,
+    kind: "plugin",
+  }));
 }
 
 function useChargerPopup(enabled: boolean, showPreview: IslandPopupsOptions["showPreview"], copy: Translations["messages"]) {

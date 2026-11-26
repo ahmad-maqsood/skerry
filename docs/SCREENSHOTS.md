@@ -19,6 +19,8 @@ pnpm screenshots --out=./out
 - `CHROME_PATH` picks the browser if Chrome or Edge is not in its usual place.
 - Run it on **Windows** to get Segoe UI like the installed app. Another system uses its own fallback font, which can change line breaks slightly.
 
+Every picture is **16:9**, the shape of the Microsoft Store gallery, and the README shows the same files. Each shot is a 16:9 area of the desktop around the island: centred on it, with room on both sides and tall enough to hold all of it. The island stays on the top edge, as it does on a real desktop. The themes picture puts the three tight crops side by side on the desktop colour, also 16:9.
+
 The command starts this checkout's Vite server, opens each scene in a headless browser, waits for the scene to report that it is ready, and crops the picture on whole pixels. The desktop colour behind the island gives the glass materials something to blur. Only the screenshot scenes (`tests/screenshots/`) use mocked data; the app code is unchanged.
 
 ## Run it in GitHub Actions

@@ -1,6 +1,6 @@
 # Plugin Development Guide
 
-> **Plugins are switched on.** The root `release-features.json` has `"plugins": true`, so Settings -> Plugins shows the install page. Plugins appear under "Available" once a published release carries `plugins-index.json` (the Release workflow builds and uploads it). While developing, use Developer mode in Settings -> Plugins to load a plugin folder or a local index. Setting the flag back to `false` and rebuilding restores the roadmap page.
+> **Plugins are switched on.** The root `release-features.json` has `"plugins": true`, so Settings -> Plugins shows the install page. Plugins appear under "Available" once a published release carries `plugins-index.json` (the Release workflow builds and uploads it). A trial run of the Release workflow publishes nothing; to try a plugin from it, download the run's `skerry-plugins` artifact, unzip one package and load that folder. While developing, use Developer mode in Settings -> Plugins to load a plugin folder or a local index. Setting the flag back to `false` and rebuilding restores the roadmap page.
 
 ---
 

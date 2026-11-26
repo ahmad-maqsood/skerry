@@ -5,8 +5,9 @@ name: Release
 #                     package.json, Cargo.toml, Cargo.lock and tauri.conf.json for you and, when
 #                     publishing, commits "Bump version to X" to the branch it runs on before building.
 #                     Leave it empty to release the version already in the files.
-#   publish unticked: a quick trial. Builds and signs only the NSIS installer and attaches it to the
-#                     run as a download. No MSI and no update manifest, so it cannot be published.
+#   publish unticked: a quick trial. Builds and signs only the NSIS installer and attaches it, with
+#                     the plugin packages, to the run. No MSI and no update manifest, so it cannot
+#                     be published.
 #   publish ticked:   the full release: runs the frontend checks, builds and signs both the NSIS and
 #                     MSI installers, then publishes a GitHub release that in-app updates pick up.
 #                     The release description is written for you (scripts/release/release-notes.mjs):
@@ -142,3 +143,15 @@ jobs:
             src-tauri/target/release/bundle/nsis/*.exe
             src-tauri/target/release/bundle/nsis/*.sig
             src-tauri/target/release/bundle/nsis/SHA256SUMS.txt
+
+      # A trial is not a release, so the app cannot download its plugins. Attach the packages, so one
+      # can be unzipped and loaded through Settings > Plugins > Developer > Local plugin folder.
+      # release-features.json can switch plugins off, in which case there is nothing to attach.
+      - name: Attach the plugin packages to this run
+        if: ${{ !inputs.publish }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: skerry-plugins
+          retention-days: 7
+          if-no-files-found: ignore
+          path: artifacts/plugins/*.zip

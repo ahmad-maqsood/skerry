@@ -52,6 +52,6 @@ The images come back as the `skerry-screenshots` artifact on the run page (kept 
 | `screenshot-file-shelf.png` | `shelf` | File staging shelf |
 | `screenshot-system.png` | `system` | System monitor dashboard |
 | `screenshot-settings.png` | `settings` | Settings and appearance controls |
-| `screenshot-themes.png` | `themes` | Classic, Liquid Glass, and Frosted Glass comparison |
+| `screenshot-themes.png` | `themes` | Graphite, Liquid Glass, and Frosted Glass comparison |
 
 To change a screenshot, edit the relevant scene in `tests/screenshots/scene.tsx` or its fictional fixtures in `tests/screenshots/demoData.ts`, then run `pnpm screenshots <scene>`. You can also open `/tests/screenshots/scene.html?scene=<name>&wallpaper=1` under `pnpm dev` to look at a scene by eye. The capture should not contain hand-drawn UI or placeholder images.

@@ -21,6 +21,7 @@ import "./IslandShell.css";
 import "./IslandPageText.css";
 import "./IslandGlass.css";
 import "./IslandGlassColour.css";
+import "./IslandGraphite.css";
 import "./IslandTuckStyle.css";
 import { useTuckMorph } from "./useTuckMorph";
 

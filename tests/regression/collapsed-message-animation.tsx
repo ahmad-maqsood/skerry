@@ -82,7 +82,7 @@ function Fixture() {
         pageOrder={["todo", "music", "clipboard", "shelf"]}
         onPageOrderChange={() => {}}
         pageButtonStyle="capsule"
-        material="classic"
+        material="graphite"
         nativeGlassState="disabled"
         mediaState={UNAVAILABLE_MEDIA}
         features={{ todo: true, music: true, clipboard: true, shelf: true, qq: true, translation: false, system: false }}

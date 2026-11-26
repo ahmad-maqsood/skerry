@@ -12,10 +12,14 @@ function normalizeSize(value: unknown, limits: { min: number; max: number; defau
   return clamp(Math.round(value / step) * step, limits.min, limits.max);
 }
 
-/** The saved material; older versions saved liquid glass as `appearanceMode: "liquidGlass"`. */
+/**
+ * The saved material. "classic" (the flat fill until 2026-11-27) reads as Graphite, which replaced it;
+ * older versions saved liquid glass as `appearanceMode: "liquidGlass"`.
+ */
 function normalizeMaterial(settings: LegacyIslandSettings | null | undefined): Material {
-  const material = settings?.material;
-  if (material === "classic" || material === "liquidGlass" || material === "frostedGlass" || material === "aurora" || material === "prism") return material;
+  const material: unknown = settings?.material;
+  if (material === "classic") return "graphite";
+  if (material === "graphite" || material === "liquidGlass" || material === "frostedGlass" || material === "aurora" || material === "prism") return material;
   return settings?.appearanceMode === "liquidGlass" ? "liquidGlass" : DEFAULT_SETTINGS.material;
 }
 

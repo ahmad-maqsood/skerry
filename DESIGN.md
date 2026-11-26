@@ -5,7 +5,7 @@
 - Message area: generic Windows system notification feed, grouped by app with newest first. Action buttons align horizontally on the right side, continuing the existing dark, rounded-corner, and compact control aesthetic.
 - Collapsed preview: shows app logo, title, and adaptive short body text. Clicking opens the corresponding application by AUMID.
 - Appearance includes two settings: Color Theme (Dark / Light / Follow System, default Dark) and Material Texture. All four windows follow these settings together. Colors must use channels and semantic tokens in `tokens.css`; never hardcode white or dark backgrounds in components. Light mode is designed separately rather than as an inverted dark mode.
-- Material Texture offers three options: Classic (default), Liquid Glass, and Frosted Glass; glass dynamically blurs the screen behind the island.
+- Material Texture offers Graphite (default; it replaced Classic), Liquid Glass, Frosted Glass, Aurora, and Prism; glass dynamically blurs the screen behind the island.
 
 ## Branding and Components
 

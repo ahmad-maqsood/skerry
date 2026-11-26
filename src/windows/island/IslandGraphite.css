@@ -1,0 +1,38 @@
+/*
+ * Graphite (2026-11-27): the island's flat fill with a satin finish, not a glass. The fill is
+ * deepened a little, a soft light falls from the top, the foot is darker, and a hairline rim
+ * lifts the edge off a dark wallpaper. It stays one opaque fill (no capture, no native glass),
+ * so the opacity setting and the three colour pickers work as they always did on the flat fill.
+ * Replaces the plain "classic" material; saved "classic" settings read as Graphite.
+ */
+.island.island--material-graphite {
+  --island-rim: rgba(255, 255, 255, 0.1);
+  --graphite-base: color-mix(in srgb, var(--island-fill, var(--island-background-color)), #000 22%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 38%, rgba(0, 0, 0, 0.26) 100%),
+    var(--graphite-base);
+}
+
+/* Lit like the open island's rim; the shadow goes for keyboard focus, which draws its own. */
+.island.island--material-graphite:not(:has(:focus-visible)) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+/* On a light island a darker base would only turn it grey: keep the colour, lift the top, ground the foot. */
+[data-tone="light"] .island.island--material-graphite {
+  --island-rim: rgba(0, 0, 0, 0.08);
+  --graphite-base: var(--island-fill, var(--island-background-color));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0.06) 100%),
+    var(--graphite-base);
+}
+
+[data-tone="light"] .island.island--material-graphite:not(:has(:focus-visible)) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 8px 22px rgba(0, 0, 0, 0.14);
+}

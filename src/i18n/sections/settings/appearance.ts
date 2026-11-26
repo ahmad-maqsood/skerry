@@ -5,9 +5,9 @@ export type SettingsAppearanceText = {
   collapsedDimensions: { autoWidth: string; width: string; height: string; padding: string; unit: string; hint: string };
   systemFont: string;
   pixelFont: string;
-  /** Material: classic, liquid glass, frosted glass, aurora, or prism. */
+  /** Material: graphite, liquid glass, frosted glass, aurora, or prism. */
   material: string;
-  classic: string;
+  graphite: string;
   liquidGlass: string;
   frostedGlass: string;
   aurora: string;
@@ -87,7 +87,7 @@ export const en: SettingsAppearanceText = {
   systemFont: "System",
   pixelFont: "Pixel",
   material: "Material",
-  classic: "Classic",
+  graphite: "Graphite",
   liquidGlass: "Liquid",
   frostedGlass: "Frosted",
   aurora: "Aurora",

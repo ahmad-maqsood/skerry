@@ -37,7 +37,7 @@ const ASPECT = 16 / 9;
 /** How much room the island gets in its picture: its width times this, at least. */
 const ROOM = 1.6;
 const THEMES = [
-  { material: "classic", label: "Classic" },
+  { material: "graphite", label: "Graphite" },
   { material: "liquidGlass", label: "Liquid Glass" },
   { material: "frostedGlass", label: "Frosted Glass" },
 ];

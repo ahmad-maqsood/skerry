@@ -19,6 +19,8 @@ pnpm screenshots --out=./out
 - `CHROME_PATH` picks the browser if Chrome or Edge is not in its usual place.
 - Run it on **Windows** to get Segoe UI like the installed app. Another system uses its own fallback font, which can change line breaks slightly.
 
+Every picture is put on one **2560×1440 (16:9)** canvas by `scripts/frame-screenshots.mjs`: the capture keeps its own pixels and the space around it is a blurred, darkened copy of the same picture. The Microsoft Store gallery shows 16:9 pictures, so a wide strip or a tall window would otherwise be cropped there. To frame pictures captured without it, run `node scripts/frame-screenshots.mjs --from=<folder>`; it reads the unframed PNGs from the folder and writes the framed ones over `docs/assets/screenshots/` (or `--out=<folder>`).
+
 The command starts this checkout's Vite server, opens each scene in a headless browser, waits for the scene to report that it is ready, and crops the picture on whole pixels. The desktop colour behind the island gives the glass materials something to blur. Only the screenshot scenes (`tests/screenshots/`) use mocked data; the app code is unchanged.
 
 ## Run it in GitHub Actions

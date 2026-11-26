@@ -6,6 +6,8 @@
 //   pnpm screenshots --scale=2           pixel density (default 3, so a 700 px island is 2100 px wide)
 //   pnpm screenshots --out=./out         another folder
 //
+// Every picture ends up on one 16:9 canvas (scripts/frame-screenshots.mjs) for the Microsoft Store and the README.
+//
 // The production React components render over the fictional fixtures in
 // tests/screenshots/demoData.ts (the OS-facing Tauri commands are mocked). Each page is drawn at
 // a high device pixel ratio and cropped on whole pixels, so text and icon edges are crisp.
@@ -13,6 +15,7 @@
 import { mkdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { frameScreenshot } from "./frame-screenshots.mjs";
 import { withRegressionBrowser } from "./run-regression.mjs";
 
 export const SHOTS = [
@@ -169,6 +172,7 @@ async function main() {
       } else {
         png = await shoot(session, shot, { url: sceneUrl(base, shot, look) }, scale);
       }
+      png = await frameScreenshot(session, png);
       writeFileSync(target, png);
       const { width, height } = pngSize(png);
       console.log(`✓ ${shot.file}  ${width}×${height}px  ${Math.round(statSync(target).size / 1024)} KB  ${((Date.now() - started) / 1000).toFixed(1)}s`);

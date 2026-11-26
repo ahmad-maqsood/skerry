@@ -5,6 +5,7 @@ import { PluginsSettingsPage } from "../../src/windows/settings/PluginsSettingsP
 import { I18nProvider, LOCALE_STORAGE_KEY, TRANSLATIONS } from "../../src/i18n";
 import type { PluginIndexEntry } from "../../src/features/plugins/api";
 import { PLUGINS_ENABLED } from "../../src/features/releaseFlags.ts";
+import { PLUGIN_CATALOG_KEY } from "../../src/features/plugins/catalogCache";
 import "../../src/styles/tokens.css";
 import "../../src/styles/base.css";
 import "../../src/windows/settings/LayoutEditor.css";
@@ -12,6 +13,7 @@ import "../../src/windows/settings/LayoutEditor.css";
 Object.assign(globalThis, { isTauri: true, IS_REACT_ACT_ENVIRONMENT: true });
 const locale = "en";
 localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+localStorage.removeItem(PLUGIN_CATALOG_KEY);
 const t = TRANSLATIONS[locale].settings.plugins;
 const stored = "D:\\CodexBuild\\plugins\\plugins-index.json";
 const registry = { installed: {}, developerMode: true, indexUrl: stored };
@@ -60,6 +62,7 @@ try {
       "The guide links do not overflow in the narrow layout");
   } else {
     check(requests.length >= 1, "Index request started");
+    check(document.body.textContent?.includes(t.loading), "A first visit says the plugin list is loading");
     await act(async () => resolveRegistry?.()); await wait();
     const developer = document.querySelector<HTMLDetailsElement>("details")!;
     check(!developer.open, "Developer section collapsed by default");
@@ -84,6 +87,19 @@ try {
     check(input.getBoundingClientRect().right <= document.getElementById("fixture")!.getBoundingClientRect().right + 1, "Path input box does not overflow in narrow layouts");
   }
   await act(async () => app.unmount());
+  if (PLUGINS_ENABLED) {
+    const name = { en: "Cached plugin", "zh-CN": "Cached plugin" };
+    localStorage.setItem(PLUGIN_CATALOG_KEY, JSON.stringify({ source: registry.indexUrl, unavailable: false, entries: [
+      { id: "cached", version: "1.0.0", name, description: name, apiVersion: 1, url: "x", sha256: "x", size: 1, minAppVersion: "1.0.0" },
+    ] }));
+    const again = createRoot(document.getElementById("fixture")!);
+    await act(async () => again.render(<I18nProvider><PluginsSettingsPage /></I18nProvider>)); await wait();
+    check(document.body.textContent?.includes(name.en) && !document.body.textContent.includes(t.loading),
+      "A later visit shows the last plugin list while the index is still being read");
+    await act(async () => requests[requests.length - 1].resolve([])); await wait();
+    check(!document.body.textContent?.includes(name.en), "The fresh index replaces the saved list");
+    await act(async () => again.unmount());
+  }
   document.getElementById("results")!.textContent = [...messages, "ALL PASS"].join("\n");
   document.documentElement.dataset.testResult = "passed";
 } catch (error) {

@@ -75,6 +75,7 @@ Dual-write for old and new keys: first active ID serves as primary task, legacy 
 | `skerry-native-plugins` (`string[]`: installed native plugin IDs in plugin store, in installation order; values `dingtalk` / `feishu` / `wecom` / `cursor` / `kimiCode` / `zcode` / `hermes` / `clockWeather`, unknown IDs discarded on read) | `features/plugins/native/storage.ts` |
 | `skerry-clock-weather` (`{ showClock, showWeather, location: { name, latitude, longitude } | null }`; both switches default true, invalid location defaults to null, coordinates must be finite and within geographic range; reinstalling turns both switches on, keeping city) | `features/weather/storage.ts` |
 | `skerry-weather-cache` (`{ latitude, longitude, temperature, code, observedAt, fetchedAt }`; temperature is Celsius number, code is WMO integer, timestamps Unix ms; displays only if coordinates match and observation/fetch both within 3 hours) | `features/weather/storage.ts` |
+| `skerry-plugin-catalog` (`{ source, entries, unavailable }`: the last plugin index answer, shown while the index is read again; `source` is the developer index path, or `""` for the default; a corrupt value is ignored) | `features/plugins/catalogCache.ts` |
 | `skerry-wechat-message-preview-enabled` (string `"true"` enabled, missing or other values disabled) | `features/messages/wechat/storage.ts` |
 | `skerry-wechat-hide-minimized-taskbar` (string `"true"` enabled, missing or other values disabled) | `features/messages/wechat/storage.ts` |
 | `skerry-translation-settings` | `features/translation/storage.ts` |

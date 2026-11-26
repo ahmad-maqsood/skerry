@@ -21,26 +21,61 @@
   touch-action: none;
 }
 
+/* As tall as the wave, but taking only the line's 4px of the page. */
 .music-progress__track {
   position: relative;
-  height: 4px;
-  overflow: hidden;
-  background: var(--color-white-a12);
-  border-radius: var(--radius-pill);
-  transition: height 160ms ease, margin 160ms ease;
+  height: 12px;
+  margin: -4px 0;
 }
 
-/* The island's ordinary foreground, like the controls below it: a cover's colour here read as a stray green or red. */
+/* What is left to play: a flat quiet line after the played part. */
+.music-progress__track::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 0;
+  left: var(--music-progress, 0%);
+  height: 4px;
+  background: var(--color-white-a12);
+  border-radius: var(--radius-pill);
+  transition: left 480ms linear;
+}
+
+/* What has played: a wave in the cover's accent that travels while the song does. */
 .music-progress__fill {
   position: absolute;
   inset: 0 auto 0 0;
   width: var(--music-progress, 0%);
-  background: var(--text-2);
-  border-radius: inherit;
-  corner-shape: inherit;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
   transition: width 480ms linear;
 }
 
+/* One wave length wider than the fill, so sliding it by that length loops without a seam. */
+.music-progress__fill::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 -24px;
+  background: var(--music-accent, var(--text-2));
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M-6 6Q0 1 6 6T18 6T30 6' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") left center / 24px 12px repeat-x;
+}
+
+.music-progress--flowing .music-progress__fill::before {
+  animation: music-progress-flow 1.2s linear infinite;
+}
+
+/* Paused, dragged or only estimated: the played part lies flat. */
+.music-progress:not(.music-progress--flowing) .music-progress__fill::before {
+  mask: linear-gradient(transparent 4px, #000 4px 8px, transparent 8px);
+}
+
+@keyframes music-progress-flow {
+  to {
+    transform: translateX(24px);
+  }
+}
+
+.music-progress--snap .music-progress__track::after,
 .music-progress--snap .music-progress__fill,
 .music-progress--snap .music-progress__knob {
   transition: none;
@@ -55,34 +90,31 @@
   position: absolute;
   top: 50%;
   left: var(--music-progress, 0%);
-  width: 10px;
-  height: 10px;
-  background: var(--text-1);
-  border-radius: 50%;
+  width: 4px;
+  height: 14px;
+  background: var(--color-fg-strong);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 10px var(--music-accent, transparent);
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.4);
+  transform: translate(-50%, -50%) scaleY(0.4);
   transition: left 480ms linear, opacity 160ms ease, transform 160ms ease;
   pointer-events: none;
 }
 
-.music-progress--seekable .music-progress__hit:hover .music-progress__track,
-.music-progress--seekable .music-progress__hit:focus-visible .music-progress__track,
-.music-progress--dragging .music-progress__track {
-  height: 6px;
-  margin: -1px 0;
-}
-
-.music-progress--seekable .music-progress__hit:hover .music-progress__fill,
-.music-progress--seekable .music-progress__hit:focus-visible .music-progress__fill,
-.music-progress--dragging .music-progress__fill {
-  background: var(--text-1);
+.music-progress--seekable .music-progress__knob {
+  opacity: 1;
+  transform: translate(-50%, -50%) scaleY(1);
 }
 
 .music-progress--seekable .music-progress__hit:hover .music-progress__knob,
 .music-progress--seekable .music-progress__hit:focus-visible .music-progress__knob,
 .music-progress--dragging .music-progress__knob {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -50%) scaleY(1.35);
+}
+
+.music-progress--seekable .music-progress__hit:focus-visible .music-progress__knob {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 .music-progress--dragging .music-progress__time {
@@ -96,8 +128,12 @@
 @media (prefers-reduced-motion: reduce) {
   .music-progress__fill,
   .music-progress__knob,
-  .music-progress__track {
+  .music-progress__track::after {
     transition: none;
+  }
+
+  .music-progress--flowing .music-progress__fill::before {
+    animation: none;
   }
 }
 .music-progress--estimated { opacity: 0.6; }

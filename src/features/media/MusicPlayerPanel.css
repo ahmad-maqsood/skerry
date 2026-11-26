@@ -17,6 +17,27 @@
   color: var(--text-1);
 }
 
+/* The cover's accent lights the page from behind: strongest by the artwork, gone before the edges. */
+.music-player::before {
+  content: "";
+  position: absolute;
+  inset: -16px -12px -10px;
+  z-index: -2;
+  background:
+    radial-gradient(24% 46% at 24% 46%, color-mix(in srgb, var(--music-accent) 30%, transparent), transparent 100%),
+    radial-gradient(28% 42% at 70% 58%, color-mix(in srgb, var(--music-accent) 15%, transparent), transparent 100%);
+  pointer-events: none;
+  transition: opacity 500ms ease;
+}
+
+.music-player:not(.music-player--playing)::before {
+  opacity: 0.45;
+}
+
+.music-player--idle::before {
+  display: none;
+}
+
 /* --- The song ------------------------------------------------------------------------- */
 
 .music-player__head {
@@ -40,14 +61,14 @@
 
 .music-player__glow {
   position: absolute;
-  inset: 8% 4% -6%;
+  inset: 6% 0 -8%;
   z-index: -1;
-  width: 92%;
-  height: 98%;
+  width: 100%;
+  height: 102%;
   object-fit: cover;
   border-radius: 50%;
-  filter: blur(22px) saturate(1.6);
-  opacity: 0.55;
+  filter: blur(24px) saturate(1.8);
+  opacity: 0.75;
   transition: opacity 400ms ease;
 }
 
@@ -56,7 +77,7 @@
 }
 
 .music-player__artwork {
-  --art: 112px;
+  --art: 120px;
   width: var(--art);
   height: var(--art);
   display: grid;
@@ -69,6 +90,7 @@
   box-shadow:
     0 10px 28px rgba(0, 0, 0, calc(0.45 - var(--is-light) * 0.3)),
     inset 0 0 0 1px var(--color-white-a08);
+  position: relative;
   /* Paused, the cover settles back a little, as in Apple Music. */
   transform: scale(0.94);
   transition:
@@ -86,6 +108,18 @@
   --art: 52px;
   border-radius: var(--corner-xl);
   corner-shape: var(--corner-shape);
+}
+
+/* A thin lit edge over the picture, brightest at the top left like glass. */
+.music-player__artwork::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: inherit;
+  corner-shape: inherit;
+  mask-image: linear-gradient(150deg, #000, rgba(0, 0, 0, 0.2) 45%, rgba(0, 0, 0, 0.6));
+  pointer-events: none;
 }
 
 .music-player__artwork img {
@@ -109,14 +143,16 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   color: var(--text-1);
-  font-size: calc(20px * var(--island-font-scale, 1));
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: calc(22px * var(--island-font-scale, 1));
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .music-player__artist,
-.music-player__source {
+.music-player__chip,
+.music-player__album {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -127,9 +163,35 @@
   font-size: calc(14px * var(--island-font-scale, 1));
 }
 
+/* Which player this is, as a chip in the cover's accent, then the album. */
 .music-player__source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
   color: var(--text-3);
   font-size: calc(12px * var(--island-font-scale, 1));
+}
+
+.music-player__chip {
+  flex: 0 0 auto;
+  max-width: 50%;
+  padding: 3px 9px;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--music-accent) 55%, var(--color-fg-strong));
+  background: color-mix(in srgb, var(--music-accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--music-accent) 30%, transparent);
+  border-radius: var(--radius-pill);
+  font-size: calc(11px * var(--island-font-scale, 1));
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+}
+
+.music-player__album {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* With lyrics the head is one compact line pair; the lyrics are the focus. */
@@ -239,11 +301,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 20px;
   flex: 0 0 auto;
 }
 
-/* Plain glyphs, the play button larger: weight from size, not from discs around them. */
+/* Previous and next sit in quiet glass discs; play is the one solid, lit disc. */
 .music-control-button {
   width: 40px;
   height: 40px;
@@ -251,11 +313,13 @@
   place-items: center;
   padding: 0;
   color: var(--text-1);
-  background: transparent;
+  background: var(--color-white-a08);
+  box-shadow: inset 0 0 0 1px var(--color-white-a08);
   border: 0;
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition:
+    box-shadow 200ms ease,
     color 140ms ease,
     background 140ms ease,
     transform 140ms ease,
@@ -263,7 +327,7 @@
 }
 
 .music-control-button:hover:not(:disabled) {
-  background: var(--color-white-a08);
+  background: var(--color-white-a12);
 }
 
 .music-control-button:active:not(:disabled) {
@@ -273,6 +337,23 @@
 .music-control-button--primary {
   width: 48px;
   height: 48px;
+  color: var(--color-inverse-ink);
+  background: var(--color-inverse);
+  box-shadow: 0 4px 22px color-mix(in srgb, var(--music-accent) 55%, transparent);
+}
+
+.music-control-button--primary:hover:not(:disabled) {
+  background: var(--color-inverse);
+  box-shadow: 0 4px 30px color-mix(in srgb, var(--music-accent) 85%, transparent);
+  transform: scale(1.06);
+}
+
+.music-control-button--primary:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.music-player:not(.music-player--playing) .music-control-button--primary {
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--music-accent) 25%, transparent);
 }
 
 /* The play triangle looks centred a pixel right of the box's centre. */

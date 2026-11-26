@@ -20,7 +20,7 @@ type Props = {
 };
 
 /**
- * A thin bar with the elapsed time under its left end and the time left under its right end. It ticks on its own between Windows' readings,
+ * A bar whose played part ripples while the song plays (flat when paused), with the elapsed time under its left end and the time left under its right end. It ticks on its own between Windows' readings,
  * so only this leaf re-renders while a song plays. `durationMs` is the player's length, or the
  * lyrics source's when the player reports none; hidden when neither is known.
  * When the player takes seeks (and reports its own length), the bar can be clicked or dragged:
@@ -61,6 +61,7 @@ export function MusicProgress({ mediaState, durationMs, onSeek }: Props) {
   const className = [
     "music-progress",
     estimated ? "music-progress--estimated" : "",
+    playing && !estimated && dragMs === null ? "music-progress--flowing" : "",
     seekable ? "music-progress--seekable" : "",
     dragMs !== null ? "music-progress--dragging" : "",
     anchor.jumped || dragMs !== null ? "music-progress--snap" : "",

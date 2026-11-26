@@ -38,8 +38,8 @@ type MusicPlayerPanelProps = {
 /**
  * The music page, drawn straight on the island rather than in a card of its own. The song's cover, title and artist sit at the top; under them the lyrics, when there are
  * any, then a progress bar with elapsed and remaining time and the transport. Without lyrics the
- * cover grows and takes their room. The cover's colours glow softly beneath it, and its accent
- * tints the progress fill and the equalizer. Nothing playing shows its own quiet page (MusicIdle),
+ * cover grows and takes their room. The cover's colours light the page softly from behind, and
+ * its accent tints the progress wave, the player chip, the play button and the equalizer. Nothing playing shows its own quiet page (MusicIdle),
  * not an empty player.
  */
 export function MusicPlayerPanel({
@@ -93,7 +93,10 @@ export function MusicPlayerPanel({
             <span className="music-player__track">{mediaState.title}</span>
             <span className="music-player__artist">{artist}</span>
             {!lyrics && (
-              <span className="music-player__source">{[mediaState.album, source].filter(Boolean).join(" · ")}</span>
+              <span className="music-player__source">
+                {source && <span className="music-player__chip">{source}</span>}
+                {mediaState.album && <span className="music-player__album">{mediaState.album}</span>}
+              </span>
             )}
           </div>
           <div className="music-player__aside">
@@ -127,7 +130,7 @@ export function MusicPlayerPanel({
       {hasTrack && (
         <div className="music-player__controls">
           <button className="music-control-button" type="button" aria-label={t.music.previousTrack} disabled={prevDisabled} onClick={onPrevious}>
-            <SkipBack size={22} strokeWidth={1.5} fill="currentColor" />
+            <SkipBack size={18} strokeWidth={1.5} fill="currentColor" />
           </button>
           <button
             className="music-control-button music-control-button--primary"
@@ -139,13 +142,13 @@ export function MusicPlayerPanel({
             {isTrackChanging ? (
               <RefreshCcw className="music-control-button__track-change" size={22} strokeWidth={2} />
             ) : isPlaying ? (
-              <Pause size={26} strokeWidth={1.5} fill="currentColor" />
+              <Pause size={22} strokeWidth={1.5} fill="currentColor" />
             ) : (
-              <Play size={26} strokeWidth={1.5} fill="currentColor" className="music-control-button__play-icon" />
+              <Play size={22} strokeWidth={1.5} fill="currentColor" className="music-control-button__play-icon" />
             )}
           </button>
           <button className="music-control-button" type="button" aria-label={t.music.nextTrack} disabled={nextDisabled} onClick={onNext}>
-            <SkipForward size={22} strokeWidth={1.5} fill="currentColor" />
+            <SkipForward size={18} strokeWidth={1.5} fill="currentColor" />
           </button>
         </div>
       )}

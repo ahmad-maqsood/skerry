@@ -70,6 +70,8 @@ Pasted `https://github.com/owner/repo` addresses also work. The plugin uses the 
 
 ## Privacy
 
+Plugins run as programs with your Windows account's access. The permissions shown in Settings are not enforced limits. What follows describes what this plugin's code does.
+
 - The token is stored in Windows Credential Manager.
 - The plugin sends requests only to `api.github.com`. Clicking an item opens `github.com` in your browser.
 - To stop using the token, delete it under [Tokens (classic)](https://github.com/settings/tokens). Do this when you uninstall the plugin too.

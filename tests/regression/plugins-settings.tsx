@@ -102,6 +102,7 @@ try {
     await act(async () => again.render(<I18nProvider><PluginsSettingsPage /></I18nProvider>)); await wait();
     const showAvailable = () => act(async () => [...document.querySelectorAll<HTMLButtonElement>(".settings-choice__option")].find((item) => item.textContent?.startsWith(t.available))!.click());
     await showAvailable();
+    check(document.body.textContent?.includes(t.trustNotice), "Available plugins carry a trust warning before installing");
     check(document.body.textContent?.includes(name.en) && !document.body.textContent.includes(t.loading),
       "A later visit shows the last plugin list while the index is still being read");
     await act(async () => requests[requests.length - 1].resolve([])); await wait();
@@ -114,6 +115,7 @@ try {
     await act(async () => installed.render(<I18nProvider><PluginsSettingsPage /></I18nProvider>)); await wait();
     await act(async () => button(t.pluginGuide).click());
     check(opened === "https://github.com/ahmad-maqsood/skerry-island/blob/main/docs/plugins/github.md", "An installed plugin's Guide button opens its own guide");
+    check(document.body.textContent?.includes(t.permissionsNotice), "Permissions say that they are not enforced");
     await act(async () => installed.unmount());
   }
   document.getElementById("results")!.textContent = [...messages, "ALL PASS"].join("\n");

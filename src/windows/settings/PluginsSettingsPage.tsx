@@ -88,7 +88,7 @@ function EnabledPluginsSettingsPage() {
           <SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => uninstallPlugin(p.manifest.id)); }}>{t.uninstall}</SettingsLinkButton>
         </span>} />
         <SettingsToggleRow title={t.enabled} checked={p.enabled} disabled={disabled} onChange={(enabled) => { void perform(() => setPluginEnabled(p.manifest.id, enabled)); }} />
-        <SettingsRow title={<span className="plugins-settings__permissions"><ShieldCheck size={14} aria-hidden="true" />{t.permissions}</span>}>
+        <SettingsRow title={<span className="plugins-settings__permissions"><ShieldCheck size={14} aria-hidden="true" />{t.permissions}</span>} description={t.permissionsNotice}>
           <div className="plugins-settings__permissions">{p.manifest.permissions.map((permission) => <span key={permission} className="plugins-settings__permission">{t.permission[permission] ?? permission}</span>)}</div>
         </SettingsRow>
         {p.manifest.settings.map((s) => <PluginSettingRow key={`${p.manifest.id}/${s.key}/${JSON.stringify(p.settings[s.key])}`} setting={s} value={p.settings[s.key] ?? s.default} disabled={disabled} onSave={(value) => { void perform(() => setPluginSetting(p.manifest.id, s.key, value)); }} />)}
@@ -96,7 +96,7 @@ function EnabledPluginsSettingsPage() {
       </div>)}
     </SettingsGroup>}
     {section === "available" && <>
-      {available.length > 0 && <SettingsGroup>
+      {available.length > 0 && <SettingsGroup footer={t.trustNotice}>
         {available.map((entry) => <SettingsRow key={entry.id} title={entry.name[locale]} description={entry.description[locale]} control={<SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => installPlugin(entry.id)); }}>{t.install}</SettingsLinkButton>} />)}
       </SettingsGroup>}
       {!known && catalogLoading && <SettingsGroup><SettingsRow title={t.loading} control={<Puzzle size={18} aria-hidden="true" />} /></SettingsGroup>}

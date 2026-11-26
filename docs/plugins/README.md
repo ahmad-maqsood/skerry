@@ -162,6 +162,10 @@ Add the guide in the same pull request as the plugin, and update it when the plu
 
 `tests/unit/plugin-guides.test.mjs` (part of `pnpm check`) fails if a guide, a section or a setting is missing. It cannot tell whether the text is correct, so reviewers check that.
 
+### Permissions are not a sandbox
+
+`permissions` is what the plugin declares. The host rejects unknown names and requires each kind in `contributes` to be listed, but it does not limit what the plugin process can do: it runs with the user's Windows account, so it can reach files and the network whether or not it lists them. The settings page says so. Review a plugin's code before shipping it.
+
 ### Protocol
 
 JSON-RPC 2.0, one JSON object per line over the plugin's stdin and stdout (only JSON-RPC may be written to stdout). A line is at most 256 KiB.

@@ -7,3 +7,5 @@ export { usePluginPopups } from "./usePluginPopups.ts";
 export { usePluginPopupSettings } from "./usePluginPopupSettings.ts";
 export type { PluginFeedController } from "./usePluginFeed.ts";
 export type { FeedNotification, FeedSession } from "./pluginFeed.ts";
+export { usePluginFilter } from "./usePluginFilter.ts";
+export type { PluginFilterController } from "./usePluginFilter.ts";

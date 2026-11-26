@@ -7,14 +7,14 @@ import { mockIPC } from "@tauri-apps/api/mocks";
 import { I18nProvider } from "../../src/i18n";
 import { MessagesPanel } from "../../src/features/messages/Messages";
 import { useSystemNotifications } from "../../src/features/messages/system-notifications/useSystemNotifications";
-import { usePluginFeed, usePluginPopups } from "../../src/features/plugins";
-import { PLUGIN_DISMISSED_KEY, PLUGIN_POPUPS_OFF_KEY } from "../../src/features/plugins/storage";
+import { usePluginFeed, usePluginFilter, usePluginPopups } from "../../src/features/plugins";
+import { PLUGIN_DISMISSED_KEY, PLUGIN_FILTER_KEY, PLUGIN_POPUPS_OFF_KEY } from "../../src/features/plugins/storage";
 import { refreshPlugins } from "../../src/features/plugins/usePlugins";
 import { PluginMessagesSection } from "../../src/windows/island/PluginMessagesSection";
 
 // Opened with ?features=enabled: the plugin host is switched on, as in development builds.
 Object.assign(globalThis, { isTauri: true, IS_REACT_ACT_ENVIRONMENT: true });
-const keys = ["skerry-locale", "skerry-system-notification-access-requested", PLUGIN_DISMISSED_KEY, "skerry-messages-section", PLUGIN_POPUPS_OFF_KEY];
+const keys = ["skerry-locale", "skerry-system-notification-access-requested", PLUGIN_DISMISSED_KEY, "skerry-messages-section", PLUGIN_POPUPS_OFF_KEY, PLUGIN_FILTER_KEY];
 const original = keys.map((key) => localStorage.getItem(key));
 window.addEventListener("beforeunload", () => keys.forEach((key, index) => {
   if (original[index] === null) localStorage.removeItem(key); else localStorage.setItem(key, original[index]!);
@@ -24,6 +24,7 @@ localStorage.setItem(keys[1], "true");
 localStorage.removeItem(PLUGIN_DISMISSED_KEY);
 localStorage.removeItem("skerry-messages-section");
 localStorage.removeItem(PLUGIN_POPUPS_OFF_KEY);
+localStorage.removeItem(PLUGIN_FILTER_KEY);
 
 const now = Date.now();
 const manifest = { id: "github", name: { en: "GitHub", "zh-CN": "GitHub" }, description: { en: "x", "zh-CN": "x" }, version: "0.1.0", apiVersion: 1,
@@ -65,7 +66,8 @@ const announced: string[] = [];
 
 function Fixture() {
   const controller = useSystemNotifications(false);
-  const feed = usePluginFeed();
+  const filter = usePluginFilter(usePluginFeed());
+  const feed = filter.feed;
   usePluginPopups((item) => announced.push(item.id));
   return (
     <MessagesPanel
@@ -73,7 +75,7 @@ function Fixture() {
       extra={{
         count: feed.notifications.length,
         hasContent: feed.notifications.length + feed.sessions.length > 0,
-        node: <PluginMessagesSection feed={feed} />,
+        node: <PluginMessagesSection filter={filter} />,
         onClear: () => feed.dismissAll(feed.notifications),
       }}
     />
@@ -147,6 +149,42 @@ try {
   check(calls.includes("clear_system_notifications") && Boolean(document.querySelector(".messages-empty")), "Clear all in the System section clears only the system notifications");
   await show("Plugins");
   check(rows().length === 3, "The plugin tasks stay after the system notifications are cleared");
+
+  // A second plugin: the filter appears only now that two plugins have something to show.
+  const select = () => document.querySelector<HTMLButtonElement>(".plugin-feed__filter .select-control__trigger");
+  check(!select(), "With one plugin there is no filter");
+  const old = now - 5000;
+  (snapshot.registry.installed as Record<string, unknown>).deploy = { manifest: { ...manifest, id: "deploy", name: { en: "Deploy", "zh-CN": "Deploy" } }, enabled: true, directory: "", development: false, settings: {} };
+  (snapshot.live as Record<string, unknown>).deploy = { status: "running", quota: [], notifications: [
+    { id: "d-1", sourceId: "deploy", appName: "Deploy", icon: "github", title: "Deploy failed", body: "prod", receivedAt: old, action: null },
+  ], sessions: [{ id: "d-run", title: "Release 4", cwd: "prod", status: "running", updatedAt: old, action: null }] };
+  snapshot.live.github.notifications.push({ id: "g-keep", sourceId: "github", appName: "GitHub", icon: "github", title: "Review requested · keep", body: "acme/app", receivedAt: old, action: "open:/acme/app/pull/1" });
+  await act(async () => { await refreshPlugins(); });
+  await settle();
+  check(Boolean(select()) && select()!.textContent === "All plugins", "With two plugins that have something to show, the filter appears, set to all");
+  check(cards().length === 2 && rows().length === 4, "All plugins: every card and task is listed");
+  await act(async () => select()!.click());
+  const choices = [...document.querySelectorAll<HTMLElement>(".plugin-feed__filter .select-control__option")].map((item) => item.textContent);
+  check(choices.join() === "All plugins,Deploy,GitHub", "The filter lists each plugin by name");
+  await act(async () => document.querySelector<HTMLElement>(".plugin-feed__filter [data-value='deploy']")!.click());
+  check(select()!.textContent === "Deploy" && cards().length === 1 && rows().length === 1 && cards()[0].textContent?.includes("Deploy failed"), "Choosing a plugin shows only its cards and tasks");
+  check(document.querySelector(".messages-toolbar__title")?.textContent?.includes("(1)"), "The count follows the chosen plugin");
+  check(localStorage.getItem(PLUGIN_FILTER_KEY) === JSON.stringify("deploy"), "The choice is remembered");
+  await act(async () => root.unmount());
+  root = createRoot(document.getElementById("fixture")!);
+  await mount();
+  check(select()?.textContent === "Deploy" && rows().length === 1, "The chosen plugin is still chosen after a restart");
+  await act(async () => document.querySelector<HTMLButtonElement>(".messages-toolbar__action")!.click());
+  check(cards().length === 0, "Clear all clears what is on show");
+  await act(async () => select()!.click());
+  await act(async () => document.querySelector<HTMLElement>(".plugin-feed__filter [data-value='']")!.click());
+  check(cards().length === 1 && cards()[0].textContent?.includes("keep"), "Clear all leaves the other plugin's notifications alone");
+  delete (snapshot.registry.installed as Record<string, unknown>).deploy;
+  delete (snapshot.live as Record<string, unknown>).deploy;
+  snapshot.live.github.notifications.pop();
+  await act(async () => { await refreshPlugins(); });
+  await settle();
+  check(!select() && rows().length === 3, "When only one plugin is left the filter goes away");
 
   check(announced.length === 0, "What the plugin published before the island started does not pop up");
   const publish = async (id: string) => {

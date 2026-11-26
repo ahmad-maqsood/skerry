@@ -36,6 +36,9 @@ export type MessagesText = {
   sectionPlugins: string;
   /** Heading above what a plugin reports as running tasks, e.g. "GitHub activity". */
   pluginActivity: (plugin: string) => string;
+  /** Label of the dropdown that narrows the Plugins section to one plugin, and its choice for all of them. */
+  pluginFilter: string;
+  allPlugins: string;
   /** The state of a plugin task (a workflow run, say). */
   sessionStatus: { running: string; waiting: string; completed: string };
 };
@@ -71,5 +74,7 @@ export const en: MessagesText = {
   sectionSystem: "System",
   sectionPlugins: "Plugins",
   pluginActivity: (plugin) => `${plugin} activity`,
+  pluginFilter: "Show plugin",
+  allPlugins: "All plugins",
   sessionStatus: { running: "Running", waiting: "Waiting", completed: "Done" },
 };

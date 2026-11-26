@@ -2,12 +2,15 @@ import { useMemo } from "react";
 import { useTranslation } from "../../i18n";
 import { MessageCard } from "../../features/messages/MessageCard";
 import { MessageSourceIcon } from "../../features/messages/MessageSourceIcon";
+import { SelectControl } from "../../components/controls/SelectControl";
 import { formatMessageCardTime } from "../../features/messages/messageCardText";
-import type { FeedNotification, FeedSession, PluginFeedController } from "../../features/plugins";
+import type { FeedNotification, FeedSession, PluginFilterController } from "../../features/plugins";
 import "./PluginMessagesSection.css";
 
 /** The newest tasks shown for each plugin. */
 const MAX_SESSIONS_PER_PLUGIN = 8;
+/** The filter's choice for every plugin; a plugin id can never be empty. */
+const ALL = "";
 
 function groupBy<T>(items: readonly T[], key: (item: T) => string): [string, T[]][] {
   const groups = new Map<string, T[]>();
@@ -37,8 +40,9 @@ function SessionRow({ session, onOpen }: { session: FeedSession; onOpen: () => v
 }
 
 /** What plugins report, inside the Messages page: their notifications as cards, their tasks as a short list. */
-export function PluginMessagesSection({ feed }: { feed: PluginFeedController }) {
+export function PluginMessagesSection({ filter }: { filter: PluginFilterController }) {
   const t = useTranslation().messages;
+  const { feed } = filter;
   const notificationGroups = useMemo(
     () => groupBy<FeedNotification>(feed.notifications, (item) => `${item.pluginId}/${item.appName}`),
     [feed.notifications],
@@ -47,6 +51,16 @@ export function PluginMessagesSection({ feed }: { feed: PluginFeedController }) 
 
   return (
     <>
+      {filter.offered && (
+        <div className="plugin-feed__filter">
+          <SelectControl
+            ariaLabel={t.pluginFilter}
+            value={filter.selected ?? ALL}
+            options={[{ value: ALL, label: t.allPlugins }, ...filter.plugins.map((plugin) => ({ value: plugin.id, label: plugin.name }))]}
+            onChange={(value) => filter.select(value === ALL ? null : value)}
+          />
+        </div>
+      )}
       {notificationGroups.map(([groupKey, items]) => (
         <div className="messages-app-group" key={groupKey}>
           <div className="messages-app-header">

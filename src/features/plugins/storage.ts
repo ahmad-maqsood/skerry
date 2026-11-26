@@ -1,4 +1,4 @@
-import { readJson, writeJson } from "../../lib/storage";
+import { readJson, removeItem, writeJson } from "../../lib/storage";
 import { normalizeDismissed } from "./pluginFeed.ts";
 import { normalizePopupsOff } from "./pluginPopups.ts";
 
@@ -22,4 +22,16 @@ export function loadPopupsOff(): string[] {
 
 export function savePopupsOff(ids: readonly string[]): void {
   writeJson(PLUGIN_POPUPS_OFF_KEY, ids);
+}
+
+/** The plugin the Plugins section is narrowed to; missing means all of them. */
+export const PLUGIN_FILTER_KEY = "skerry-plugin-filter";
+
+export function loadPluginFilter(): string | null {
+  const value = readJson(PLUGIN_FILTER_KEY);
+  return typeof value === "string" && value.length > 0 && value.length < 200 ? value : null;
+}
+
+export function savePluginFilter(pluginId: string | null): void {
+  if (pluginId === null) removeItem(PLUGIN_FILTER_KEY); else writeJson(PLUGIN_FILTER_KEY, pluginId);
 }

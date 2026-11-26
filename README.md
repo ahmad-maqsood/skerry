@@ -6,12 +6,11 @@
   <p>The modern, lightweight Dynamic Island for Windows.</p>
 
   <p>
+    <a href="https://apps.microsoft.com/detail/9MV21HG0T71J?mode=direct">
+      <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download Skerry from the Microsoft Store" height="52"></a>
+    &nbsp;&nbsp;
     <a href="https://github.com/ahmad-maqsood/skerry-island/releases/latest">
-      <img src="https://img.shields.io/badge/Download-Latest%20Installer-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download Skerry">
-    </a>
-    <a href="https://apps.microsoft.com/detail/9MV21HG0T71J">
-      <img src="https://img.shields.io/badge/Download%20from-Microsoft%20Store-0078D4?style=for-the-badge&logo=microsoft-store&logoColor=white" alt="Download Skerry from the Microsoft Store">
-    </a>
+      <img src="docs/assets/download-github.svg" alt="Download Skerry from GitHub" height="52"></a>
   </p>
 
   <p>

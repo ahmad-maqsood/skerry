@@ -9,6 +9,9 @@
     <a href="https://github.com/ahmad-maqsood/skerry-island/releases/latest">
       <img src="https://img.shields.io/badge/Download-Latest%20Installer-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download Skerry">
     </a>
+    <a href="https://apps.microsoft.com/detail/9MV21HG0T71J">
+      <img src="https://img.shields.io/badge/Download%20from-Microsoft%20Store-0078D4?style=for-the-badge&logo=microsoft-store&logoColor=white" alt="Download Skerry from the Microsoft Store">
+    </a>
   </p>
 
   <p>
@@ -120,7 +123,11 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 
 ## Installation
 
-### Method 1: Installer Package (Recommended)
+### Method 1: Microsoft Store (Recommended)
+
+[**Download Skerry from the Microsoft Store**](https://apps.microsoft.com/detail/9MV21HG0T71J) (or open `ms-windows-store://pdp/?productid=9MV21HG0T71J`). The Store installs Skerry and keeps it up to date, and it needs no SmartScreen prompt.
+
+### Method 2: Installer Package
 
 1. Navigate to the [Latest Release](https://github.com/ahmad-maqsood/skerry-island/releases/latest) page.
 2. Download `skerry_<version>_x64-setup.exe` (or the `.msi` package for enterprise environments).

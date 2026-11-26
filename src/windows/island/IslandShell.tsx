@@ -20,6 +20,7 @@ import type { NoticeSize } from "./noticeLayout";
 import "./IslandShell.css";
 import "./IslandPageText.css";
 import "./IslandGlass.css";
+import "./IslandGlassColour.css";
 import "./IslandTuckStyle.css";
 import { useTuckMorph } from "./useTuckMorph";
 
@@ -137,8 +138,10 @@ export function IslandShell({
   const t = useTranslation();
   const isExpanded = mode === "expanded";
   const glass = isGlass(material);
-  const isLiquidGlass = material === "liquidGlass";
-  const { handleGlassPointerMove, resetGlassPointer } = useGlassPointer(isLiquidGlass);
+  // Liquid glass and prism catch the pointer's light; aurora and prism draw a rim (and a streak) too.
+  const tracksPointer = material === "liquidGlass" || material === "prism";
+  const hasRim = glass && material !== "frostedGlass";
+  const { handleGlassPointerMove, resetGlassPointer } = useGlassPointer(tracksPointer);
   const isPreparing = useIslandPreparing(isExpanded);
   const tuckMorphClass = useTuckMorph(isTucked, tuckStyle);
   const contentRef = usePageFadeIn<HTMLDivElement>(page, mode);
@@ -195,8 +198,8 @@ export function IslandShell({
         {glass && <div className="island__glass-backdrop" aria-hidden="true"><canvas /></div>}
         {glass && (
           <div className="island__glass" aria-hidden="true">
-            {isLiquidGlass && <span className="island__glass-refraction" />}
-            {isLiquidGlass && <span className="island__glass-highlight" />}
+            {hasRim && <span className="island__glass-refraction" />}
+            {hasRim && <span className="island__glass-highlight" />}
           </div>
         )}
         <IslandCollapsedBar

@@ -230,6 +230,8 @@ test("the material defaults to classic; the old liquid glass mode carries over",
   assert.equal(normalizeSettings({ appearanceMode: "liquidGlass" }).material, "liquidGlass");
   assert.equal(normalizeSettings({ appearanceMode: "classic" }).material, "classic");
   assert.equal(normalizeSettings({ material: "frostedGlass" }).material, "frostedGlass");
+  assert.equal(normalizeSettings({ material: "aurora" }).material, "aurora");
+  assert.equal(normalizeSettings({ material: "prism" }).material, "prism");
   // A saved material wins over the old field; unknown values fall back to classic.
   assert.equal(normalizeSettings({ material: "classic", appearanceMode: "liquidGlass" }).material, "classic");
   assert.equal(normalizeSettings({ material: "chrome", appearanceMode: "neon" }).material, "classic");

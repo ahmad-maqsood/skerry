@@ -5,7 +5,7 @@
 // <html data-scene-error> when the scene failed).
 //
 //   scene = clock | notification | messages | music | todos | shelf | system | translation | clipboard | settings
-//   ?material=classic|liquidGlass|frostedGlass  ?theme=dark|light  ?wallpaper=1  ?page=<settings page>
+//   ?material=classic|liquidGlass|frostedGlass|aurora|prism  ?theme=dark|light  ?wallpaper=1  ?page=<settings page>
 //
 // Open it under `pnpm dev` to look at a scene by eye; `pnpm screenshots` (run by hand) captures
 // them in headless Chrome or Edge at high resolution.

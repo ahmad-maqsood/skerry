@@ -45,6 +45,8 @@ export function MaterialRows({ settings, onSettingsChange }: RowsProps) {
     { value: "classic", label: text.classic },
     { value: "liquidGlass", label: text.liquidGlass },
     { value: "frostedGlass", label: text.frostedGlass },
+    { value: "aurora", label: text.aurora },
+    { value: "prism", label: text.prism },
   ] as const;
   return (
     <>

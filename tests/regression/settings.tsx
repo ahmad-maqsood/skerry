@@ -161,9 +161,13 @@ if (!automated) {
     const materialButton = (label: string) => [...document.querySelectorAll<HTMLButtonElement>(".editor-panel button")].find((button) => button.textContent === label);
     const strengthRow = () => [...document.querySelectorAll(".settings-row")].some((row) => row.textContent?.includes("Glass strength"));
     check(!document.querySelector(".island-preview__island--glass") && materialButton("Classic") && materialButton("Frosted") && !strengthRow(),
-      "The material defaults to classic with both glasses offered, and no glass strength row");
+      "The material defaults to classic with the glasses offered, and no glass strength row");
     await act(async () => materialButton("Liquid")!.click());
     check(document.querySelector(".island-preview__island--liquidGlass") && strengthRow(), "Liquid glass draws on the preview and shows the glass strength");
+    for (const [label, material] of [["Aurora", "aurora"], ["Prism", "prism"]] as const) {
+      await act(async () => materialButton(label)!.click());
+      check(document.querySelector(`.island-preview__island--${material}`) && strengthRow(), `${label} draws on the preview and shows the glass strength`);
+    }
     await act(async () => materialButton("Classic")!.click());
     check(document.querySelectorAll("[title]").length === 0, "No hover tooltips anywhere in Settings");
 

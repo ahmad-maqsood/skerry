@@ -11,9 +11,11 @@
  * and the rim uses unblurred inset lines and a gradient instead of a blurred inset glow.
  * Each glass works in both tones ([data-tone], from the island colour): the lit edges stay white,
  * the shadows and the text halo follow the tone.
+ * Four materials use this file: liquid glass, frosted glass, and (2026-11-25) aurora and prism.
+ * Aurora and prism are in every shared selector below; what is their own is in IslandGlassColour.css.
  */
 
-.island:is(.island--material-liquidGlass, .island--material-frostedGlass) {
+.island:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism) {
   /* One small noise tile, rasterized once and repeated: the pane reads as glass, not a flat colour. */
   --glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E");
   /* The glass draws its own rim. */
@@ -27,7 +29,7 @@
 }
 
 /* Collapsed and open share one fill, so closing never swaps the background mid-spring. */
-:is(.island--material-liquidGlass, .island--material-frostedGlass).island--collapsed {
+:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism).island--collapsed {
   box-shadow: none;
 }
 
@@ -162,7 +164,7 @@
    wherever the frame does not reach yet (the window just grew) the pane still reads as glass
    instead of a bare rim round the desktop (2026-11-19, owner). */
 
-:is(.island--material-liquidGlass, .island--material-frostedGlass).island--collapsed:has(:focus-visible) {
+:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism).island--collapsed:has(:focus-visible) {
   box-shadow:
     inset 0 -1px 0 rgba(255, 255, 255, 0.5),
     inset 0 0 18px var(--color-white-a10),
@@ -174,7 +176,7 @@
  * owner). Readability over a busy desktop comes from the tint, the contrast veil above and text a
  * step stronger than on the opaque island: the muted levels faded into the backdrop.
  */
-.island:is(.island--material-liquidGlass, .island--material-frostedGlass) {
+.island:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism) {
   --text-1-alpha: 1;
   --text-2-alpha: 0.86;
   --text-3-alpha: 0.74;
@@ -185,12 +187,12 @@
   --text-placeholder: rgba(var(--ink-rgb), var(--text-placeholder-alpha));
 }
 
-.island:is(.island--material-liquidGlass, .island--material-frostedGlass) .island__content {
+.island:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism) .island__content {
   --color-text-muted: rgba(var(--page-ink-rgb), 0.86);
   --color-text-subtle: rgba(var(--page-ink-rgb), 0.72);
 }
 
-:is(.island--material-liquidGlass, .island--material-frostedGlass) .island__glass {
+:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism) .island__glass {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -280,13 +282,18 @@
 .island--material-liquidGlass .island__glass-refraction,
 .island--material-liquidGlass .island__glass-highlight,
 .island--material-liquidGlass .island__glass::before,
-.island--material-frostedGlass .island__glass::before {
+.island--material-frostedGlass .island__glass::before,
+.island--material-aurora .island__glass-refraction,
+.island--material-aurora .island__glass-highlight,
+.island--material-prism .island__glass-refraction,
+.island--material-prism .island__glass-highlight,
+.island--material-prism .island__glass::before {
   animation: glassRimIn 200ms ease-out backwards;
 }
 
 .island[data-moving] .island__glass-refraction,
 .island[data-moving] .island__glass-highlight,
-.island[data-moving] .island__glass::before {
+.island:not(.island--material-aurora)[data-moving] .island__glass::before {
   visibility: hidden;
   animation: none;
 }
@@ -298,8 +305,8 @@
 }
 
 /* Attached to the screen edge: the shoulders take the flat tint, liquid glass's streak moves to the bottom edge. */
-:root[data-island-top-edge="attached"] .island--shoulders:is(.island--material-liquidGlass, .island--material-frostedGlass):not(.island--tucked),
-:root:not([data-island-top-edge]) .island--docked.island--shoulders:is(.island--material-liquidGlass, .island--material-frostedGlass):not(.island--tucked) {
+:root[data-island-top-edge="attached"] .island--shoulders:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism):not(.island--tucked),
+:root:not([data-island-top-edge]) .island--docked.island--shoulders:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism):not(.island--tucked) {
   background: var(--glass-tint-color);
 }
 
@@ -338,7 +345,7 @@
  * the pane. Here they are a faint layer of the tone's overlay with a hairline and a lit top edge,
  * the way the message and clipboard cards already sit on it, so the glass shows through.
  */
-.island:is(.island--material-liquidGlass, .island--material-frostedGlass) {
+.island:is(.island--material-liquidGlass, .island--material-frostedGlass, .island--material-aurora, .island--material-prism) {
   /* A faint white mist, the glass's own colour: a dark grey veil read as a black box cut into the
      pane (file shelf, translation; 2026-11-18, owner). The contrast veil keeps text readable. */
   --inner-panel-fill:
@@ -351,8 +358,9 @@
   --inner-panel-cutout: var(--glass-tint-color);
 }
 
-/* Frosted glass is milky already: a thinner mist is enough. */
-.island.island--material-frostedGlass {
+/* Frosted glass is milky already, and aurora is smoky: a thinner mist is enough. */
+.island.island--material-frostedGlass,
+.island.island--material-aurora {
   --inner-panel-fill:
     linear-gradient(160deg, rgba(255, 255, 255, calc(0.07 + var(--is-light) * 0.16)), rgba(255, 255, 255, calc(0.03 + var(--is-light) * 0.1)));
 }

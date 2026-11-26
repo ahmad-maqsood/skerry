@@ -10,6 +10,7 @@ import { SettingsLinkButton } from "../../components/settings/SettingsLinkButton
 import { PluginSettingRow } from "../../features/plugins/PluginSettingRow";
 import { usePlugins, refreshPlugins } from "../../features/plugins/usePlugins";
 import { PLUGINS_ENABLED } from "../../features/plugins";
+import { catalogSource, loadCatalog, saveCatalog } from "../../features/plugins/catalogCache";
 import { configurePlugins, getPluginsIndex, installPlugin, loadDevelopmentPlugin, PLUGIN_INDEX_UNAVAILABLE, runPluginAction, setPluginEnabled, setPluginSetting, uninstallPlugin, type PluginIndexEntry } from "../../features/plugins/api";
 import { useLocale, useTranslation } from "../../i18n";
 import { PluginDevelopmentPage } from "./PluginDevelopmentPage";
@@ -26,20 +27,25 @@ function EnabledPluginsSettingsPage() {
   const t = useTranslation().settings.plugins;
   const { locale } = useLocale();
   const { registry, live } = usePlugins();
-  const [catalog, setCatalog] = useState<PluginIndexEntry[]>([]);
+  // The last answer shows at once; the index is on the network and is read again behind it.
+  const [stored, setStored] = useState(loadCatalog);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogRevision, setCatalogRevision] = useState(0);
-  const [catalogUnavailable, setCatalogUnavailable] = useState(false);
   const [directory, setDirectory] = useState("");
   const [index, setIndex] = useState<string | null>(null);
-  const disabled = busy || catalogLoading;
+  const source = catalogSource(registry.developerMode, registry.indexUrl);
+  const known = stored?.source === source ? stored : null;
+  const catalog = known?.entries ?? [];
+  const catalogUnavailable = known?.unavailable ?? false;
+  // Installed plugins work without the index, so only installing waits for nothing but `busy`.
+  const disabled = busy;
   const perform = async (action: () => Promise<unknown>) => {
     setBusy(true); setError("");
     try { await action(); await refreshPlugins(); }
     catch (e) {
-      if (String(e) === PLUGIN_INDEX_UNAVAILABLE) { setCatalog([]); setCatalogUnavailable(true); }
+      if (String(e) === PLUGIN_INDEX_UNAVAILABLE) setStored({ source, entries: [], unavailable: true });
       else setError(String(e));
     }
     finally { setBusy(false); }
@@ -48,17 +54,21 @@ function EnabledPluginsSettingsPage() {
   useEffect(() => {
     let disposed = false;
     setCatalogLoading(true);
-    void getPluginsIndex().then((entries) => {
-      if (!disposed) { setCatalog(entries); setCatalogUnavailable(false); }
-    }).catch((e: unknown) => {
+    const answer = (entries: PluginIndexEntry[], unavailable: boolean) => {
+      if (disposed) return;
+      const next = { source, entries, unavailable };
+      setStored(next);
+      saveCatalog(next);
+    };
+    void getPluginsIndex().then((entries) => answer(entries, false)).catch((e: unknown) => {
       console.error("Plugin index unavailable", e);
-      if (!disposed) { setCatalog([]); setCatalogUnavailable(true); }
+      answer([], true);
     }).finally(() => { if (!disposed) setCatalogLoading(false); });
     return () => { disposed = true; };
-  }, [registry.developerMode, registry.indexUrl, catalogRevision]);
+  }, [registry.developerMode, registry.indexUrl, source, catalogRevision]);
   const installed = Object.values(registry.installed);
   return <section className="settings-section settings-section--list plugins-settings">
-    <SettingsGroup title={t.installed} action={<SettingsLinkButton disabled={disabled} onClick={() => { void refreshCatalog(); }} >{t.retry}</SettingsLinkButton>}>
+    <SettingsGroup title={t.installed} action={<SettingsLinkButton disabled={busy || catalogLoading} onClick={() => { void refreshCatalog(); }} >{t.retry}</SettingsLinkButton>}>
       {installed.length === 0 && <SettingsRow title={t.empty} control={<Puzzle size={18} aria-hidden="true" />} />}
       {installed.map((p) => <div key={p.manifest.id}>
         <SettingsRow title={p.manifest.name[locale]} description={`${p.manifest.version} · ${t.status[live[p.manifest.id]?.status ?? "stopped"] ?? ""}`} control={<span className="plugins-settings__actions">
@@ -76,7 +86,8 @@ function EnabledPluginsSettingsPage() {
     {catalog.some((e) => !registry.installed[e.id]) && <SettingsGroup title={t.available}>
       {catalog.filter((e) => !registry.installed[e.id]).map((entry) => <SettingsRow key={entry.id} title={entry.name[locale]} description={entry.description[locale]} control={<SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => installPlugin(entry.id)); }}>{t.install}</SettingsLinkButton>} />)}
     </SettingsGroup>}
-    {catalogUnavailable && <SettingsGroup><SettingsRow title={t.unavailable} control={<SettingsLinkButton disabled={disabled} onClick={() => { void refreshCatalog(); }}>{t.retry}</SettingsLinkButton>} /></SettingsGroup>}
+    {!known && catalogLoading && <SettingsGroup><SettingsRow title={t.loading} control={<Puzzle size={18} aria-hidden="true" />} /></SettingsGroup>}
+    {catalogUnavailable && <SettingsGroup><SettingsRow title={t.unavailable} control={<SettingsLinkButton disabled={busy || catalogLoading} onClick={() => { void refreshCatalog(); }}>{t.retry}</SettingsLinkButton>} /></SettingsGroup>}
     {error && <p className="plugins-settings__error" role="alert">{error}</p>}
     <details className="plugins-settings__developer"><summary>{t.developer}</summary><SettingsGroup>
       <SettingsToggleRow title={t.developerMode} checked={registry.developerMode} disabled={busy} onChange={(enabled) => { void perform(() => configurePlugins(enabled, registry.indexUrl)); }} />

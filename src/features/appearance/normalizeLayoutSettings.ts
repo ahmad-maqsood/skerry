@@ -15,7 +15,7 @@ function normalizeSize(value: unknown, limits: { min: number; max: number; defau
 /** The saved material; older versions saved liquid glass as `appearanceMode: "liquidGlass"`. */
 function normalizeMaterial(settings: LegacyIslandSettings | null | undefined): Material {
   const material = settings?.material;
-  if (material === "classic" || material === "liquidGlass" || material === "frostedGlass") return material;
+  if (material === "classic" || material === "liquidGlass" || material === "frostedGlass" || material === "aurora" || material === "prism") return material;
   return settings?.appearanceMode === "liquidGlass" ? "liquidGlass" : DEFAULT_SETTINGS.material;
 }
 

@@ -5,11 +5,13 @@ export type SettingsAppearanceText = {
   collapsedDimensions: { autoWidth: string; width: string; height: string; padding: string; unit: string; hint: string };
   systemFont: string;
   pixelFont: string;
-  /** Material: classic, liquid glass, or frosted glass. */
+  /** Material: classic, liquid glass, frosted glass, aurora, or prism. */
   material: string;
   classic: string;
   liquidGlass: string;
   frostedGlass: string;
+  aurora: string;
+  prism: string;
   glassStrength: string;
   /** How much the glass blurs the wallpaper behind it, and what it blurs. */
   glassBlur: string;
@@ -88,6 +90,8 @@ export const en: SettingsAppearanceText = {
   classic: "Classic",
   liquidGlass: "Liquid",
   frostedGlass: "Frosted",
+  aurora: "Aurora",
+  prism: "Prism",
   glassStrength: "Glass strength",
   glassBlur: "Background blur",
   glassBlurHint: "Blurs whatever is behind the island, live",

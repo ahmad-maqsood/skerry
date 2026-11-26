@@ -1,0 +1,153 @@
+/*
+ * The coloured glasses, aurora and prism (2026-11-25): what is their own, on top of the shared rules
+ * in IslandGlass.css (which loads first). Their variables come from glassStyle.ts.
+ */
+
+/*
+ * The gradient rim of aurora and prism: a 1px ring painted with a gradient, cut out of a box the
+ * size of the pane with a mask (a box-shadow cannot be a gradient). Like the other rims it waits
+ * for the island to settle (data-moving), so the mask is not redrawn while the shape springs.
+ */
+.island:is(.island--material-aurora, .island--material-prism) .island__glass-refraction::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  corner-shape: var(--island-corner-shape, round);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/*
+ * Aurora (2026-11-25): a deep, smoky pane lit from below by northern-light colour. Tall soft
+ * curtains of mint, teal, violet and rose stand on the bottom edge like a glow under the glass,
+ * with a soft light from the page's own accent at the top. While the island is open the colour
+ * drifts very slowly, by transform only, so it costs the compositor almost nothing; collapsed, it
+ * rests as a glowing underline. It is a few gradients on a pane-sized layer (no blur to repaint).
+ */
+.island.island--material-aurora {
+  --aurora-mint: 70, 240, 170;
+  --aurora-teal: 56, 214, 236;
+  --aurora-violet: 156, 112, 255;
+  --aurora-rose: 255, 120, 196;
+  --glass-backdrop-wash: rgba(255, 255, 255, calc(0.02 + var(--is-light) * 0.12));
+}
+
+/* Deeper hues on a light island, so the colour still reads against white. */
+[data-tone="light"] .island.island--material-aurora {
+  --aurora-mint: 18, 190, 128;
+  --aurora-teal: 14, 168, 204;
+  --aurora-violet: 120, 80, 240;
+  --aurora-rose: 234, 70, 160;
+}
+
+.island--material-aurora .island__glass::before {
+  /* A little larger than the pane, so the drift never shows an edge. */
+  inset: -6% -5%;
+  background:
+    /* tall, soft columns of light standing on the bottom edge: the curtains */
+    radial-gradient(14% 92% at 12% 104%, rgba(var(--aurora-mint), calc(var(--glass-colour-alpha) * 0.95)), transparent 100%),
+    radial-gradient(16% 100% at 30% 106%, rgba(var(--aurora-teal), calc(var(--glass-colour-alpha) * 0.8)), transparent 100%),
+    radial-gradient(17% 96% at 52% 104%, rgba(var(--aurora-violet), var(--glass-colour-alpha)), transparent 100%),
+    radial-gradient(15% 92% at 72% 106%, rgba(var(--aurora-rose), calc(var(--glass-colour-alpha) * 0.85)), transparent 100%),
+    radial-gradient(14% 84% at 90% 104%, rgba(var(--aurora-violet), calc(var(--glass-colour-alpha) * 0.7)), transparent 100%),
+    /* the glow they cast along the edge, and a soft light from the page's own accent above */
+    radial-gradient(80% 46% at 50% 126%, rgba(var(--aurora-mint), calc(var(--glass-colour-alpha) * 0.75)), transparent 100%),
+    radial-gradient(54% 42% at 50% -10%, rgba(var(--glass-page-accent), calc(var(--glass-colour-alpha) * 0.42)), transparent 100%);
+  opacity: calc(1 - var(--is-light) * 0.1);
+  animation: auroraDrift 36s ease-in-out infinite alternate;
+  /* It rests while the island is closed, and while it opens or closes. */
+  animation-play-state: paused;
+}
+
+.island--expanded.island--material-aurora:not([data-moving]) .island__glass::before {
+  animation-play-state: running;
+}
+
+/* Never jumps: it starts and ends at rest in the middle, and a pause leaves it where it is. */
+@keyframes auroraDrift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-2.6%, -2%, 0) scale(1.05); }
+  100% { transform: translate3d(2.6%, 1.5%, 0) scale(1.02); }
+}
+
+.island--material-aurora .island__glass-refraction {
+  /* The rim is the gradient ring; keep the lit top edge and a hairline just inside it. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, calc(var(--glass-inset-alpha) * 0.9)),
+    inset 0 0 0 2px rgba(0, 0, 0, calc(0.1 - var(--is-light) * 0.05));
+}
+
+.island--material-aurora .island__glass-refraction::after {
+  background: linear-gradient(
+    175deg,
+    rgba(255, 255, 255, calc(var(--glass-rim-alpha) * 0.9)) 0%,
+    rgba(var(--aurora-mint), calc(var(--glass-rim-alpha) * 0.7)) 36%,
+    rgba(var(--aurora-violet), calc(var(--glass-rim-alpha) * 0.8)) 74%,
+    rgba(var(--aurora-rose), var(--glass-rim-alpha)) 100%
+  );
+}
+
+.island--material-aurora .island__glass-highlight {
+  background: linear-gradient(90deg, transparent, rgba(214, 255, 244, 0.9), transparent);
+}
+
+/*
+ * Prism (2026-11-25): a clear crystal pane. Like liquid glass it is nearly transparent and catches
+ * the pointer's light; light moving through it splits into colour. A band of light, white at its
+ * core and a rainbow either side, travels across the pane with the pointer, and the rim disperses
+ * the same way: cyan on one side, white along the lit edge, rose and amber on the other. The rest
+ * of the pane stays clear (colour spread over all of it turned a smoky pane muddy).
+ */
+.island.island--material-prism {
+  --glass-backdrop-wash: rgba(255, 255, 255, calc(0.015 + var(--is-light) * 0.08));
+}
+
+.island--material-prism .island__glass::before {
+  inset: 0;
+  background:
+    /* the band of light: white at its core, splitting into colour either side, following the pointer */
+    linear-gradient(
+      112deg,
+      transparent calc(var(--glass-pointer-x) - 36%),
+      rgba(170, 120, 255, calc(var(--glass-colour-alpha) * 0.7)) calc(var(--glass-pointer-x) - 25%),
+      rgba(90, 190, 255, var(--glass-colour-alpha)) calc(var(--glass-pointer-x) - 14%),
+      rgba(120, 255, 214, calc(var(--glass-colour-alpha) * 0.9)) calc(var(--glass-pointer-x) - 5%),
+      rgba(255, 255, 255, calc(var(--glass-colour-alpha) * 0.9)) var(--glass-pointer-x),
+      rgba(255, 216, 140, calc(var(--glass-colour-alpha) * 0.8)) calc(var(--glass-pointer-x) + 6%),
+      rgba(255, 120, 190, calc(var(--glass-colour-alpha) * 0.9)) calc(var(--glass-pointer-x) + 15%),
+      rgba(170, 120, 255, calc(var(--glass-colour-alpha) * 0.5)) calc(var(--glass-pointer-x) + 26%),
+      transparent calc(var(--glass-pointer-x) + 36%)
+    ),
+    /* a faint dispersion across the whole pane, cool at one corner and warm at the other like the rim */
+    linear-gradient(
+      135deg,
+      rgba(80, 210, 255, calc(var(--glass-colour-alpha) * 0.22)),
+      transparent 42%,
+      transparent 62%,
+      rgba(255, 110, 200, calc(var(--glass-colour-alpha) * 0.2))
+    );
+}
+
+.island--material-prism .island__glass-refraction {
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, calc(var(--glass-inset-alpha) * 0.7)),
+    inset 0 0 0 2px rgba(0, 0, 0, calc(0.1 - var(--is-light) * 0.05));
+}
+
+.island--material-prism .island__glass-refraction::after {
+  padding: 1.5px;
+  background: linear-gradient(
+    135deg,
+    rgba(80, 210, 255, var(--glass-rim-alpha)) 0%,
+    rgba(255, 255, 255, calc(var(--glass-rim-alpha) * 0.95)) 20%,
+    rgba(255, 255, 255, calc(var(--glass-rim-alpha) * 0.2)) 48%,
+    rgba(255, 255, 255, calc(var(--glass-rim-alpha) * 0.28)) 64%,
+    rgba(255, 110, 200, var(--glass-rim-alpha)) 84%,
+    rgba(255, 190, 80, var(--glass-rim-alpha)) 100%
+  );
+}

@@ -23,7 +23,7 @@ const media = (query.get("media") ?? "playing") as TourMedia;
 const customNotch = query.has("notch");
 const fontPercent = Number(query.get("font")) || 100;
 // ?theme=dark|light|system picks the colour scheme, ?bg=FFFFFF a background colour of the user's own,
-// ?material=liquidGlass|frostedGlass the material.
+// ?material=liquidGlass|frostedGlass|aurora|prism the material.
 // ?tuck=line|hidden picks the tucked look (default edge).
 const tuckStyle = query.get("tuck") ?? "edge";
 Object.assign(globalThis, { isTauri: true, IS_REACT_ACT_ENVIRONMENT: automated });

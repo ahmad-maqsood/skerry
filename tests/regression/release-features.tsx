@@ -20,11 +20,15 @@ function check(condition: unknown, label: string) {
 }
 const root = createRoot(document.getElementById("fixture")!);
 try {
-  // Plugins stay off in stable builds.
-  check(!PLUGINS_ENABLED, "Release build keeps plugins disabled");
   await act(async () => root.render(<StrictMode><I18nProvider><Probe /></I18nProvider></StrictMode>));
   await act(async () => { await refreshPlugins(); });
-  check(calls.length === 0, "Mounting plugin consumers on the island does not request host, index, or event subscriptions");
+  if (PLUGINS_ENABLED) {
+    // Plugins are on in this build: consumers ask the host for its snapshot.
+    check(calls.includes("get_plugins"), "Mounting plugin consumers requests the plugin host snapshot");
+  } else {
+    // When the flag is off, consumers never touch the host.
+    check(calls.length === 0, "Mounting plugin consumers on the island does not request host, index, or event subscriptions");
+  }
   check(document.querySelector("output")?.textContent?.includes('"installed":{}'), "Empty plugin snapshot generates no sessions, quota, or message entries");
   await act(async () => root.unmount());
   document.documentElement.dataset.testResult = "passed";

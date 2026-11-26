@@ -13,6 +13,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { changelogEntries, CHANGELOG_LIMIT } from "./changelog-json.mjs";
 import { msiNames, msiVersion } from "./msi-version.mjs";
 import { changesFor, descriptionMarkdown } from "./release-notes.mjs";
 
@@ -181,12 +182,25 @@ export function runRelease() {
         .filter((name) => name.endsWith(".zip") || name === "plugins-index.json")
         .map((name) => `artifacts/plugins/${name}`)
     : [];
-  const assets = [...installers, ...installers.map((path) => `${path}.sig`), `${BUNDLE_DIR}/latest.json`, checksumPath, ...pluginAssets];
+  const changelogPath = `${BUNDLE_DIR}/changelog.json`;
+  const assets = [...installers, ...installers.map((path) => `${path}.sig`), `${BUNDLE_DIR}/latest.json`, changelogPath, checksumPath, ...pluginAssets];
   const revision = run("git", ["rev-parse", "HEAD"], { capture: true }).stdout.trim();
   const prerelease = version.includes("-");
   // The release description: what's new, the installers with their checksums, how to verify them.
   const described = installers.map((path) => ({ name: path.split("/").pop(), sha256: createHash("sha256").update(readFileSync(path)).digest("hex") }));
-  writeFileSync(descriptionFile, descriptionMarkdown({ tag, changes, assets: described, previous }));
+  const description = descriptionMarkdown({ tag, changes, assets: described, previous });
+  writeFileSync(descriptionFile, description);
+  // The history Settings → Changelog downloads: this release, then the ones already published.
+  const published = JSON.parse(run("gh", ["api", `repos/${REPO}/releases?per_page=${CHANGELOG_LIMIT}`], { capture: true }).stdout);
+  const current = {
+    tag_name: tag,
+    name: tag,
+    body: description,
+    published_at: new Date().toISOString(),
+    html_url: `https://github.com/${REPO}/releases/tag/${tag}`,
+    prerelease,
+  };
+  writeFileSync(changelogPath, `${JSON.stringify(changelogEntries(current, published))}\n`);
   console.log(`\nRelease description (${descriptionFile}):\n\n${readFileSync(descriptionFile, "utf8")}`);
 
   run("gh", [

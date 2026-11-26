@@ -1,7 +1,8 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "../../i18n";
 import { MessageCard } from "./MessageCard";
 import { MessageSourceIcon } from "./MessageSourceIcon";
+import { visibleSection, type MessageSection } from "./messageSections";
 import type { SystemNotification } from "./system-notifications/types";
 import type { SystemNotificationsController } from "./system-notifications/useSystemNotifications";
 import "./Messages.css";
@@ -13,7 +14,7 @@ export type MessagesExtra = {
   /** True when it shows anything at all, so the page is not called empty. */
   hasContent: boolean;
   node: ReactNode;
-  /** Called by "Clear all", along with clearing the system notifications. */
+  /** Called by "Clear all" while this section is shown; the system notifications are left alone. */
   onClear: () => void;
 };
 
@@ -38,6 +39,12 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
   const { snapshot, clearAll, dismissOne, dismissApp, openApp } = controller;
   const { items } = snapshot;
   const total = items.length + (extra?.count ?? 0);
+  const [chosen, setChosen] = useState<MessageSection | null>(null);
+  const pluginsHaveContent = extra?.hasContent ?? false;
+  const section = visibleSection(chosen, items.length, pluginsHaveContent);
+  const shownCount = section === "plugins" ? (extra?.count ?? 0) : items.length;
+  const sectionCounts: Record<MessageSection, number> = { system: items.length, plugins: extra?.count ?? 0 };
+  const sectionNames: Record<MessageSection, string> = { system: t.messages.sectionSystem, plugins: t.messages.sectionPlugins };
 
   // Group notifications by app, newest first
   const groups = useMemo(() => {
@@ -65,13 +72,29 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
           {t.messages.title}
           {total > 0 && ` (${total})`}
         </span>
-        {total > 0 && (
+        {pluginsHaveContent && (
+          <div className="messages-switch" role="group" aria-label={t.messages.sections}>
+            {(["system", "plugins"] as const).map((id) => (
+              <button
+                key={id}
+                className="messages-switch__option"
+                type="button"
+                aria-pressed={section === id}
+                onClick={() => setChosen(id)}
+              >
+                {sectionNames[id]}
+                {sectionCounts[id] > 0 && <span className="messages-switch__count">{sectionCounts[id]}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        {shownCount > 0 && (
           <button
             className="messages-toolbar__action"
             type="button"
             onClick={() => {
-              if (items.length > 0) void clearAll();
-              extra?.onClear();
+              if (section === "plugins") extra?.onClear();
+              else void clearAll();
             }}
           >
             {t.messages.clearAll}
@@ -79,13 +102,13 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
         )}
       </div>
 
-      {groups.length === 0 && !extra?.hasContent ? (
+      {section === "system" && groups.length === 0 ? (
         <div className="messages-empty">
           <p>{t.messages.noNotifications}</p>
         </div>
       ) : (
-        <div className="messages-list" role="list">
-          {groups.map((group) => (
+        <div className="messages-list" role="list" key={section}>
+          {section === "system" && groups.map((group) => (
             <div className="messages-app-group" key={group.appId}>
               <div className="messages-app-header">
                 <MessageSourceIcon
@@ -125,7 +148,7 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
               ))}
             </div>
           ))}
-          {extra?.node}
+          {section === "plugins" && extra?.node}
         </div>
       )}
     </div>

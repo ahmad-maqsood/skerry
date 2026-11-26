@@ -63,6 +63,7 @@ try {
   await act(async () => root.render(<StrictMode><I18nProvider><Fixture /></I18nProvider></StrictMode>));
   const groups = document.querySelectorAll(".messages-app-group");
   check(groups.length === 2, "Items grouped into 2 distinct applications");
+  check(!document.querySelector(".messages-switch"), "No System | Plugins switch without plugin content");
 
   const clearAllBtn = document.querySelector<HTMLButtonElement>(".messages-toolbar__action")!;
   check(Boolean(clearAllBtn), "Clear all button rendered");

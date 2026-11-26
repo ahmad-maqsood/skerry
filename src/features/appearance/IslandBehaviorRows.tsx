@@ -64,12 +64,21 @@ export function TuckRows({ settings, onSettingsChange }: RowsProps) {
   return (
     <>
       <SettingsToggleRow
-        title={t.settings.layout.autoTuck}
-        description={t.settings.layout.autoTuckHint}
-        checked={settings.autoTuck}
-        onChange={(autoTuck) => update({ autoTuck })}
+        title={t.settings.layout.alwaysShowIsland}
+        description={t.settings.layout.alwaysShowIslandHint}
+        checked={settings.alwaysShowIsland}
+        onChange={(alwaysShowIsland) => update({ alwaysShowIsland })}
       />
-      {settings.autoTuck ? (
+      {/* Idle tucking never runs while the island is always displayed (idleCollapse.ts), so its rows step aside. */}
+      {settings.alwaysShowIsland ? null : (
+        <SettingsToggleRow
+          title={t.settings.layout.autoTuck}
+          description={t.settings.layout.autoTuckHint}
+          checked={settings.autoTuck}
+          onChange={(autoTuck) => update({ autoTuck })}
+        />
+      )}
+      {settings.autoTuck && !settings.alwaysShowIsland ? (
         <SettingsNumberRow
           title={expand.tuckDelay}
           description={expand.tuckDelayHint}

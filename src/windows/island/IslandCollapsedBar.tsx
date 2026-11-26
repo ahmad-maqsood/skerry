@@ -71,7 +71,8 @@ type IslandCollapsedBarProps = {
   onWindowDragStart: () => void;
   /** False when the minimize button tucks the island to the top edge instead of the tray. */
   minimizesToTray: boolean;
-  onMinimize: () => void;
+  /** Null hides the minimize button ("always display island"). */
+  onMinimize: (() => void) | null;
 };
 
 /** The collapsed island: status light, todo or message summary, music button and tuck handle. */
@@ -279,17 +280,19 @@ export function IslandCollapsedBar({
       {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot, and it stays during an alert. */}
       <PrivacyIndicator active={!isExpanded && !isTucked} />
       {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}
-      <button
-        className="island-collapsed-minimize"
-        type="button"
-        aria-label={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
-        onClick={(event) => {
-          event.stopPropagation();
-          onMinimize();
-        }}
-      >
-        <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
-      </button>
+      {onMinimize && (
+        <button
+          className="island-collapsed-minimize"
+          type="button"
+          aria-label={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
+          onClick={(event) => {
+            event.stopPropagation();
+            onMinimize();
+          }}
+        >
+          <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

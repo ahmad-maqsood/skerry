@@ -24,7 +24,8 @@ export function MessageNoticeReader({
   drag: DragHandlers;
   /** Names the minimize button: it tucks the island to the tray or the top edge, per the user's setting. */
   minimizeLabel: string;
-  onMinimize: () => void;
+  /** Null hides the minimize button ("always display island"). */
+  onMinimize: (() => void) | null;
 }) {
   const t = useTranslation();
   const { sender, body } = noticeText(preview, t.messages);
@@ -42,19 +43,21 @@ export function MessageNoticeReader({
           <MessageSourceIcon logo={preview.appLogo} name={appName} size={16} kind={preview.kind} />
         </span>
         <strong className="message-notice__sender">{sender}</strong>
-        <button
-          className="message-notice__minimize"
-          type="button"
-          aria-label={minimizeLabel}
-          title={minimizeLabel}
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.stopPropagation();
-            onMinimize();
-          }}
-        >
-          <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
-        </button>
+        {onMinimize && (
+          <button
+            className="message-notice__minimize"
+            type="button"
+            aria-label={minimizeLabel}
+            title={minimizeLabel}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onMinimize();
+            }}
+          >
+            <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
+          </button>
+        )}
       </div>
       <div
         className={`message-notice__body${scrolls ? " message-notice__body--scrolls" : ""}`}

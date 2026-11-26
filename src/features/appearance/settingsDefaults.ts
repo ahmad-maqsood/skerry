@@ -70,6 +70,7 @@ export const DEFAULT_SETTINGS: IslandSettings = {
   gameNoticeSeconds: GAME_NOTICE_SECONDS.default,
   todoTimerReminder: false,
   todoTimerReminderSound: false,
+  alwaysShowIsland: false,
   autoTuck: true,
   tuckStyle: "line",
   tuckEdgeHeight: TUCK_EDGE_HEIGHT.default,

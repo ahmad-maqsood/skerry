@@ -30,7 +30,8 @@ type IslandHeaderProps = {
   onResetPosition: () => void;
   /** False when minimizing tucks the island to the top edge instead. */
   minimizesToTray: boolean;
-  onMinimize: () => void;
+  /** Null hides the minimize button ("always display island"). */
+  onMinimize: (() => void) | null;
   /** Buttons of the open page, first among the window actions. */
   pageActions?: ReactNode;
 };
@@ -182,17 +183,19 @@ export function IslandHeader({
             <RotateCcw size={16} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
           </button>
         )}
-        <button
-          className="icon-button"
-          type="button"
-          aria-label={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
-          onClick={(event) => {
-            event.stopPropagation();
-            onMinimize();
-          }}
-        >
-          <Minus size={16} strokeWidth={1.5} absoluteStrokeWidth />
-        </button>
+        {onMinimize && (
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
+            onClick={(event) => {
+              event.stopPropagation();
+              onMinimize();
+            }}
+          >
+            <Minus size={16} strokeWidth={1.5} absoluteStrokeWidth />
+          </button>
+        )}
       </div>
     </header>
   );

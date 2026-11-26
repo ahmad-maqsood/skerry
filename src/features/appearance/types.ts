@@ -109,6 +109,11 @@ export type IslandSettings = {
   /** Starting a todo timer can also ask for a reminder before it ends; optionally with a sound. */
   todoTimerReminder: boolean;
   todoTimerReminderSound: boolean;
+  /**
+   * Never hides: no idle tuck and no minimize button, so the island stays on screen. Game mode
+   * and the tray menu still follow their own settings.
+   */
+  alwaysShowIsland: boolean;
   autoTuck: boolean;
   tuckStyle: TuckStyle;
   /** Px of the island left on screen by the "edge" tuck (TUCK_EDGE_HEIGHT). */

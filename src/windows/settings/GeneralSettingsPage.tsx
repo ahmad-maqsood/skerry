@@ -58,8 +58,8 @@ export function GeneralSettingsPage({
       </SettingsGroup>
       <SettingsGroup
         title={t.settings.expand.tuckTitle}
-        footer={settings.autoTuck
-          ? <>{t.settings.keepVisible.hint}<br />{t.settings.expand.tuckLookHint}</>
+        footer={settings.autoTuck && !settings.alwaysShowIsland
+          ?<>{t.settings.keepVisible.hint}<br />{t.settings.expand.tuckLookHint}</>
           : t.settings.expand.tuckLookHint}
       >
         <TuckRows {...rows} />

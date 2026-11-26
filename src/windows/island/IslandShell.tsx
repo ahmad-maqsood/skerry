@@ -76,7 +76,8 @@ type IslandShellProps = {
   onCollapse: () => void;
   onResetPosition: () => void;
   minimizesToTray: boolean;
-  onMinimize: () => void;
+  /** Null with "always display island" on, which hides the minimize buttons. */
+  onMinimize: (() => void) | null;
   /** Null while translation is switched off, which hides its button. */
   onOpenTranslator: (() => void) | null;
   /** One line from the selection shortcut, shown on the collapsed island, or null. */

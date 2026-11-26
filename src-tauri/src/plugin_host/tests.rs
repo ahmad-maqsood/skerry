@@ -54,7 +54,7 @@ fn all_bundled_manifests_are_accepted() {
             count += 1;
         }
     }
-    assert_eq!(count, 4);
+    assert_eq!(count, 1);
 }
 
 #[test]

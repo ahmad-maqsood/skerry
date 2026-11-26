@@ -30,9 +30,13 @@ export async function checkGroups(category: string, panel: HTMLElement, check: (
     await act(async () => quiet.click());
     check(game().length === 1, "General: game-mode notifications hide while game mode is off");
     await act(async () => quiet.click());
-    const tuck = rowsOf(panel, "Tuck to the edge");
-    check(titles(tuck).join() === "Tuck to the edge when idle,Tuck the collapsed island,Stay out while lyrics show,Stay out while a to-do is timed"
-      && tuck.slice(1).every((row) => row.classList.contains("settings-row--indent")), "General: auto-tuck with its delay and when not to tuck, all indented under it");
+    const tuck = () => rowsOf(panel, "Tuck to the edge");
+    check(titles(tuck()).join() === "Always display island,Tuck to the edge when idle,Tuck the collapsed island,Stay out while lyrics show,Stay out while a to-do is timed"
+      && tuck().slice(2).every((row) => row.classList.contains("settings-row--indent")), "General: always display first, then auto-tuck with its delay and when not to tuck, all indented under it");
+    const always = tuck()[0].querySelector<HTMLInputElement>("[role='switch']")!;
+    await act(async () => always.click());
+    check(titles(tuck()).join() === "Always display island", "General: with the island always displayed, the idle-tuck rows step aside");
+    await act(async () => always.click());
     check(titles(rowsOf(panel, "Position")).join() === "Distance from top,Back to the default position,Lock island position", "General: the position rows come last");
   } else if (category === "todos") {
     check(titles(rowsOf(panel, "Tasks")).join() === "Carry unfinished tasks to next day,Drag to reorder,Visible rows", "Todos: the list options share a group");

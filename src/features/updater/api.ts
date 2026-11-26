@@ -28,6 +28,11 @@ export function isUpdaterConfigured() {
   return invoke<boolean>("updater_configured");
 }
 
+/** True for the Microsoft Store version, which only the Store can update. */
+export function isStoreBuild() {
+  return invoke<boolean>("updater_store_build");
+}
+
 export function getUpdaterProxy() {
   return invoke<string | null>("get_updater_proxy");
 }

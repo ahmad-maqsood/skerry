@@ -22,6 +22,7 @@ const settle = () => new Promise(setImmediate);
 
 async function controller({
   configured = true,
+  storeBuild = false,
   check = async () => null,
   download = async () => {},
   install = async () => {},
@@ -48,6 +49,7 @@ async function controller({
         calls.push(command);
         const send = (event) => args.onEvent.onmessage(event);
         if (command === "updater_configured") return configured;
+        if (command === "updater_store_build") return storeBuild;
         if (command === "get_updater_proxy") return proxies.shift() ?? null;
         if (command === "updater_check") {
           proxiesSeen.push(args.proxy);
@@ -107,6 +109,15 @@ async function controller({
   if (pendingDelays()[0] === 0) await fireTimer();
   return Object.assign(exports, { calls, emitted, saved, proxiesSeen, pendingDelays, fireTimer, request });
 }
+
+test("the Microsoft Store version never checks for updates, even with a public key", async () => {
+  const updater = await controller({ storeBuild: true });
+  assert.equal(updater.getUpdateState().storeBuild, true);
+  assert.equal(updater.getUpdateState().stage, "disabled");
+  await updater.checkForUpdate();
+  assert.ok(!updater.calls.includes("updater_check"));
+  assert.deepEqual(updater.pendingDelays(), []);
+});
 
 test("startup checks for an update and downloads without installing", async () => {
   const updater = await controller({

@@ -113,6 +113,15 @@ pub fn get_updater_proxy() -> Option<String> {
     normalize_proxy(&registry_value(INTERNET_SETTINGS_KEY, "ProxyServer")?)
 }
 
+/// Whether the app runs as an installed Windows package, which is how the Microsoft
+/// Store version runs. Windows keeps a package's files read-only to the app, so it
+/// cannot update itself. Asking for the current package fails for the NSIS and MSI
+/// installs and for source builds.
+#[tauri::command]
+pub fn updater_store_build() -> bool {
+    windows::ApplicationModel::Package::Current().is_ok()
+}
+
 /// Whether this build carries an updater public key. tauri.conf.json ships the
 /// fork's key, so every build can update; a build whose config clears it (for
 /// example another fork's) cannot, and the settings panel hides the action.

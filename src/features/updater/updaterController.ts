@@ -5,6 +5,7 @@ import {
   downloadAndInstallUpdate,
   downloadUpdate,
   getUpdaterProxy,
+  isStoreBuild,
   isUpdaterConfigured,
   listenUpdateRequests,
   listenUpdateState,
@@ -38,6 +39,8 @@ export type UpdateState = {
   dismissed: boolean;
   /** Checks every few hours and installs once the island sits idle; otherwise only on request. */
   autoUpdate: boolean;
+  /** The Microsoft Store version: About explains why it can't update itself. */
+  storeBuild: boolean;
 };
 
 // Only the main window owns the update: the standalone settings window can be
@@ -54,6 +57,7 @@ const initialState: UpdateState = {
   detail: "",
   dismissed: false,
   autoUpdate: loadAutoUpdate(),
+  storeBuild: false,
 };
 
 let state: UpdateState = initialState;
@@ -129,17 +133,20 @@ async function initialize() {
     else void publishUpdateState(state).catch((error) => console.error("Failed to share update state", error));
   });
 
-  const [version, configured] = await Promise.all([
+  const [version, configured, storeBuild] = await Promise.all([
     getVersion().catch(() => ""),
     isUpdaterConfigured().catch(() => false),
+    isStoreBuild().then(Boolean, () => false),
   ]);
+  const canUpdate = configured && !storeBuild;
 
   setState({
     version,
-    stage: configured ? state.stage : "disabled",
+    storeBuild,
+    stage: canUpdate ? state.stage : "disabled",
   });
 
-  if (configured && state.autoUpdate) scheduleCheck(0);
+  if (canUpdate && state.autoUpdate) scheduleCheck(0);
 }
 
 /** Asked before every check: a proxy turned on or off since startup would otherwise fail. */

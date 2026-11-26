@@ -116,6 +116,7 @@ mockIPC((command, payload) => {
       if (args.shortcut === "Ctrl+Alt+Q") throw "Shortcut Ctrl+Alt+Q is taken or cannot be registered: hotkey already registered.";
       return args.shortcut;
     case "updater_configured": return true;
+    case "updater_store_build": return false;
     case "get_updater_proxy": return null;
     case "plugin:app|version": return "0.0.0-test";
     case "get_plugins": return { registry: { installed: {}, developerMode: false, indexUrl: "" }, live: {} };

@@ -49,6 +49,7 @@ macro_rules! tauri_commands {
             crate::system::startup::set_launch_at_startup,
             crate::system::updater::get_updater_proxy,
             crate::system::updater::updater_configured,
+            crate::system::updater::updater_store_build,
             crate::system::updater::updater_check,
             crate::system::updater::updater_download,
             crate::system::updater::updater_install,

@@ -43,6 +43,13 @@ export type SettingsProjectText = {
     error: (reason: string) => string;
     disabled: string;
   };
+  /** Shown instead of the updates group in the Microsoft Store version. */
+  storeUpdate: {
+    title: string;
+    reason: string;
+    linkTitle: string;
+    linkHint: string;
+  };
 };
 
 
@@ -86,5 +93,11 @@ export const en: SettingsProjectText = {
     done: "The installer has started",
     error: (reason) => `Something went wrong: ${reason}`,
     disabled: "This build can't update itself",
+  },
+  storeUpdate: {
+    title: "Automatic updates don't work in this version",
+    reason: "You're using the Microsoft Store version. Windows doesn't let a Store app replace its own files, so Skerry's built-in updater is turned off. The Microsoft Store delivers updates instead, and new versions may arrive there later than on GitHub.",
+    linkTitle: "Download the GitHub version",
+    linkHint: "Get Skerry's built-in automatic updates. Before switching: export a backup (General, Backup & transfer), uninstall this version (this removes its data), install the GitHub version, then import the backup. API keys aren't included, so enter them again.",
   },
 };

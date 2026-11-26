@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { Download } from "lucide-react";
 import { SettingsGroup } from "../../components/settings/SettingsGroup";
 import { SettingsLinkButton } from "../../components/settings/SettingsLinkButton";
 import { SettingsRow } from "../../components/settings/SettingsRow";
@@ -12,6 +13,9 @@ import {
   subscribeToUpdate,
   type UpdateState,
 } from "./updaterController";
+import { ProjectLink } from "./ProjectLink";
+import { PROJECT_LATEST_RELEASE_URL } from "./projectLinks";
+import "./ProjectSettingsSection.css";
 
 type AutoUpdateText = ReturnType<typeof useTranslation>["settings"]["project"]["autoUpdate"];
 
@@ -35,15 +39,32 @@ function statusText(state: UpdateState, text: AutoUpdateText) {
  * Settings → About → updates: the automatic-update switch, then the current status
  * with a manual check, which stays here whether or not automatic updates are on; it
  * is the way in for anyone who turned the todo list off. A found update adds a row
- * to install it now.
+ * to install it now. The Microsoft Store version shows why it can't update itself,
+ * with a link to the GitHub download.
  */
 export function UpdateSettingsSection() {
-  const text = useTranslation().settings.project.autoUpdate;
+  const project = useTranslation().settings.project;
+  const text = project.autoUpdate;
   const state = useSyncExternalStore(subscribeToUpdate, getUpdateState);
-  const { stage, autoUpdate, nextVersion } = state;
+  const { stage, autoUpdate, nextVersion, storeBuild } = state;
   const working = stage === "checking" || stage === "downloading" || stage === "installing";
   const installable = stage === "ready" || stage === "available";
   const report = (error: unknown) => console.error("Failed to reach the updater", error);
+
+  if (storeBuild) {
+    const store = project.storeUpdate;
+    return (
+      <SettingsGroup>
+        <SettingsRow title={store.title} description={store.reason} />
+        <ProjectLink
+          href={PROJECT_LATEST_RELEASE_URL}
+          title={store.linkTitle}
+          hint={store.linkHint}
+          icon={<Download className="project-link__icon" size={16} aria-hidden="true" />}
+        />
+      </SettingsGroup>
+    );
+  }
 
   return (
     <SettingsGroup>

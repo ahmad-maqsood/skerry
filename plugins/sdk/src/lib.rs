@@ -72,92 +72,6 @@ pub fn sha256(data: &[u8]) -> [u8; 32] {
     hasher.finalize().into()
 }
 
-pub fn aes_256_gcm_decrypt(key: &[u8], nonce: &[u8], ciphertext_and_tag: &[u8]) -> Result<Vec<u8>, String> {
-    use aes_gcm::{aead::Aead, Aes256Gcm, KeyInit, Nonce};
-    if nonce.len() != 12 { return Err("Invalid AES-GCM nonce length".into()); }
-    let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| e.to_string())?;
-    let nonce = Nonce::from_slice(nonce);
-    cipher.decrypt(nonce, ciphertext_and_tag).map_err(|e| e.to_string())
-}
-
-#[cfg(windows)]
-pub fn dpapi_decrypt(data: &[u8]) -> Result<Vec<u8>, String> {
-    use windows::Win32::{
-        Foundation::{LocalFree, HLOCAL},
-        Security::Cryptography::{CryptUnprotectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB},
-    };
-    let input = CRYPT_INTEGER_BLOB {
-        cbData: u32::try_from(data.len()).map_err(|_| "DPAPI input too large")?,
-        pbData: data.as_ptr() as *mut u8,
-    };
-    let mut output = CRYPT_INTEGER_BLOB::default();
-    // SAFETY: input points into the live slice; DPAPI allocates output, copied before LocalFree.
-    unsafe {
-        CryptUnprotectData(&input, None, None, None, None, CRYPTPROTECT_UI_FORBIDDEN, &mut output)
-            .map_err(|e| e.to_string())?;
-        if output.pbData.is_null() {
-            return Err("DPAPI decryption returned null".into());
-        }
-        let slice = std::slice::from_raw_parts(output.pbData, output.cbData as usize).to_vec();
-        let _ = LocalFree(Some(HLOCAL(output.pbData as _)));
-        Ok(slice)
-    }
-}
-
-#[cfg(not(windows))]
-pub fn dpapi_decrypt(_data: &[u8]) -> Result<Vec<u8>, String> {
-    Err("DPAPI only supported on Windows".into())
-}
-
-#[cfg(windows)]
-pub fn dpapi_encrypt(data: &[u8]) -> Result<Vec<u8>, String> {
-    use windows::Win32::{
-        Foundation::{LocalFree, HLOCAL},
-        Security::Cryptography::{CryptProtectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB},
-    };
-    let input = CRYPT_INTEGER_BLOB {
-        cbData: u32::try_from(data.len()).map_err(|_| "DPAPI input too large")?,
-        pbData: data.as_ptr() as *mut u8,
-    };
-    let mut output = CRYPT_INTEGER_BLOB::default();
-    // SAFETY: input points into the live slice; DPAPI allocates output, copied before LocalFree.
-    unsafe {
-        CryptProtectData(&input, None, None, None, None, CRYPTPROTECT_UI_FORBIDDEN, &mut output)
-            .map_err(|e| e.to_string())?;
-        if output.pbData.is_null() {
-            return Err("DPAPI encryption returned null".into());
-        }
-        let slice = std::slice::from_raw_parts(output.pbData, output.cbData as usize).to_vec();
-        let _ = LocalFree(Some(HLOCAL(output.pbData as _)));
-        Ok(slice)
-    }
-}
-
-#[cfg(not(windows))]
-pub fn dpapi_encrypt(_data: &[u8]) -> Result<Vec<u8>, String> {
-    Err("DPAPI only supported on Windows".into())
-}
-
-pub fn chromium_local_state_key(local_state_path: &Path) -> Result<Vec<u8>, String> {
-    use base64::Engine;
-    let json = read_json(local_state_path, 16 * 1024 * 1024)?;
-    let b64 = json["os_crypt"]["encrypted_key"].as_str().ok_or("No encrypted_key in Local State")?;
-    let decoded = base64::engine::general_purpose::STANDARD.decode(b64).map_err(|e| e.to_string())?;
-    let protected = decoded.strip_prefix(b"DPAPI").ok_or("encrypted_key does not start with DPAPI")?;
-    dpapi_decrypt(protected)
-}
-
-pub fn decrypt_chromium_v10(key: &[u8], ciphertext: &[u8]) -> Result<String, String> {
-    let payload = ciphertext.strip_prefix(b"v10").ok_or("Payload does not start with v10")?;
-    if payload.len() < 12 + 16 {
-        return Err("Payload too short for v10".into());
-    }
-    let nonce = &payload[..12];
-    let cipher_and_tag = &payload[12..];
-    let plain = aes_256_gcm_decrypt(key, nonce, cipher_and_tag)?;
-    String::from_utf8(plain).map_err(|e| e.to_string())
-}
-
 pub fn run(mut interval: Duration, mut poll: impl FnMut(&Value) -> Result<Value, String>, mut action: impl FnMut(&str, &Value) -> Result<Value, String>) -> Result<(), String> {
     struct RuntimeGuard;
     impl Drop for RuntimeGuard {
@@ -229,20 +143,6 @@ mod tests {
     }
 
     #[test]
-    fn test_aes_gcm() {
-        use aes_gcm::{aead::{Aead, KeyInit}, Aes256Gcm, Nonce};
-        let key = [42u8; 32];
-        let nonce = [7u8; 12];
-        let cipher = Aes256Gcm::new_from_slice(&key).unwrap();
-        let encrypted = cipher.encrypt(Nonce::from_slice(&nonce), b"secret text".as_slice()).unwrap();
-        let decrypted = aes_256_gcm_decrypt(&key, &nonce, &encrypted).unwrap();
-        assert_eq!(decrypted, b"secret text");
-        for nonce in [&[][..], &[0; 11][..], &[0; 13][..]] {
-            assert!(aes_256_gcm_decrypt(&key, nonce, &encrypted).is_err());
-        }
-    }
-
-    #[test]
     fn histories_are_deduplicated_sorted_and_bounded_by_count_and_bytes() {
         let sessions: Vec<_> = (0..500).map(|i| session(&format!("s{i}"), &"a".repeat(4000), None, "completed", i, None)).collect();
         let data = bounded_contributions(json!({"quota":[],"sessions":sessions,"notifications":[]}));
@@ -264,14 +164,5 @@ mod tests {
         assert_eq!(timestamp_or_file(Some(1_750_000_000), &path), 1_750_000_000_000);
         assert!(read_json(&path, 1).is_err());
         std::fs::remove_file(path).unwrap();
-    }
-
-    #[cfg(windows)]
-    #[test]
-    fn test_dpapi() {
-        let secret = b"super secret dpapi data";
-        let encrypted = dpapi_encrypt(secret).unwrap();
-        let decrypted = dpapi_decrypt(&encrypted).unwrap();
-        assert_eq!(decrypted, secret);
     }
 }

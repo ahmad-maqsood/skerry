@@ -20,6 +20,7 @@ import { isTodoTimerEndingSoon, type TodoTimer } from "../../features/todos/time
 import { CollapsedTodoContent, type TodoRotationDisplay } from "./CollapsedTodoContent";
 import { isCollapsedFocused, focusedCollapsedSlots } from "./collapsedFocus.ts";
 import { previewPage } from "./noticeRules";
+import { wantsCentredClock } from "./clockPlacement";
 import type { IslandPage } from "./types";
 import { useLingeringFlag } from "./useLingeringFlag";
 import { useReleasedFlag } from "./useReleasedFlag";
@@ -264,6 +265,8 @@ export function IslandCollapsedBar({
   return (
     <div
       className={`island__collapsed${restoring ? " island__collapsed--restoring" : ""}`}
+      // Measured by useCollapsedStatusWidth, which then centres the clock (data-clock-centred).
+      data-clock-wanted={!focused && wantsCentredClock({ musicPlaying: isMusicPlaying, collapsedItem: showCollapsedText ? collapsedItem : null, taskTitle: collapsedTaskTitle }) || undefined}
       aria-hidden={isExpanded}
       inert={isExpanded}
       onClick={(event) => {

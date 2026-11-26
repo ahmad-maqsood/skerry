@@ -167,3 +167,5 @@ Clock uses fixed tabular digit widths, updating on the minute in leaf components
 - Nothing is drawn until a value has been read, and nothing at all where neither can be read. Brightness never goes below 5%.
 - Sliders send their newest value while they move (gathered for 60 ms, without waiting for the slider to rest), never two calls at once, and a change made just before the page closes still goes through. Shown by default; Settings → System → Visible Cards → Volume & Brightness hides the card.
 
+
+- **Centred clock**: while the collapsed island is quiet (no song playing, and the text shows at most the app name or the todo count), the clock sits in the exact centre, and the island widens if needed so nothing reaches under it. With a song, lyric line or task title it returns to its place in the Appearance arrangement; pop-ups still hide it. If centring would need more than 480px, it stays at the side.

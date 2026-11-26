@@ -5,6 +5,27 @@
   justify-content: center;
   flex: 0 0 auto;
   height: 100%;
+  /* A new name each way, so it fades in again whenever it moves between the centre and its side. */
+  animation: collapsedClockToSide 320ms ease-out backwards;
+}
+
+/* A quiet bar: the clock leaves the row for its exact centre (useCollapsedStatusWidth). */
+.island__collapsed[data-clock-wanted][data-clock-centred] > .collapsed-clock-wrapper {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+  animation-name: collapsedClockToCentre;
+}
+
+@keyframes collapsedClockToCentre {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes collapsedClockToSide {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .collapsed-clock {
@@ -104,6 +125,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .collapsed-clock-wrapper {
+    animation: none !important;
+  }
   .collapsed-clock {
     transition: none;
   }

@@ -1,9 +1,6 @@
 [workspace]
 members = [
     "sdk",
-    "grok-bot",
-    "gemini",
     "github",
-    "hermes",
 ]
 resolver = "2"

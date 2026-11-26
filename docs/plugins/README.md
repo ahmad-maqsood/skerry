@@ -124,7 +124,7 @@ No. You only need to build the feature; optional-install adaptation is completed
 
 ## 7. Plugin API v1 (executable plugins)
 
-Besides source-level contributions (sections 1-6), the app ships a plugin host that runs a separate executable and shows what it publishes in native island components. The four example plugins in this repository (`plugins/gemini`, `plugins/github`, `plugins/grok-bot`, `plugins/hermes`) use it. The host lives in `src-tauri/src/plugin_host/`, the frontend in `src/features/plugins/`, and the commands and events are listed in [contracts.md](../architecture/contracts.md#plugin-api-v1).
+Besides source-level contributions (sections 1-6), the app ships a plugin host that runs a separate executable and shows what it publishes in native island components. The example plugin in this repository (`plugins/github`) uses it. The host lives in `src-tauri/src/plugin_host/`, the frontend in `src/features/plugins/`, and the commands and events are listed in [contracts.md](../architecture/contracts.md#plugin-api-v1).
 
 ### Layout
 

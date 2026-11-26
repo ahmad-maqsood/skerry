@@ -116,6 +116,13 @@ try {
     await act(async () => button(t.pluginGuide).click());
     check(opened === "https://github.com/ahmad-maqsood/skerry-island/blob/main/docs/plugins/github.md", "An installed plugin's Guide button opens its own guide");
     check(document.body.textContent?.includes(t.permissionsNotice), "Permissions say that they are not enforced");
+    const plugin = document.querySelector<HTMLDetailsElement>(".plugins-settings__plugin")!;
+    check(Boolean(plugin) && !plugin.open, "An installed plugin is folded by default");
+    check(plugin.querySelector("summary")?.textContent === `GitHub${t.status.stopped}`, "A folded plugin still shows its name and state");
+    await act(async () => plugin.querySelector("summary")!.click());
+    check(plugin.open && plugin.textContent?.includes(t.version) && plugin.textContent.includes("0.1.0"), "Clicking the name opens the plugin's settings");
+    await act(async () => plugin.querySelector("summary")!.click());
+    check(!plugin.open, "Clicking it again folds the plugin");
     await act(async () => installed.unmount());
   }
   document.getElementById("results")!.textContent = [...messages, "ALL PASS"].join("\n");

@@ -81,8 +81,12 @@ function EnabledPluginsSettingsPage() {
     </div>
     {section === "installed" && <SettingsGroup>
       {installed.length === 0 && <SettingsRow title={t.empty} control={<Puzzle size={18} aria-hidden="true" />} />}
-      {installed.map((p) => <div key={p.manifest.id}>
-        <SettingsRow title={p.manifest.name[locale]} description={`${p.manifest.version} · ${t.status[live[p.manifest.id]?.status ?? "stopped"] ?? ""}`} control={<span className="plugins-settings__actions">
+      {installed.map((p) => <details key={p.manifest.id} className="plugins-settings__plugin">
+        <summary>
+          <span className="plugins-settings__plugin-name">{p.manifest.name[locale]}</span>
+          <span className="plugins-settings__plugin-status">{t.status[live[p.manifest.id]?.status ?? "stopped"] ?? ""}</span>
+        </summary>
+        <SettingsRow title={t.version} description={p.manifest.version} control={<span className="plugins-settings__actions">
           {!p.development && <SettingsLinkButton ariaLabel={`${p.manifest.name[locale]} ${t.pluginGuide}`} onClick={() => { void openUrl(pluginGuideUrl(p.manifest.id)).catch(console.error); }}>{t.pluginGuide}</SettingsLinkButton>}
           {catalog.some((e) => e.id === p.manifest.id && e.version !== p.manifest.version) && <SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => installPlugin(p.manifest.id)); }}>{t.update}</SettingsLinkButton>}
           <SettingsLinkButton disabled={disabled} onClick={() => { void perform(() => uninstallPlugin(p.manifest.id)); }}>{t.uninstall}</SettingsLinkButton>
@@ -93,7 +97,7 @@ function EnabledPluginsSettingsPage() {
         </SettingsRow>
         {p.manifest.settings.map((s) => <PluginSettingRow key={`${p.manifest.id}/${s.key}/${JSON.stringify(p.settings[s.key])}`} setting={s} value={p.settings[s.key] ?? s.default} disabled={disabled} onSave={(value) => { void perform(() => setPluginSetting(p.manifest.id, s.key, value)); }} />)}
         {p.manifest.actions.map((action) => <SettingsRow key={action.id} title={action.label[locale]} control={<SettingsLinkButton disabled={disabled || !p.enabled} onClick={() => { void perform(() => runPluginAction(p.manifest.id, action.id)); }}>{action.label[locale]}</SettingsLinkButton>} />)}
-      </div>)}
+      </details>)}
     </SettingsGroup>}
     {section === "available" && <>
       {available.length > 0 && <SettingsGroup footer={t.trustNotice}>

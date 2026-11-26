@@ -30,6 +30,10 @@ export type MessagesText = {
   appNotifications: (app: string, count: number) => string;
   label: (text: string) => string;
   previewFormat: (app: string, title: string, body: string) => string;
+  /** The switch between the system notifications and what plugins report. */
+  sections: string;
+  sectionSystem: string;
+  sectionPlugins: string;
   /** Heading above what a plugin reports as running tasks, e.g. "GitHub activity". */
   pluginActivity: (plugin: string) => string;
   /** The state of a plugin task (a workflow run, say). */
@@ -63,6 +67,9 @@ export const en: MessagesText = {
   appNotifications: (app, count) => `${app} (${count})`,
   label: (text) => `Notification: ${text}`,
   previewFormat: (app, title, body) => `${app} · ${title}: ${body}`,
+  sections: "Notification sections",
+  sectionSystem: "System",
+  sectionPlugins: "Plugins",
   pluginActivity: (plugin) => `${plugin} activity`,
   sessionStatus: { running: "Running", waiting: "Waiting", completed: "Done" },
 };

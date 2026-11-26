@@ -37,6 +37,10 @@ const snapshot = {
   ] } },
 };
 
+let revision = 1;
+let systemItems = [
+  { id: "s1", appId: "app-a", appDisplayName: "Slack", title: "Channel", body: "Hello", bodyLines: ["Hello"], timestamp: now, appLogo: null },
+];
 const calls: string[] = [];
 const actions: string[] = [];
 const opened: string[] = [];
@@ -46,8 +50,9 @@ mockIPC(async (command, payload) => {
   if (command === "get_plugins") return snapshot;
   if (command === "run_plugin_action") { actions.push(`${args.id}:${args.action}`); return { openUrl: `https://github.com${String(args.action).slice(5)}` }; }
   if (command === "plugin:opener|open_url") { opened.push(String(args.url)); return null; }
-  if (command === "get_system_notifications_state" || command === "set_system_notifications_enabled" || command === "request_system_notification_access") {
-    return { revision: 1, enabled: true, status: "listening", hideText: false, mutedApps: [], knownApps: [], items: [] };
+  if (command === "clear_system_notifications") { systemItems = []; revision += 1; }
+  if (command === "get_system_notifications_state" || command === "set_system_notifications_enabled" || command === "request_system_notification_access" || command === "clear_system_notifications") {
+    return { revision, enabled: true, status: "listening", hideText: false, mutedApps: [], knownApps: [], items: systemItems };
   }
   return null;
 }, { shouldMockEvents: true });
@@ -78,12 +83,20 @@ const settle = () => act(async () => { await new Promise((resolve) => setTimeout
 const cards = () => [...document.querySelectorAll<HTMLElement>(".message-card")];
 const rows = () => [...document.querySelectorAll<HTMLElement>(".plugin-feed__session")];
 const mount = async () => { await act(async () => root.render(<StrictMode><I18nProvider><Fixture /></I18nProvider></StrictMode>)); await settle(); };
+const option = (name: string) => [...document.querySelectorAll<HTMLButtonElement>(".messages-switch__option")].find((button) => button.textContent?.startsWith(name))!;
+const count = (name: string) => option(name).querySelector(".messages-switch__count")?.textContent;
+const show = async (name: string) => { await act(async () => option(name).click()); await settle(); };
 
 try {
   await mount();
+  check(option("System").getAttribute("aria-pressed") === "true", "With a system notification to read, the System section opens first");
+  check(count("System") === "1" && count("Plugins") === "2", "Each section shows how many cards it holds");
+  check(cards().length === 1 && rows().length === 0, "The System section holds only the system notification");
+  await show("Plugins");
+  check(option("Plugins").getAttribute("aria-pressed") === "true" && !document.body.textContent?.includes("Channel"), "The Plugins section leaves the system notifications out");
   check(cards().length === 2, "Both plugin notifications show as message cards");
   check(cards()[0].textContent?.includes("Review requested · acme/app"), "The newest notification comes first");
-  check(document.querySelector(".messages-toolbar__title")?.textContent?.includes("(2)"), "The title counts the plugin notifications");
+  check(document.querySelector(".messages-toolbar__title")?.textContent?.includes("(3)"), "The title counts the system and the plugin notifications");
   check(rows().length === 3, "The plugin's three tasks are listed");
   check(document.body.textContent?.includes("GitHub activity"), "The tasks sit under the plugin's name");
   check(rows().map((row) => row.querySelector(".plugin-feed__dot")?.className.split("--")[1]).join() === "running,waiting,completed", "Each task shows its state, newest first");
@@ -102,18 +115,27 @@ try {
   check(actions.length === before && rows()[2].tagName === "DIV", "A task with no action is not clickable");
 
   await act(async () => cards()[0].querySelector<HTMLButtonElement>(".message-card__dismiss")!.click());
-  check(cards().length === 1 && document.querySelector(".messages-toolbar__title")?.textContent?.includes("(1)"), "Dismissing a card removes it and updates the count");
+  check(cards().length === 1 && document.querySelector(".messages-toolbar__title")?.textContent?.includes("(2)"), "Dismissing a card removes it and updates the count");
   check(JSON.parse(localStorage.getItem(PLUGIN_DISMISSED_KEY) ?? "[]").join() === "github/thread-1-1", "The dismissed notification is remembered");
   await act(async () => root.unmount());
   root = createRoot(document.getElementById("fixture")!);
   await mount();
+  await show("Plugins");
   check(cards().length === 1 && cards()[0].textContent?.includes("CI failed"), "A dismissed notification stays gone after a restart");
 
   const clearAll = document.querySelector<HTMLButtonElement>(".messages-toolbar__action")!;
   await act(async () => clearAll.click());
-  check(cards().length === 0 && !calls.includes("clear_system_notifications"), "Clear all clears the plugin notifications without touching the system ones");
+  check(cards().length === 0 && !calls.includes("clear_system_notifications"), "Clear all in the Plugins section clears the plugin notifications without touching the system ones");
   check(rows().length === 3 && !document.querySelector(".messages-empty"), "The tasks stay after Clear all");
-  check(!document.querySelector(".messages-toolbar__action"), "Clear all disappears when nothing is left to clear");
+  check(!document.querySelector(".messages-toolbar__action"), "Clear all disappears when nothing is left to clear in the section");
+
+  await show("System");
+  check(cards().length === 1 && cards()[0].textContent?.includes("Channel"), "The system notification is still there");
+  await act(async () => document.querySelector<HTMLButtonElement>(".messages-toolbar__action")!.click());
+  await settle();
+  check(calls.includes("clear_system_notifications") && Boolean(document.querySelector(".messages-empty")), "Clear all in the System section clears only the system notifications");
+  await show("Plugins");
+  check(rows().length === 3, "The plugin tasks stay after the system notifications are cleared");
 
   document.documentElement.dataset.testResult = "passed";
   document.getElementById("results")!.textContent = `${passed.join("\n")}\n\nAll ${passed.length} checks passed.`;

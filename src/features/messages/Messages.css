@@ -24,9 +24,22 @@
 }
 
 .messages-toolbar__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: calc(13px * var(--island-font-scale, 1));
   font-weight: 600;
   color: var(--text-1);
+}
+
+.messages-toolbar__end {
+  display: flex;
+  flex-shrink: 0;
+  white-space: nowrap;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .messages-toolbar__action {

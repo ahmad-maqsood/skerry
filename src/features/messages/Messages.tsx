@@ -72,37 +72,40 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
           {t.messages.title}
           {total > 0 && ` (${total})`}
         </span>
-        {pluginsHaveContent && (
-          <div className="messages-switch" role="group" aria-label={t.messages.sections}>
-            {(["system", "plugins"] as const).map((id) => (
-              <button
-                key={id}
-                className="messages-switch__option"
-                type="button"
-                aria-pressed={section === id}
-                onClick={() => {
-                  setChosen(id);
-                  saveMessageSection(id);
-                }}
-              >
-                {sectionNames[id]}
-                {sectionCounts[id] > 0 && <span className="messages-switch__count">{sectionCounts[id]}</span>}
-              </button>
-            ))}
-          </div>
-        )}
-        {shownCount > 0 && (
-          <button
-            className="messages-toolbar__action"
-            type="button"
-            onClick={() => {
-              if (section === "plugins") extra?.onClear();
-              else void clearAll();
-            }}
-          >
-            {t.messages.clearAll}
-          </button>
-        )}
+        {/* The switch stays against the right edge; Clear all comes and goes on its left, so nothing jumps. */}
+        <div className="messages-toolbar__end">
+          {shownCount > 0 && (
+            <button
+              className="messages-toolbar__action"
+              type="button"
+              onClick={() => {
+                if (section === "plugins") extra?.onClear();
+                else void clearAll();
+              }}
+            >
+              {t.messages.clearAll}
+            </button>
+          )}
+          {pluginsHaveContent && (
+            <div className="messages-switch" role="group" aria-label={t.messages.sections}>
+              {(["system", "plugins"] as const).map((id) => (
+                <button
+                  key={id}
+                  className="messages-switch__option"
+                  type="button"
+                  aria-pressed={section === id}
+                  onClick={() => {
+                    setChosen(id);
+                    saveMessageSection(id);
+                  }}
+                >
+                  {sectionNames[id]}
+                  {sectionCounts[id] > 0 && <span className="messages-switch__count">{sectionCounts[id]}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {section === "system" && groups.length === 0 ? (

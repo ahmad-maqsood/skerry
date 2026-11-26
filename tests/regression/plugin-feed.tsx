@@ -125,10 +125,14 @@ try {
   check(cards().length === 1 && cards()[0].textContent?.includes("CI failed"), "A dismissed notification stays gone after a restart");
 
   const clearAll = document.querySelector<HTMLButtonElement>(".messages-toolbar__action")!;
+  const switchRight = () => document.querySelector(".messages-switch")!.getBoundingClientRect().right;
+  const rightWithClearAll = switchRight();
+  check(clearAll.getBoundingClientRect().right <= document.querySelector(".messages-switch")!.getBoundingClientRect().left, "Clear all sits to the left of the section switch");
   await act(async () => clearAll.click());
   check(cards().length === 0 && !calls.includes("clear_system_notifications"), "Clear all in the Plugins section clears the plugin notifications without touching the system ones");
   check(rows().length === 3 && !document.querySelector(".messages-empty"), "The tasks stay after Clear all");
   check(!document.querySelector(".messages-toolbar__action"), "Clear all disappears when nothing is left to clear in the section");
+  check(Math.abs(switchRight() - rightWithClearAll) < 1, "The section switch stays in place when Clear all disappears");
 
   await show("System");
   check(cards().length === 1 && cards()[0].textContent?.includes("Channel"), "The system notification is still there");

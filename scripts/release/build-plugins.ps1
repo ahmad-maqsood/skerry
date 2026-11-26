@@ -40,7 +40,8 @@ Get-ChildItem -LiteralPath (Join-Path $workspace 'plugins') -Directory | ForEach
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $stagedBinary) | Out-Null
     Copy-Item -LiteralPath $binary -Destination $stagedBinary
     Copy-Item -LiteralPath (Join-Path $workspace 'LICENSE') -Destination $stage
-    Copy-Item -LiteralPath (Join-Path $workspace 'docs/third-party-licenses.md') -Destination (Join-Path $stage 'THIRD_PARTY_NOTICES.md')
+    # docs/third-party-licenses.md was never committed (the release build failed on it); NOTICE.md is the notices file the repository has.
+    Copy-Item -LiteralPath (Join-Path $workspace 'NOTICE.md') -Destination (Join-Path $stage 'THIRD_PARTY_NOTICES.md')
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force
     Remove-Item -LiteralPath $stage -Recurse -Force
     $url = if ($BaseUrl) { "$($BaseUrl.TrimEnd('/'))/$name" } else { ([uri]$zip).AbsoluteUri }

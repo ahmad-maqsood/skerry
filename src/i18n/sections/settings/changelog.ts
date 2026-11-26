@@ -2,7 +2,7 @@ export type SettingsChangelogText = {
   /** The status row above the list. */
   loading: string;
   loaded: (count: number) => string;
-  /** Shown over the saved list when GitHub could not be reached. */
+  /** Shown over the saved list when it could not be refreshed (the reason shows below). */
   showingSaved: string;
   failed: string;
   refresh: string;
@@ -22,7 +22,7 @@ export type SettingsChangelogText = {
 export const en: SettingsChangelogText = {
   loading: "Loading release notes…",
   loaded: (count) => (count === 1 ? "1 release" : `${count} releases`),
-  showingSaved: "Could not reach GitHub, so this is the list saved from the last time.",
+  showingSaved: "Could not refresh from GitHub, so this is the list saved from the last time.",
   failed: "Could not load the release notes.",
   refresh: "Refresh",
   lastUpdated: (time) => `Last updated ${time}.`,

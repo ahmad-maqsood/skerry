@@ -1,11 +1,13 @@
 export type TranslationTarget = "window" | "island";
 
 /**
- * The island's material: classic (a flat fill), liquid glass (a nearly clear pane with lit edges)
- * or frosted glass (a milky pane). Both glasses are drawn in CSS over a clear window: nothing
- * blurs the desktop behind them (island/glass.rs).
+ * The island's material: classic (a flat fill), liquid glass (a nearly clear pane with lit edges),
+ * frosted glass (a milky pane), aurora (a smoky pane lit from below by drifting northern-light
+ * colour) or prism (a clear crystal pane with an iridescent film and a rim that splits the light).
+ * All the glasses are drawn in CSS over a clear window: nothing blurs the desktop behind them
+ * (island/glass.rs).
  */
-export type Material = "classic" | "liquidGlass" | "frostedGlass";
+export type Material = "classic" | "liquidGlass" | "frostedGlass" | "aurora" | "prism";
 /** Colour scheme of the island and the windows: dark, light, or whichever Windows uses. */
 export type ColorScheme = "dark" | "light" | "system";
 export type IslandFont = "system" | "pixel";

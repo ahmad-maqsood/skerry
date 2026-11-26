@@ -4,7 +4,7 @@ export type SettingsPluginsText = {
   clockWeather: ClockWeatherText;
   empty: string; installed: string; available: string; install: string; update: string;
   uninstall: string; enabled: string; permissions: string; retry: string; save: string;
-  developer: string; developerMode: string; develop: string; unavailable: string; index: string; directory: string; load: string; secret: string;
+  developer: string; developerMode: string; develop: string; unavailable: string; index: string; directory: string; load: string; secret: string; loading: string;
   status: Record<string, string>; permission: Record<string, string>;
   plan: string; comingSoon: string; invitation: string; guide: string;
   guideHint: string; readGuide: string; openGuideFailed: string;
@@ -19,7 +19,7 @@ export const en: SettingsPluginsText = {
   readGuide: "Read guide", openGuideFailed: "Could not open the guide. Please try again.",
   empty: "No plugins yet", installed: "Installed", available: "Available", install: "Install", update: "Update",
   uninstall: "Uninstall", enabled: "Enable", permissions: "Permissions", retry: "Refresh", save: "Save",
-  developer: "Developer", developerMode: "Developer mode", develop: "Develop plugins", unavailable: "No plugins available", index: "Plugin index", directory: "Local plugin folder", load: "Load", secret: "Enter to replace credential",
+  developer: "Developer", developerMode: "Developer mode", develop: "Develop plugins", unavailable: "Couldn’t get the plugin list. The latest release may not include plugins yet.", index: "Plugin index", directory: "Local plugin folder", load: "Load", secret: "Enter to replace credential", loading: "Loading plugins…",
   status: { starting: "Starting", running: "Running", restarting: "Restarting", stopped: "Disabled", failed: "Failed to start" },
   permission: { network: "Network", "read-home-files": "Local files", notifications: "Messages", quota: "Quota", sessions: "Sessions", "desktop-windows": "Desktop windows", "private-browser": "Private sign-in" },
 };

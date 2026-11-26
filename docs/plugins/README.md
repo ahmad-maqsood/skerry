@@ -1,6 +1,6 @@
 # Plugin Development Guide
 
-> **Plugins are not switched on in releases yet.** The plugin host (Plugin API v1, see [section 7](#7-plugin-api-v1-executable-plugins)) is part of the code, but the root `release-features.json` has `"plugins": false`, so Settings -> Plugins shows the roadmap instead of the install page. You can already develop a plugin following this guide and open a PR.
+> **Plugins are switched on.** The root `release-features.json` has `"plugins": true`, so Settings -> Plugins shows the install page. Plugins appear under "Available" once a published release carries `plugins-index.json` (the Release workflow builds and uploads it). A trial run of the Release workflow publishes nothing; to try a plugin from it, download the run's `skerry-plugins` artifact, unzip one package and load that folder. While developing, use Developer mode in Settings -> Plugins to load a plugin folder or a local index. Setting the flag back to `false` and rebuilding restores the roadmap page.
 
 ---
 

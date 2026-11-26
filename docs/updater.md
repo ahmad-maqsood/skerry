@@ -26,7 +26,7 @@ Nothing needs to be done on your own computer. When you publish with a version t
 Either way the workflow checks the signing secrets first. Clippy and the Rust tests are not run here: CI runs them on every push to `main`, so check that CI is green for the commit you release.
 
 - **Unticked** (trial): builds and signs only the NSIS installer (`.exe` and its `.sig`, plus `SHA256SUMS.txt`) and attaches them to the workflow run as a `skerry-installers` download (kept 7 days). There is no MSI and no `latest.json`, so a trial build cannot be published. Nothing is published and no tag is created. Locally: `node scripts/release/release.mjs --no-upload --nsis-only`.
-- **Ticked**: runs `pnpm check`, builds signed NSIS and MSI installers with their `.sig` files, `latest.json` and `SHA256SUMS.txt`, then creates tag and release `vX.Y.Z` with an automatic description (see below). A version containing `-` (for example `0.1.0-beta.1`) is published as a pre-release that the in-app updater ignores. An existing release is never overwritten; bump the version instead.
+- **Ticked**: runs `pnpm check`, builds signed NSIS and MSI installers with their `.sig` files, `latest.json`, `changelog.json` and `SHA256SUMS.txt`, then creates tag and release `vX.Y.Z` with an automatic description (see below). A version containing `-` (for example `0.1.0-beta.1`) is published as a pre-release that the in-app updater ignores. An existing release is never overwritten; bump the version instead.
 
 ### The release description
 
@@ -37,6 +37,7 @@ The description of a published release is written automatically by `scripts/rele
 - **Full changelog**: a link comparing the previous tag with this one.
 - To write the first part yourself, commit `docs/releases/vX.Y.Z.md` before releasing; its text replaces the generated list. Preview the description for the current version with `node scripts/release/release-notes.mjs`.
 - The release workflow checks out the full history and tags so the commit list is complete.
+- **`changelog.json`**: the release history Settings → Changelog downloads (this release plus the earlier ones, up to 30). It avoids the API limit of 60 unsigned-in requests an hour per IP address; the app asks the API only if the download fails. It is written at release time, so a description edited afterwards shows in the app from the next release (or after re-uploading the file).
 
 ### Troubleshooting Releases
 

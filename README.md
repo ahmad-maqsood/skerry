@@ -62,7 +62,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 - **Live PC Health**: Real-time CPU usage with sparklines, memory consumption, disk storage, and network speed cards on the island, plus volume and (on laptops) brightness sliders at the top of the System page.
 - **Microphone and Camera Indicator**: A small dot on the collapsed island while an app is using the microphone or camera (on by default, switchable under Settings -> System).
 - **Instant Translation**: Dedicated fast translation window (`Ctrl + Shift + F`) supporting free providers and custom OpenAI-compatible endpoints.
-- **Fluid Visual Styles**: Refined Classic, Liquid Glass, and Frosted Glass materials with adaptive dark and light themes.
+- **Fluid Visual Styles**: Refined Classic, Liquid Glass, Frosted Glass, Aurora, and Prism materials with adaptive dark and light themes.
 
 ---
 

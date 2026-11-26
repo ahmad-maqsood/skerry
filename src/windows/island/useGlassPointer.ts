@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { clamp } from "../../utils/number";
 
-/** Moves the liquid-glass highlight with the pointer, at most once per frame. */
-export function useGlassPointer(isLiquidGlass: boolean) {
+/** Moves the light of liquid glass and prism with the pointer, at most once per frame. */
+export function useGlassPointer(tracksPointer: boolean) {
   const glassFrameRef = useRef<number | null>(null);
 
   useEffect(
@@ -17,7 +17,7 @@ export function useGlassPointer(isLiquidGlass: boolean) {
   const handleGlassPointerMove = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
       if (
-        !isLiquidGlass ||
+        !tracksPointer ||
         window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
         glassFrameRef.current !== null
       ) {
@@ -35,12 +35,12 @@ export function useGlassPointer(isLiquidGlass: boolean) {
         island.style.setProperty("--glass-pointer-y", `${pointerY * 100}%`);
       });
     },
-    [isLiquidGlass],
+    [tracksPointer],
   );
 
   const resetGlassPointer = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
-      if (!isLiquidGlass) {
+      if (!tracksPointer) {
         return;
       }
 
@@ -52,7 +52,7 @@ export function useGlassPointer(isLiquidGlass: boolean) {
       event.currentTarget.style.setProperty("--glass-pointer-x", "50%");
       event.currentTarget.style.setProperty("--glass-pointer-y", "18%");
     },
-    [isLiquidGlass],
+    [tracksPointer],
   );
 
   return { handleGlassPointerMove, resetGlassPointer };

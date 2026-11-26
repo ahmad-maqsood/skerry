@@ -8,8 +8,8 @@ import type { Translations } from "../../i18n/types";
 
 /** The volume read is a short audio call, so it is looked at often enough to follow a key held down. */
 const VOLUME_POLL_MS = 400;
-/** The brightness read is a hidden PowerShell call: slower, and only while a pop-up could show. */
-const BRIGHTNESS_POLL_MS = 1500;
+/** The brightness read is a quick query on an open WMI connection, so it keeps up like the volume. */
+const BRIGHTNESS_POLL_MS = 400;
 /** Adaptive brightness nudges the panel by a point or two; only a real step is announced. */
 const BRIGHTNESS_MIN_STEP = 2;
 

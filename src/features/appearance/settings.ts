@@ -15,12 +15,18 @@ export function isGlass(material: Material) {
 }
 
 /**
- * How opaque a glass's tint is at full island opacity: liquid glass is nearly clear (clearer as the
- * strength rises), frosted glass mostly hides what is behind it. Drawn by the island and its preview.
+ * How opaque a glass's tint is at full island opacity: liquid glass and prism are nearly clear
+ * (clearer as the strength rises), frosted glass mostly hides what is behind it, and aurora sits
+ * between, deep enough for its colour to glow. Drawn by the island and its preview.
  */
 export function glassTintAlpha(material: Material, glassIntensity: number) {
   const strength = glassIntensity / 100;
-  return material === "liquidGlass" ? 0.75 - strength * 0.55 : 0.97 - strength * 0.25;
+  switch (material) {
+    case "liquidGlass": return 0.75 - strength * 0.55;
+    case "prism": return 0.7 - strength * 0.5;
+    case "aurora": return 0.9 - strength * 0.3;
+    default: return 0.97 - strength * 0.25;
+  }
 }
 /**
  * The tint over the live blurred backdrop (island/glass_capture.rs). Lighter than glassTintAlpha, which
@@ -28,7 +34,12 @@ export function glassTintAlpha(material: Material, glassIntensity: number) {
  */
 export function glassBackdropTintAlpha(material: Material, glassIntensity: number) {
   const strength = glassIntensity / 100;
-  return material === "liquidGlass" ? 0.6 - strength * 0.55 : 0.85 - strength * 0.5;
+  switch (material) {
+    case "liquidGlass": return 0.6 - strength * 0.55;
+    case "prism": return 0.52 - strength * 0.45;
+    case "aurora": return 0.74 - strength * 0.4;
+    default: return 0.85 - strength * 0.5;
+  }
 }
 export { DEFAULT_SETTINGS } from "./settingsDefaults.ts";
 

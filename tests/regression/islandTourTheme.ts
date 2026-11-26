@@ -27,8 +27,9 @@ export function checkTone(check: (condition: unknown, message: string) => void, 
 }
 
 /**
- * The glass materials (?material=): drawn in CSS without any blur, liquid glass nearly clear with a
- * lit rim, frosted glass mostly opaque. <html> carries the material for the other windows.
+ * The glass materials (?material=): drawn in CSS without any blur, liquid glass and prism nearly
+ * clear with a lit rim, frosted glass and aurora mostly opaque. <html> carries the material for the
+ * other windows.
  */
 export function checkMaterial(check: (condition: unknown, message: string) => void, material: string) {
   const island = document.querySelector<HTMLElement>(".island")!;
@@ -37,7 +38,8 @@ export function checkMaterial(check: (condition: unknown, message: string) => vo
     `Island and page are both marked with the material (${material})`);
   check(document.querySelector(".island__glass") && style.backdropFilter === "none", "Glass drawn with CSS only without blurring desktop");
   const alpha = Number((style.backgroundColor.match(/[\d.]+/g) ?? [])[3] ?? 1);
-  check(material === "liquidGlass" ? alpha < 0.5 : alpha >= 0.6, `Glass background opacity is appropriate (${alpha.toFixed(2)})`);
+  const clear = material === "liquidGlass" || material === "prism";
+  check(clear ? alpha < 0.5 : alpha >= 0.6, `Glass background opacity is appropriate (${alpha.toFixed(2)})`);
   // Inner panels (translation, the file shelf) swap their deep base (0.88) for a faint white mist.
   const probe = document.createElement("div");
   probe.style.background = "var(--inner-panel-fill)";
@@ -49,8 +51,15 @@ export function checkMaterial(check: (condition: unknown, message: string) => vo
   const veil = Math.max(0, ...layers.map((channels) => channels[3] ?? 1));
   check(layers.length > 0 && veil < 0.4 && layers.every(([red, green, blue]) => Math.min(red, green, blue) >= 200),
     `Inner glass panels are translucent white haze, not dark boxes (${veil.toFixed(2)})`);
-  if (material === "liquidGlass") {
+  if (clear || material === "aurora") {
     const rim = document.querySelector(".island__glass-refraction");
-    check(rim && getComputedStyle(rim).boxShadow.includes("inset"), "Liquid glass has refractive bright edges");
+    check(rim && getComputedStyle(rim).boxShadow.includes("inset"), `${material} has a lit rim`);
+  }
+  if (material === "aurora" || material === "prism") {
+    // The gradient rim is a masked ring (a box-shadow cannot be a gradient).
+    const ring = getComputedStyle(document.querySelector(".island__glass-refraction")!, "::after");
+    check(ring.backgroundImage.includes("linear-gradient") && ring.maskComposite.includes("exclude"), `${material} draws its gradient rim as a masked ring`);
+    const colour = Number(getComputedStyle(island).getPropertyValue("--glass-colour-alpha"));
+    check(colour > 0.1, `${material} has its colour switched on (${colour.toFixed(2)})`);
   }
 }

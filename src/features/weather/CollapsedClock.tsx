@@ -3,6 +3,8 @@ import { useTranslation } from "../../i18n";
 import { formatClock, formatDateChip, nextTickDelay, type ClockHourFormat } from "./model";
 import "./CollapsedClock.css";
 
+const CLOCK_PARTS = ["hours", "minutes", "seconds"] as const;
+
 export type CollapsedClockProps = {
   active: boolean;
   hourFormat?: ClockHourFormat;
@@ -11,7 +13,7 @@ export type CollapsedClockProps = {
 };
 
 /**
- * Polished, glanceable clock in tabular numerals with subtle fade & micro-scale on tick.
+ * Glanceable clock in tabular numerals, bold hours and light minutes, with a subtle tick.
  * Ticks only every whole second when seconds are visible, or at whole minutes otherwise.
  * Pauses ticking when the island is inactive (hidden, expanded, or tucked).
  */
@@ -71,7 +73,7 @@ export function CollapsedClock({
         {timeText.split(":").map((part, index) => (
           <Fragment key={index}>
             {index > 0 && <span className="collapsed-clock__colon">:</span>}
-            {part}
+            <span className={`collapsed-clock__${CLOCK_PARTS[index]}`}>{part}</span>
           </Fragment>
         ))}
       </time>

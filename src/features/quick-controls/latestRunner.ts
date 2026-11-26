@@ -1,6 +1,7 @@
 /**
- * Sends only the newest value of a slider: it waits `delayMs` after the last push, never runs two
- * calls at once, and runs again with the newest value when a call finishes after a newer push.
+ * Sends the newest value of a slider while it moves: at most `delayMs` after a push, never two
+ * calls at once, and again with the newest value when a call finishes after a newer push. A later
+ * push does not restart the wait, so a slider being dragged takes effect before it comes to rest.
  */
 export function createLatestRunner(run: (value: number) => Promise<unknown>, delayMs: number) {
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -31,8 +32,7 @@ export function createLatestRunner(run: (value: number) => Promise<unknown>, del
   return {
     push(value: number) {
       latest = value;
-      clearTimer();
-      timer = setTimeout(flush, delayMs);
+      if (timer === null && !running) timer = setTimeout(flush, delayMs);
     },
     /** Sends the pending value now, e.g. when the panel closes before the delay is up. */
     flush,

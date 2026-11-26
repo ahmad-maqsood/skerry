@@ -10,7 +10,7 @@ Subdirectory rules are more specific than this file. In case of conflict, subdir
 
 ## Project Overview
 
-**Skerry** (repository name and installer package name `skerry`) is a Windows-first desktop productivity tool running as a transparent, borderless, always-on-top Tauri floating island. Core features include: todos, daily notes and archiving, appearance settings and presets, media controls, clipboard history, file shelf, quick translation, system notifications, system monitor, configuration backup / transfer, a plugin host (switched off in releases), and automatic updates.
+**Skerry** (repository name and installer package name `skerry`) is a Windows-first desktop productivity tool running as a transparent, borderless, always-on-top Tauri floating island. Core features include: todos, daily notes and archiving, appearance settings and presets, media controls, clipboard history, file shelf, quick translation, system notifications, system monitor, configuration backup / transfer, a plugin host (switched on through `release-features.json`), and automatic updates.
 
 The application has four windows, dispatched on the frontend via the `?window=` parameter at the single entry point:
 

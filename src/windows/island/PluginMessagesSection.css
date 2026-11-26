@@ -85,3 +85,13 @@ button.plugin-feed__session:hover {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+.plugin-feed__filter {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.plugin-feed__filter .select-control {
+  width: 100%;
+  min-width: 0;
+}

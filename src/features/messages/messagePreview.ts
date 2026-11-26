@@ -16,7 +16,7 @@ export type MessagePreview = {
   level?: number;
 };
 
-export type PreviewKind = "clipboard" | "music" | "battery" | "bluetooth" | "airplane" | "volume" | "brightness";
+export type PreviewKind = "clipboard" | "music" | "battery" | "bluetooth" | "airplane" | "volume" | "brightness" | "plugin";
 
 /** Volume and brightness pop-ups: a bar rather than text, and short-lived (the user is looking at what they pressed). */
 export function isLevelKind(kind?: PreviewKind): kind is "volume" | "brightness" {

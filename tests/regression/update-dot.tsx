@@ -41,7 +41,7 @@ let setPage: (page: IslandPage) => void;
 let setExpanded: (expanded: boolean) => void;
 let setStyle: (style: PageButtonStyle) => void;
 let snapshot: UpdateState = { stage: "available", version: "0.1.0", nextVersion: "0.1.1", downloaded: 0,
-  total: 100, detail: "", dismissed: false, autoUpdate: true };
+  total: 100, detail: "", dismissed: false, autoUpdate: true, storeBuild: false };
 async function update(patch: Partial<UpdateState>) {
   snapshot = { ...snapshot, ...patch };
   await act(async () => { await emit("skerry-update-state", snapshot); });

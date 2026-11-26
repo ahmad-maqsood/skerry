@@ -124,7 +124,7 @@ No. You only need to build the feature; optional-install adaptation is completed
 
 ## 7. Plugin API v1 (executable plugins)
 
-Besides source-level contributions (sections 1-6), the app ships a plugin host that runs a separate executable and shows what it publishes in native island components. The four example plugins in this repository (`plugins/gemini`, `plugins/github`, `plugins/grok-bot`, `plugins/hermes`) use it. The host lives in `src-tauri/src/plugin_host/`, the frontend in `src/features/plugins/`, and the commands and events are listed in [contracts.md](../architecture/contracts.md#plugin-api-v1).
+Besides source-level contributions (sections 1-6), the app ships a plugin host that runs a separate executable and shows what it publishes in native island components. The example plugin in this repository (`plugins/github`) uses it. The host lives in `src-tauri/src/plugin_host/`, the frontend in `src/features/plugins/`, and the commands and events are listed in [contracts.md](../architecture/contracts.md#plugin-api-v1).
 
 ### Layout
 
@@ -145,6 +145,26 @@ The manifest is at most 64 KiB and unknown fields are rejected.
 | `contributes` | Any of `quota`, `sessions`, `notifications`; each one must also be listed in `permissions` |
 | `settings` (optional) | `{ key, label, type, default, options? }` with `type` one of `toggle`, `text`, `secret` or `select`; a `secret` default must be empty |
 | `actions` (optional) | `{ id, label }` entries the user can trigger |
+
+### User guide (required)
+
+Every plugin in `plugins/<id>/` has its own user guide at `docs/plugins/<id>.md`, named after the manifest `id`. The **Guide** button on an installed plugin opens that file from the `main` branch on GitHub, so no app code or manifest field is needed. The button is hidden for plugins loaded in developer mode from a local folder.
+
+Add the guide in the same pull request as the plugin, and update it when the plugin changes. Write it for people using the app, with these sections ([github.md](github.md) is the example):
+
+| Section | What it covers |
+| --- | --- |
+| `## What it shows` | What appears on the island, and any limits |
+| `## Setup` | Every step from install to first result, including how to get any token or key and the least access it needs |
+| `## Settings` | Each setting in the manifest, using the start of its English label (the text before any parenthesis) |
+| `## Troubleshooting` | Common problems and what to check |
+| `## Privacy` | What is stored, which files are read and which domains are contacted |
+
+`tests/unit/plugin-guides.test.mjs` (part of `pnpm check`) fails if a guide, a section or a setting is missing. It cannot tell whether the text is correct, so reviewers check that.
+
+### Permissions are not a sandbox
+
+`permissions` is what the plugin declares. The host rejects unknown names and requires each kind in `contributes` to be listed, but it does not limit what the plugin process can do: it runs with the user's Windows account, so it can reach files and the network whether or not it lists them. The settings page says so. Review a plugin's code before shipping it.
 
 ### Protocol
 

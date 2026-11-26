@@ -10,7 +10,7 @@ Subdirectory rules are more specific than this file. In case of conflict, subdir
 
 ## Project Overview
 
-**Skerry** (repository name and installer package name `skerry`) is a Windows-first desktop productivity tool running as a transparent, borderless, always-on-top Tauri floating island. Core features include: todos, daily notes and archiving, appearance settings and presets, media controls, clipboard history, file shelf, quick translation, system notifications, system monitor, configuration backup / transfer, a plugin host (switched off in releases), and automatic updates.
+**Skerry** (repository name and installer package name `skerry`) is a Windows-first desktop productivity tool running as a transparent, borderless, always-on-top Tauri floating island. Core features include: todos, daily notes and archiving, appearance settings and presets, media controls, clipboard history, file shelf, quick translation, system notifications, system monitor, configuration backup / transfer, a plugin host (switched on through `release-features.json`), and automatic updates.
 
 The application has four windows, dispatched on the frontend via the `?window=` parameter at the single entry point:
 
@@ -98,6 +98,7 @@ The following identifiers are referenced by existing user data, configurations, 
 
 ## General Development Conventions
 
+- Every plugin in `plugins/<id>/` ships with its own user guide at `docs/plugins/<id>.md`. Add or update it in the same change as the plugin, following [User guide (required)](docs/plugins/README.md#user-guide-required).
 - Prioritize reusing existing components, types, utility functions, and CSS classes.
 - Persist frontend state using `localStorage`.
 - When adding new Tauri commands, update the Rust handler, frontend typed wrapper, and capability permissions in tandem.

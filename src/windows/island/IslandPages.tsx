@@ -7,7 +7,7 @@ import { openSettingsWindow } from "../settings/api";
 import { SettingsPanel } from "../settings/SettingsPanel";
 import "../settings/IslandSettingsPage.css";
 import { TranslationPanel } from "../../features/translation/TranslationPanel";
-import { usePluginFeed } from "../../features/plugins";
+import { usePluginFeed, usePluginFilter } from "../../features/plugins";
 import { PluginMessagesSection } from "./PluginMessagesSection";
 import type { IslandSettings } from "../../features/appearance/types";
 import { ClipboardHistoryPanel } from "../../features/clipboard/ClipboardHistoryPanel";
@@ -56,7 +56,8 @@ export function IslandPages({
   isShelfDropping,
   notebookProps,
 }: IslandPagesProps): ReactNode {
-  const pluginFeed = usePluginFeed();
+  const pluginFilter = usePluginFilter(usePluginFeed());
+  const pluginFeed = pluginFilter.feed;
   const { mediaState, isMediaTrackChanging, mediaCommandError, runMediaCommand, seekTo, calibrate } = media;
   const {
     clipboardHistory,
@@ -87,7 +88,7 @@ export function IslandPages({
             extra={{
               count: pluginFeed.notifications.length,
               hasContent: pluginFeed.notifications.length + pluginFeed.sessions.length > 0,
-              node: <PluginMessagesSection feed={pluginFeed} />,
+              node: <PluginMessagesSection filter={pluginFilter} />,
               onClear: () => pluginFeed.dismissAll(pluginFeed.notifications),
             }}
           />

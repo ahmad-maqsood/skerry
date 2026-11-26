@@ -164,7 +164,8 @@ export function freePort() {
 
 /** A DevTools protocol session on the browser's first tab. */
 async function connect(port) {
-  const deadline = Date.now() + 15_000;
+  // A cold Chrome start on the Windows runner takes over 10 seconds, sometimes over 15.
+  const deadline = Date.now() + 60_000;
   let page;
   while (!page && Date.now() < deadline) {
     try {

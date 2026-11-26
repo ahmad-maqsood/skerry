@@ -6,9 +6,11 @@
   <p>The modern, lightweight Dynamic Island for Windows.</p>
 
   <p>
+    <a href="https://apps.microsoft.com/detail/9MV21HG0T71J?mode=direct">
+      <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download Skerry from the Microsoft Store" height="52"></a>
+    &nbsp;&nbsp;
     <a href="https://github.com/ahmad-maqsood/skerry-island/releases/latest">
-      <img src="https://img.shields.io/badge/Download-Latest%20Installer-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download Skerry">
-    </a>
+      <img src="docs/assets/download-github.svg" alt="Download Skerry from GitHub" height="52"></a>
   </p>
 
   <p>
@@ -120,7 +122,11 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 
 ## Installation
 
-### Method 1: Installer Package (Recommended)
+### Method 1: Microsoft Store (Recommended)
+
+[**Download Skerry from the Microsoft Store**](https://apps.microsoft.com/detail/9MV21HG0T71J) (or open `ms-windows-store://pdp/?productid=9MV21HG0T71J`). The Store installs Skerry and keeps it up to date, and it needs no SmartScreen prompt.
+
+### Method 2: Installer Package
 
 1. Navigate to the [Latest Release](https://github.com/ahmad-maqsood/skerry-island/releases/latest) page.
 2. Download `skerry_<version>_x64-setup.exe` (or the `.msi` package for enterprise environments).
@@ -225,7 +231,7 @@ Each published GitHub Release page also provides GitHub-generated source archive
 - **Privacy, Backup and Extensibility**
   - **Mic and Camera Indicator**: Reads the Windows privacy consent store, locally and read-only.
   - **Backup and Transfer**: Export and import your settings (clipboard history only if you opt in) from Settings -> General.
-  - **Plugin Host**: A stdio plugin API (Plugin API v1) for quota, session and notification plugins. It ships switched off; see [docs/plugins/README.md](docs/plugins/README.md).
+  - **Plugin Host**: A stdio plugin API (Plugin API v1), switched on in Settings -> Plugins. Plugins are installed on demand and can show tasks and notifications on the island (quota data is not shown yet). The repository includes a [GitHub plugin](docs/plugins/github.md); see the [Plugin Development Guide](docs/plugins/README.md).
 
 ---
 
@@ -349,7 +355,7 @@ Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a r
 | **Notification Listener** | Captures incoming toast alerts to display on the island. | In-memory only; cleared upon quitting the application. |
 | **Clipboard History** | Stores copied text, images, and file paths when enabled. | The app data folder (`clipboard-history.json` and a `clipboard-images` folder). Stored unencrypted. |
 | **API Keys &amp; Secrets** | Optional custom translation API keys and credentials. | Windows Credential Manager (OS-level secure vault). |
-| **Network Requests** | Limited strictly to: in-app update checks (`github.com`), weather forecast queries (`open-meteo.com`), lyrics queries (`lrclib.net`), user-initiated translation, and the plugin catalog and package downloads (`github.com`) when the plugin host is switched on. | No external analytics or tracking servers are ever contacted. |
+| **Network Requests** | Limited strictly to: in-app update checks (`github.com`), weather forecast queries (`open-meteo.com`), lyrics queries (`lrclib.net`), user-initiated translation, the plugin catalog and package downloads (`github.com`), and whatever installed plugins contact (the GitHub plugin uses `api.github.com`) when the plugin host is switched on. | No external analytics or tracking servers are ever contacted. |
 
 ### Known Limitations
 

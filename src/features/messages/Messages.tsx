@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "../../i18n";
 import { MessageCard } from "./MessageCard";
 import { MessageSourceIcon } from "./MessageSourceIcon";
-import { visibleSection, type MessageSection } from "./messageSections";
+import { loadMessageSection, saveMessageSection, visibleSection, type MessageSection } from "./messageSections";
 import type { SystemNotification } from "./system-notifications/types";
 import type { SystemNotificationsController } from "./system-notifications/useSystemNotifications";
 import "./Messages.css";
@@ -39,9 +39,9 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
   const { snapshot, clearAll, dismissOne, dismissApp, openApp } = controller;
   const { items } = snapshot;
   const total = items.length + (extra?.count ?? 0);
-  const [chosen, setChosen] = useState<MessageSection | null>(null);
+  const [chosen, setChosen] = useState<MessageSection | null>(loadMessageSection);
   const pluginsHaveContent = extra?.hasContent ?? false;
-  const section = visibleSection(chosen, items.length, pluginsHaveContent);
+  const section = visibleSection(chosen, pluginsHaveContent);
   const shownCount = section === "plugins" ? (extra?.count ?? 0) : items.length;
   const sectionCounts: Record<MessageSection, number> = { system: items.length, plugins: extra?.count ?? 0 };
   const sectionNames: Record<MessageSection, string> = { system: t.messages.sectionSystem, plugins: t.messages.sectionPlugins };
@@ -72,34 +72,40 @@ export function MessagesPanel({ controller, extra }: MessagesPanelProps) {
           {t.messages.title}
           {total > 0 && ` (${total})`}
         </span>
-        {pluginsHaveContent && (
-          <div className="messages-switch" role="group" aria-label={t.messages.sections}>
-            {(["system", "plugins"] as const).map((id) => (
-              <button
-                key={id}
-                className="messages-switch__option"
-                type="button"
-                aria-pressed={section === id}
-                onClick={() => setChosen(id)}
-              >
-                {sectionNames[id]}
-                {sectionCounts[id] > 0 && <span className="messages-switch__count">{sectionCounts[id]}</span>}
-              </button>
-            ))}
-          </div>
-        )}
-        {shownCount > 0 && (
-          <button
-            className="messages-toolbar__action"
-            type="button"
-            onClick={() => {
-              if (section === "plugins") extra?.onClear();
-              else void clearAll();
-            }}
-          >
-            {t.messages.clearAll}
-          </button>
-        )}
+        {/* The switch stays against the right edge; Clear all comes and goes on its left, so nothing jumps. */}
+        <div className="messages-toolbar__end">
+          {shownCount > 0 && (
+            <button
+              className="messages-toolbar__action"
+              type="button"
+              onClick={() => {
+                if (section === "plugins") extra?.onClear();
+                else void clearAll();
+              }}
+            >
+              {t.messages.clearAll}
+            </button>
+          )}
+          {pluginsHaveContent && (
+            <div className="messages-switch" role="group" aria-label={t.messages.sections}>
+              {(["system", "plugins"] as const).map((id) => (
+                <button
+                  key={id}
+                  className="messages-switch__option"
+                  type="button"
+                  aria-pressed={section === id}
+                  onClick={() => {
+                    setChosen(id);
+                    saveMessageSection(id);
+                  }}
+                >
+                  {sectionNames[id]}
+                  {sectionCounts[id] > 0 && <span className="messages-switch__count">{sectionCounts[id]}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {section === "system" && groups.length === 0 ? (

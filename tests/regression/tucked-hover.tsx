@@ -21,6 +21,7 @@ const HOVER_DELAY_MS = 0; // The user's setting; opening still waits for the 320
 
 type Island = ReturnType<typeof useIslandNavigation>;
 let island: Island;
+let openedAt = 0;
 let enter: () => void;
 let setOpensPanel: (value: boolean) => void;
 let setPreview: (value: boolean) => void;
@@ -41,7 +42,10 @@ function Harness() {
     delayMs: HOVER_DELAY_MS,
     isPeeking: navigation.isPeeking && navigation.mode === "collapsed",
     onPeek: navigation.peekIsland,
-    onOpen: () => navigation.openIslandPage("todo"),
+    onOpen: () => {
+      openedAt = performance.now();
+      navigation.openIslandPage("todo");
+    },
     blocked: false,
     retractsAfterPeek: navigation.retractsAfterPeek,
     resumePeek: navigation.resumePeek,
@@ -88,11 +92,14 @@ async function runChecks() {
 
     // Hover mode: slides out at once and opens the panel once the cursor stays, one step.
     await act(async () => setOpensPanel(true));
+    openedAt = 0;
+    const arrivedAt = performance.now();
     await arrive();
     check(state() === "collapsed/out", "Hover to expand: immediately reveals island first");
-    await wait(200);
-    check(state() === "collapsed/out", "Hover to expand: does not open panel before reveal animation finishes");
-    await wait(400);
+    await wait(600);
+    // Timed at the open itself: sampling partway through races the 320 ms timer on a slow runner.
+    // The 5 ms allows for timer rounding.
+    check(openedAt - arrivedAt >= 315, "Hover to expand: does not open panel before reveal animation finishes");
     check(state() === "expanded/out" && island.isPeeking, "Hover to expand: expands panel directly after dwell without clicking, remembering to retract");
     await hover(false);
     await wait(450);

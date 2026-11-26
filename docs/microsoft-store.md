@@ -11,9 +11,11 @@ for free, so no code-signing certificate is needed.
 
 A packaged app cannot replace itself; the Store delivers updates. The workflow
 builds with `src-tauri/tauri.store.conf.json`, which clears the updater public
-key. `updater_configured` then reports false, the updater stays disabled
-("This build can't update itself") and no update check runs. GitHub installers
-are built by `release.yml` without this overlay and keep the updater.
+key. The app also detects at run time that it is an installed Windows package
+(`updater_store_build`). In that case the updater stays disabled, no update check
+runs, and Settings -> About explains why, with a link to the GitHub download.
+GitHub installers are built by `release.yml` without this overlay and keep the
+updater.
 
 ## One-time setup
 

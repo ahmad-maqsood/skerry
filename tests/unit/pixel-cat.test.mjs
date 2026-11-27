@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  FIRST_LAUNCH_PIXEL_CAT,
   PIXEL_CAT_LANE_WIDTH,
   normalizePixelCatSettings,
   pixelCatWidth,
@@ -23,6 +24,11 @@ test("the pixel cat is off unless it was switched on", () => {
     assert.deepEqual(normalizePixelCatSettings(value), { enabled: false });
   }
   assert.deepEqual(normalizePixelCatSettings({ enabled: true }), { enabled: true });
+});
+
+test("a fresh install starts with the cat on, and a missing key on an older install stays off", () => {
+  assert.deepEqual(FIRST_LAUNCH_PIXEL_CAT, { enabled: true });
+  assert.deepEqual(normalizePixelCatSettings(undefined), { enabled: false });
 });
 
 test("the cat's lane widens the island within what the window accepts", () => {

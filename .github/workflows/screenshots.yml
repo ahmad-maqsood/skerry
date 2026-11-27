@@ -1,7 +1,10 @@
 name: Screenshots
 
 # Manual only: run it from the Actions tab ("Run workflow"). It never runs on a push, a pull
-# request or a schedule. The images come back as a downloadable artifact; nothing is committed.
+# request or a schedule. The images always come back as a downloadable artifact. Unless "commit" is
+# switched off, the new pictures are also committed to docs/assets/screenshots on the branch the
+# run was started from and pushed to it (scripts/push-screenshots.mjs); no pull request is opened.
+# Run it from a branch the workflow token may push to: a protected branch refuses the push.
 on:
   workflow_dispatch:
     inputs:
@@ -13,9 +16,15 @@ on:
         description: 'Pixel density, a whole number from 1 to 4'
         required: false
         default: '3'
+      commit:
+        description: 'Commit the new images to this branch and push them (a tag run only makes the artifact)'
+        required: false
+        type: boolean
+        default: true
 
+# Writing is only for pushing the screenshots commit.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   capture:
@@ -38,18 +47,37 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Who the screenshots commit is made by.
+      - name: Git identity
+        if: ${{ inputs.commit }}
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       # The inputs go through env, never straight into the script text.
       - name: Capture
         shell: bash
         env:
           SHOTS: ${{ inputs.shots }}
           SCALE: ${{ inputs.scale }}
+          COMMIT: ${{ inputs.commit }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
+          args=(--scale="$SCALE" --out=./screenshots-out)
+          if [ "$COMMIT" = "true" ] && [ "$REF_TYPE" = "branch" ]; then
+            args+=(--push --branch="$REF_NAME")
+          elif [ "$COMMIT" = "true" ]; then
+            echo "::warning::Not a branch run ($REF_TYPE): the images are only uploaded as an artifact."
+          fi
           # SHOTS is split into words on purpose (it may hold several scene names).
           # shellcheck disable=SC2086
-          node scripts/capture-screenshots.mjs $SHOTS --scale="$SCALE" --out=./screenshots-out
+          node scripts/capture-screenshots.mjs $SHOTS "${args[@]}"
 
+      # Also when the push was refused: the captured images are still worth downloading.
       - name: Upload the images
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: skerry-screenshots

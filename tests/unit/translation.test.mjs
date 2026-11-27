@@ -21,7 +21,7 @@ test("settings saved before providers existed keep Google and their shortcut and
     provider: "google",
     customBaseUrl: "",
     models: {},
-    pasteClipboardOnOpen: true,
+    pasteClipboardOnOpen: false,
     autoTranslate: false,
   });
   assert.deepEqual(normalizeTranslationSettings(null), DEFAULT_SETTINGS);
@@ -54,9 +54,9 @@ test("provider, custom base URL and per-provider models are kept when valid", ()
   assert.deepEqual(normalizeTranslationSettings({ models: "x" }).models, {});
 });
 
-test("clipboard fill stays on and auto-translate off: they are no longer settings", () => {
-  const settings = normalizeTranslationSettings({ pasteClipboardOnOpen: false, autoTranslate: true });
-  assert.equal(settings.pasteClipboardOnOpen, true);
+test("clipboard fill and auto-translate stay off: they are no longer settings", () => {
+  const settings = normalizeTranslationSettings({ pasteClipboardOnOpen: true, autoTranslate: true });
+  assert.equal(settings.pasteClipboardOnOpen, false);
   assert.equal(settings.autoTranslate, false);
   assert.equal(normalizeTranslationSettings({ autoTranslate: "yes" }).autoTranslate, false);
 });

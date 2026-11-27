@@ -18,6 +18,14 @@ export function PixelCatSettingsGroup({ onShown }: { onShown?: () => void }) {
           if (enabled) onShown?.();
         }}
       />
+      {settings.enabled && (
+        <SettingsToggleRow
+          title={t.whilePlaying}
+          description={t.whilePlayingDescription}
+          checked={settings.whilePlaying}
+          onChange={(whilePlaying) => setPixelCatSettings({ ...settings, whilePlaying })}
+        />
+      )}
     </SettingsGroup>
   );
 }

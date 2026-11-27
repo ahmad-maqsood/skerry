@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  firstLaunchClockWeatherSettings,
   normalizeClockWeatherSettings,
   normalizeWeatherCache,
   normalizeWeatherLocation,
@@ -43,6 +44,12 @@ test("clock is ON by default and weather stays OFF by default", () => {
   for (const value of [{ ...location, latitude: NaN }, { ...location, longitude: 181 }, { ...location, latitude: "39" }, {}]) {
     assert.equal(normalizeWeatherLocation(value), null);
   }
+});
+
+test("a fresh install starts with the time off, an older install without the key keeps it on", () => {
+  assert.deepEqual(firstLaunchClockWeatherSettings(), { ...normalizeClockWeatherSettings(undefined), showClock: false });
+  assert.equal(firstLaunchClockWeatherSettings().showWeather, false);
+  assert.equal(normalizeClockWeatherSettings(undefined).showClock, true);
 });
 
 test("only a matching city and observations no older than three hours may be displayed", () => {

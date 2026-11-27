@@ -122,7 +122,8 @@ test("a refused push says why instead of passing quietly", () => {
 });
 
 test("the manual workflow commits only on request and still uploads the images", () => {
-  const workflow = readFileSync(path.join(root, ".github/workflows/screenshots.yml"), "utf8");
+  // Windows checkouts may turn the file into CRLF; the patterns below expect LF.
+  const workflow = readFileSync(path.join(root, ".github/workflows/screenshots.yml"), "utf8").replace(/\r\n/g, "\n");
   assert.match(workflow, /contents: write/);
   assert.match(workflow, /commit:\s*\n\s+description:[^\n]*\n\s+required: false\n\s+type: boolean\n\s+default: true/);
   assert.match(workflow, /--push --branch="\$REF_NAME"/);

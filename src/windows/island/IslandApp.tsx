@@ -8,7 +8,7 @@ import { IslandPages } from "./IslandPages";
 import { useSettingsPresentation } from "../settings/useSettingsPresentation";
 import { useSettingsNavigation } from "./useSettingsNavigation";
 import { useIslandSettings } from "../../features/appearance/useIslandSettings";
-import { slotsHiddenWithCat, usePixelCat } from "../../features/pixel-cat";
+import { slotsHiddenWithCat, usePixelCat, pixelCatShown } from "../../features/pixel-cat";
 import { useDocumentTheme } from "../../features/appearance/useDocumentTheme";
 import { resolveSchemeColors } from "../../features/appearance/theme";
 import { useClipboardHistory } from "../../features/clipboard/useClipboardHistory";
@@ -58,7 +58,7 @@ export function IslandApp() {
   }, []);
   const { mode, isTucked, messagePeek, page, setPage, collapseIsland, tuckIsland, revealIsland, minimizeToEdge, openIslandPage, toggleClipboardHistory } = navigation;
   const [settings, setSettings] = useIslandSettings();
-  const pixelCatOn = usePixelCat().settings.enabled;
+  const pixelCatSettings = usePixelCat().settings;
   const detachedSettings = useSettingsPresentation();
   const { openSettings, changePresentation } = useSettingsNavigation(openIslandPage, setPage);
   const { settingsContentHeight, reportSettingsHeight } = useSettingsPageHeight();
@@ -72,6 +72,8 @@ export function IslandApp() {
   const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight, notesExpanded, notebookProps } = useIslandTodos({ settings, navigation, quiet: game.quiet });
 
   const songPlaying = settings.musicEnabled && media.mediaState.playbackStatus === "playing" && Boolean(media.mediaState.title);
+  // Off while a song plays when Settings → Appearance → Pixel cat says so.
+  const pixelCatOn = pixelCatShown(pixelCatSettings, songPlaying);
   const cover = settings.collapsedShowCover && songPlaying ? media.mediaState.thumbnail : null;
   const { collapsedTaskTitle, collapsedTodoCount, collapsedItem, collapsedIslandWidth, todoRotation, collapsedTimer } =
     useCollapsedTodo(

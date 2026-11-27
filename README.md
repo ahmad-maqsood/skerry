@@ -56,8 +56,8 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 ### Highlights
 
 - **Universal Windows Toast Feed**: Reads notifications from any app (WhatsApp, Telegram, Outlook, Teams, Chrome, Edge) with real-time one-line previews in the collapsed island.
-- **Glanceable Clock and Weather**: Tabular digits time display and optional Open-Meteo local weather forecasts when the island sits idle.
-- **Pixel Cat**: An optional cat that takes the clock's place on the collapsed island. It walks, sits and flicks its tail, hops, stretches, naps and blinks.
+- **Glanceable Clock and Weather**: Optional tabular digits time display and Open-Meteo local weather forecasts when the island sits idle.
+- **Pixel Cat**: A cat that takes the clock's place on the collapsed island, on by default on a fresh install. It walks, sits and flicks its tail, hops, stretches, naps and blinks.
 - **Stays Where You Want It**: Keep the island out while the desktop is in front (on by default), or keep it displayed all the time.
 - **Island Pop-ups**: Short notices for copied text, new songs, the charger, Bluetooth connections, airplane mode, volume and brightness, each with its own switch.
 - **System Media and Synced Lyrics**: Global media controls via Windows GSMTC with real-time lyrics fetched from LRCLIB.
@@ -68,6 +68,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 - **Microphone and Camera Indicator**: A small dot on the collapsed island while an app is using the microphone or camera (on by default, switchable under Settings -> System).
 - **Instant Translation**: Dedicated fast translation window (`Ctrl + Shift + F`) supporting free providers and custom OpenAI-compatible endpoints.
 - **Fluid Visual Styles**: Graphite, Liquid Glass, Frosted Glass, Aurora, and Prism materials with adaptive dark and light themes.
+- **Settings Search**: Type in the box above the settings pages to jump to a page, group or setting.
 - **In-App Changelog**: Read the release notes under Settings -> Changelog.
 
 ---
@@ -82,7 +83,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 <p align="center">
   <img src="docs/assets/screenshots/screenshot-pixel-cat.png" alt="Collapsed island with a pixel cat walking in place of the time" width="680">
   <br>
-  <b>Pixel Cat</b>: Switch it on in Settings and a small cat walks the collapsed island in place of the time.
+  <b>Pixel Cat</b>: A small cat walks the collapsed island in place of the time. It is on by default on a fresh install.
 </p>
 
 ### Collapsed Island and Clock
@@ -214,9 +215,9 @@ Each published GitHub Release page also provides GitHub-generated source archive
   - **Opening**: Choose hover or click. A click anywhere on the collapsed bar that is not a button opens the island, including on the clock or the pixel cat.
   - **Always Display**: "Always display island on the desktop" (on by default) keeps the island out in its collapsed form while no window is open, and tucks it as soon as any window opens, even a small one. "Always display island" stops idle tucking everywhere. "Show minimize button" (on by default) is its own switch and works with the clock, the pixel cat and either always-display setting. Game mode and the tray menu still apply.
   - **Game Mode**: While a full-screen game, video or slideshow is in front, the island does not open on hover, take the focus or pop up messages. You can still allow notifications.
-  - **Pixel Cat**: Switch it on under Settings -> Appearance to show an animated cat in place of the time. It stays still when reduced motion is on.
+  - **Pixel Cat**: An animated cat in place of the time, on by default on a fresh install (updating keeps your earlier choice). Under Settings -> Appearance, turning on the cat turns off the time, and turning on the time turns off the cat. "Show the pixel cat when a song is playing" (on by default, listed while the cat is on) hides the cat during music when switched off. It stays still when reduced motion is on.
   - **Three Adaptive States**: Collapsed pill for passive monitoring, expanded dashboard for active interaction, and tucked mode (docked to screen edge as a minimal bar or hidden with hover expand).
-  - **Idle Clock &amp; Weather**: Tabular digits clock (12 or 24 hour, optional seconds, date on hover) and an optional Open-Meteo weather report for a city you choose.
+  - **Idle Clock &amp; Weather**: Tabular digits clock (off by default on a fresh install; 12 or 24 hour, optional seconds, date on hover) and an optional Open-Meteo weather report for a city you choose.
   - **Screen Edge Snapping**: Draggable positioning along the top screen edge with automatic multi-monitor awareness.
 
 - **Universal Windows Notifications**
@@ -248,9 +249,11 @@ Each published GitHub Release page also provides GitHub-generated source archive
 
 - **Quick Translation**
   - **Instant Hotkey**: Press `Ctrl + Shift + F` to open a lightweight translation card.
+  - **Manual Paste**: Opening translation does not fill the input from the clipboard. Use the paste button or press `Tab` to paste.
   - **Flexible Providers**: Keyless MyMemory (the default) and Google Translate, plus OpenAI and custom OpenAI-compatible API endpoints (keys are kept in Windows Credential Manager).
 
 - **Settings, Updates and Changelog**
+  - **Search**: Finds pages, setting groups and individual settings, then opens the page and highlights the match. The Plugins and Changelog pages are found by name only.
   - **Appearance**: Arrange the collapsed island, choose which item takes priority, and adjust colors, text, size, corners and appearance presets.
   - **Updates**: GitHub installs update inside the app. The Microsoft Store version is updated by the Store, and Settings -> About links to the GitHub download.
   - **Changelog**: Settings -> Changelog shows the release notes published on GitHub.

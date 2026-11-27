@@ -27,6 +27,14 @@ export function normalizeWeatherLocation(value: unknown): WeatherLocation | null
   if (typeof item.name !== "string" || !item.name.trim() || !validCoordinates(item.latitude, item.longitude)) return null;
   return { name: item.name.trim().slice(0, 200), latitude: item.latitude as number, longitude: item.longitude as number };
 }
+/**
+ * What a fresh install starts with: the time is off, because the pixel cat starts on in its place
+ * (pixel-cat/model.ts). Settings saved by an older version are not touched: a missing key still
+ * reads as the time on.
+ */
+export function firstLaunchClockWeatherSettings(): ClockWeatherSettings {
+  return { ...normalizeClockWeatherSettings(undefined), showClock: false };
+}
 export function normalizeClockWeatherSettings(value: unknown): ClockWeatherSettings {
   const item = record(value);
   const hourFormat: ClockHourFormat = item.hourFormat === "12h" || item.hourFormat === "24h" ? item.hourFormat : "auto";

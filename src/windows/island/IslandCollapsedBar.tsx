@@ -11,7 +11,7 @@ import { MusicWaveButton } from "../../features/media/MusicWaveButton";
 import type { MessagePreview } from "../../features/messages/messagePreview";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { CollapsedClock, CollapsedWeather, useClockWeather, useCurrentWeather } from "../../features/weather";
-import { PixelCat, usePixelCat } from "../../features/pixel-cat";
+import { PixelCat, usePixelCatShown } from "../../features/pixel-cat";
 import { CollapsedSystemChip } from "../../features/system-monitor/CollapsedSystemChip.tsx";
 import { PrivacyIndicator } from "../../features/privacy";
 import { useTranslation } from "../../i18n";
@@ -108,7 +108,8 @@ export function IslandCollapsedBar({
   const t = useTranslation();
   const clockWeather = useClockWeather();
   // The pixel cat takes the clock's place: the time is not shown while it walks.
-  const pixelCat = usePixelCat().settings.enabled;
+  // Hidden while a song plays when Settings → Appearance → Pixel cat says so (the same test as IslandApp's).
+  const pixelCat = usePixelCatShown(showMusic && mediaState.playbackStatus === "playing" && Boolean(mediaState.title));
   const weatherOn = clockWeather.settings.showWeather && collapsedLayout.includes("weather");
   const weather = useCurrentWeather(weatherOn, clockWeather.settings.location);
   // A pending update shows a red dot even collapsed, so it is not missed.

@@ -20,7 +20,7 @@ export type TranslationSettings = {
   customBaseUrl: string;
   /** Model per provider; an empty or missing entry uses the provider's default. */
   models: Partial<Record<TranslationProvider, string>>;
-  /** Fill an empty source from the clipboard when the translation window opens. */
+  /** Fill an empty source from the clipboard when the translation window opens (off: paste by hand). */
   pasteClipboardOnOpen: boolean;
   /** Translate after the source has stopped changing, while the window is open. */
   autoTranslate: boolean;
@@ -35,7 +35,7 @@ export const DEFAULT_SETTINGS: TranslationSettings = {
   provider: DEFAULT_TRANSLATION_PROVIDER,
   customBaseUrl: "",
   models: {},
-  pasteClipboardOnOpen: true,
+  pasteClipboardOnOpen: false,
   autoTranslate: false,
 };
 
@@ -72,7 +72,7 @@ export function normalizeTranslationSettings(stored: unknown): TranslationSettin
     provider: isTranslationProvider(value.provider) ? value.provider : LEGACY_TRANSLATION_PROVIDER,
     customBaseUrl: typeof value.customBaseUrl === "string" ? value.customBaseUrl : "",
     models: normalizeModels(value.models),
-    // No longer settings: pasting the clipboard on open and translating as you type keep their defaults.
+    // No longer settings: pasting the clipboard on open (off) and translating as you type (off) keep their defaults.
     pasteClipboardOnOpen: DEFAULT_SETTINGS.pasteClipboardOnOpen,
     autoTranslate: DEFAULT_SETTINGS.autoTranslate,
   };

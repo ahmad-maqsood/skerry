@@ -33,7 +33,9 @@ export function useSettingsContentHeight(
     const measure = () => {
       // The list fills the column it is given, so its own height says nothing; its content does.
       const navStyle = getComputedStyle(nav);
-      const navHeight = (list ? contentHeight(list) : 0) +
+      // The search box (and its gap) sit above the list inside the column.
+      const above = list ? Math.max(0, list.getBoundingClientRect().top - nav.getBoundingClientRect().top - (Number.parseFloat(navStyle.paddingTop) || 0)) : 0;
+      const navHeight = (list ? contentHeight(list) : 0) + above +
         (Number.parseFloat(navStyle.paddingTop) || 0) + (Number.parseFloat(navStyle.paddingBottom) || 0);
       const height = Math.ceil(Math.max(contentHeight(page), navHeight));
       if (height !== reported.current) {

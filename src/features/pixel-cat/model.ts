@@ -1,4 +1,8 @@
-export type PixelCatSettings = { enabled: boolean };
+export type PixelCatSettings = {
+  enabled: boolean;
+  /** Keep the cat on the island while a song plays; off hides it until the music stops. */
+  whilePlaying: boolean;
+};
 
 /** Room the cat walks in, in px before island scaling; the island grows by this much while it is on. */
 export const PIXEL_CAT_LANE_WIDTH = 112;
@@ -7,9 +11,20 @@ const MAX_ISLAND_WIDTH = 480;
 /** Gap the bar puts between the cat's lane and its neighbours. */
 const LANE_GAP = 8;
 
+/**
+ * What a fresh install starts with: the cat is on (and the time off, see weather/model.ts).
+ * Settings saved by an older version are not touched: a missing key still reads as off.
+ */
+export const FIRST_LAUNCH_PIXEL_CAT: PixelCatSettings = { enabled: true, whilePlaying: true };
+
 export function normalizePixelCatSettings(value: unknown): PixelCatSettings {
   const item = value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-  return { enabled: item.enabled === true };
+  return { enabled: item.enabled === true, whilePlaying: item.whilePlaying !== false };
+}
+
+/** Whether the cat is on the island now: switched on, and not hidden because a song is playing. */
+export function pixelCatShown(settings: PixelCatSettings, songPlaying: boolean) {
+  return settings.enabled && (settings.whilePlaying || !songPlaying);
 }
 
 /**

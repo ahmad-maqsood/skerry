@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { PIXEL_CAT_KEY, loadPixelCatSettings, savePixelCatSettings } from "./storage";
-import type { PixelCatSettings } from "./model";
+import { pixelCatShown, type PixelCatSettings } from "./model";
 
 // Shared by the island and the settings window: both read the same localStorage key, and the
 // island rereads it when the other window changes it.
@@ -9,7 +9,7 @@ const listeners = new Set<() => void>();
 const snapshot = () => current ??= loadPixelCatSettings();
 function reread() {
   const next = loadPixelCatSettings();
-  if (current && current.enabled === next.enabled) return;
+  if (current && current.enabled === next.enabled && current.whilePlaying === next.whilePlaying) return;
   current = next;
   listeners.forEach((listener) => listener());
 }
@@ -37,6 +37,11 @@ function subscribe(listener: () => void) {
 export function usePixelCat() {
   const settings = useSyncExternalStore(subscribe, snapshot, snapshot);
   return { settings };
+}
+
+/** Whether the cat is on the island now; `songPlaying` is whether a song is playing. */
+export function usePixelCatShown(songPlaying: boolean) {
+  return pixelCatShown(usePixelCat().settings, songPlaying);
 }
 
 export function setPixelCatSettings(settings: PixelCatSettings) {

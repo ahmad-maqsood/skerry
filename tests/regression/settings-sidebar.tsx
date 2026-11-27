@@ -6,6 +6,7 @@ import "../../src/styles/tokens.css";
 import { I18nProvider, LOCALE_STORAGE_KEY } from "../../src/i18n";
 import { SettingsSidebar } from "../../src/windows/settings/SettingsSidebar";
 import { settingsCategoryFor, type SettingsCategory } from "../../src/windows/settings/categories";
+import type { SettingsSearchTarget } from "../../src/windows/settings/searchSettings";
 
 const savedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
 localStorage.setItem(LOCALE_STORAGE_KEY, "en");
@@ -16,6 +17,7 @@ window.addEventListener("beforeunload", () => {
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 let opened: SettingsCategory[] = [];
+const jumps: SettingsSearchTarget[] = [];
 function Sidebar({ start }: { start: SettingsCategory }) {
   const [category, setCategory] = useState<SettingsCategory>(start);
   return (
@@ -25,6 +27,7 @@ function Sidebar({ start }: { start: SettingsCategory }) {
         opened.push(next);
         setCategory(next);
       }}
+      onSearchJump={(target) => jumps.push(target)}
     />
   );
 }
@@ -53,7 +56,8 @@ try {
   const groups = () => [...host.querySelectorAll<HTMLElement>(".settings-sidebar__group")].map((group) => group.getAttribute("aria-label")).filter(Boolean);
   check(groups().join("|") === "Basics|Features" && !host.querySelector(".settings-sidebar__heading"),
     "Pages sit in two named groups (Plugins, Changelog and About after them), set apart by space rather than visible headings");
-  check(!host.querySelector("input, button[aria-expanded]"), "No search box and nothing to fold");
+  check(host.querySelectorAll("input").length === 1 && host.querySelector("input")?.getAttribute("role") === "searchbox"
+    && !host.querySelector("button[aria-expanded]"), "One search box above the list and nothing to fold");
   check(listed().join() === "general,appearance,todos,music,translation,clipboard,messages,system,plugins,changelog,about",
     "Every page is listed once, in sidebar order");
   const listGroups = [...host.querySelectorAll<HTMLElement>(".settings-sidebar__list .settings-sidebar__group")];
@@ -68,6 +72,17 @@ try {
   await act(async () => { element<HTMLButtonElement>("[data-category='clipboard']").click(); });
   check(opened[opened.length - 1] === "clipboard" && element(".settings-sidebar__item--active").dataset.category === "clipboard"
     && element("[data-category='clipboard']").getAttribute("aria-current") === "page", "Clicking a page opens and marks it");
+
+  // The search box swaps the list for results, and a picked result is handed to the page.
+  const box = element<HTMLInputElement>("input");
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(box, "pixel");
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  check(listed().length === 0 && host.querySelectorAll(".settings-search__result").length > 0, "Typing replaces the page list with matching results");
+  await act(async () => { host.querySelector<HTMLButtonElement>(".settings-search__result")!.click(); });
+  check(jumps.length === 1 && jumps[0].page === "appearance" && jumps[0].group === "Pixel cat" && listed().length === 11 && box.value === "",
+    "Picking a result reports its page and group, clears the box and brings the list back");
 
   document.documentElement.dataset.testResult = "passed";
 } catch (error) {

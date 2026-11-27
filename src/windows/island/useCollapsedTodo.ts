@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useClockWeather, useCurrentWeather } from "../../features/weather";
 import { useCollapsedStatusWidth } from "./useCollapsedStatusWidth";
 import { clockWeatherWidth } from "../../features/weather";
-import { pixelCatWidth, usePixelCat } from "../../features/pixel-cat";
+import { pixelCatWidth, usePixelCatShown } from "../../features/pixel-cat";
 import { COLLAPSED_PADDING } from "../../features/appearance/settingsLimits";
 import type { IslandSettings } from "../../features/appearance/types";
 import type { TodoItem } from "../../features/todos/types";
@@ -44,7 +44,7 @@ export function useCollapsedTodo(
   const clockWeather = useClockWeather();
   // Dragged off the island in Settings → Appearance, they take no room and fetch nothing.
   // The pixel cat walks where the clock would be: no time, and a wider island for it to walk in.
-  const catOn = usePixelCat().settings.enabled;
+  const catOn = usePixelCatShown(lyricsPlaying);
   const clockOn = !catOn && clockWeather.settings.showClock && !settings.collapsedHidden.includes("clock");
   const weather = useCurrentWeather(clockWeather.settings.showWeather && !settings.collapsedHidden.includes("weather"),
     clockWeather.settings.location);

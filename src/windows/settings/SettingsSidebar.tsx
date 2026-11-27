@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { Activity, ClipboardList, Info, Languages, ListTodo, MessageCircle, Music, Palette, Puzzle, ScrollText, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import { SETTINGS_GROUPS, type SettingsCategory } from "./categories";
+import { SettingsSearch } from "./SettingsSearch";
+import type { SettingsSearchTarget } from "./searchSettings";
 import "./SettingsSidebar.css";
 
 const CATEGORY_ICONS: Record<SettingsCategory, LucideIcon> = {
@@ -20,14 +22,17 @@ const CATEGORY_ICONS: Record<SettingsCategory, LucideIcon> = {
 
 /**
  * The settings page list: icon and name per page, the groups set apart by a gap rather than
- * headings. Plugins and About come last.
+ * headings. Plugins and About come last. A search box above it finds any page, group or setting.
  */
 export function SettingsSidebar({
   category,
   onCategoryChange,
+  onSearchJump,
 }: {
   category: SettingsCategory;
   onCategoryChange: (category: SettingsCategory) => void;
+  /** Opens the page, group or setting a search result names. */
+  onSearchJump: (target: SettingsSearchTarget) => void;
 }) {
   const t = useTranslation();
   const text = t.settings.categories;
@@ -58,19 +63,21 @@ export function SettingsSidebar({
 
   return (
     <nav className="settings-sidebar" aria-label={text.label}>
-      <div className="settings-sidebar__list" ref={listRef}>
-        {SETTINGS_GROUPS.map((group) => (
-          <section
-            className="settings-sidebar__group"
-            key={group.label ?? group.categories.join()}
-            aria-label={group.label ? text.groups[group.label] : undefined}
-          >
-            <ul>
-              {group.categories.map(item)}
-            </ul>
-          </section>
-        ))}
-      </div>
+      <SettingsSearch onJump={onSearchJump}>
+        <div className="settings-sidebar__list" ref={listRef}>
+          {SETTINGS_GROUPS.map((group) => (
+            <section
+              className="settings-sidebar__group"
+              key={group.label ?? group.categories.join()}
+              aria-label={group.label ? text.groups[group.label] : undefined}
+            >
+              <ul>
+                {group.categories.map(item)}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </SettingsSearch>
     </nav>
   );
 }

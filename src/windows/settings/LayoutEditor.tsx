@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from "react";
 import { useTranslation } from "../../i18n";
 import type { SettingsCategory } from "./categories";
+import type { SettingsSearchTarget } from "./searchSettings";
 import { SettingsSidebar } from "./SettingsSidebar";
 import { useSettingsContentHeight } from "./useSettingsContentHeight";
 import "./LayoutEditor.css";
@@ -10,6 +11,7 @@ export function LayoutEditor({
   titleAction,
   children,
   onCategoryChange,
+  onSearchJump,
   onContentHeight,
 }: {
   category: SettingsCategory;
@@ -17,6 +19,8 @@ export function LayoutEditor({
   titleAction?: ReactNode;
   children: ReactNode;
   onCategoryChange: (category: SettingsCategory) => void;
+  /** A search result was picked: open its page and show where it is. */
+  onSearchJump: (target: SettingsSearchTarget) => void;
   /** Told the height the open page needs without scrolling (the island sizes itself to it). */
   onContentHeight?: (height: number) => void;
 }) {
@@ -25,7 +29,7 @@ export function LayoutEditor({
   useSettingsContentHeight(layoutRef, category, onContentHeight);
   return (
     <div className="settings-layout" ref={layoutRef}>
-      <SettingsSidebar category={category} onCategoryChange={onCategoryChange} />
+      <SettingsSidebar category={category} onCategoryChange={onCategoryChange} onSearchJump={onSearchJump} />
 
       {/* Keyed by page so each page opens scrolled to the top. */}
       <div className="editor-panel" key={category}>

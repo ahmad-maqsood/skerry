@@ -17,7 +17,6 @@ export function TranslationWindow() {
   const [settings, setSettings] = useTranslationSettings();
   useDocumentTheme(useStoredTheme());
   const [input, setInput] = useState("");
-  const [clipboardPreview, setClipboardPreview] = useState("");
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [shortcutError, setShortcutError] = useState("");
@@ -51,28 +50,25 @@ export function TranslationWindow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const readClipboard = useCallback(async (intoInput: boolean, reportEmpty: boolean) => {
+  const readClipboard = useCallback(async (reportEmpty: boolean) => {
     const currentId = ++clipboardRequestId.current;
     try {
       const text = await readTranslationClipboard();
       if (currentId !== clipboardRequestId.current) return;
-      setClipboardPreview(text ?? "");
       if (!text) {
         if (reportEmpty) setError(t.translator.emptyClipboard);
         return;
       }
-      if (intoInput) {
-        setInput(text);
-        setError("");
-        setDidCopy(false);
-        inputRef.current?.focus();
-      }
+      setInput(text);
+      setError("");
+      setDidCopy(false);
+      inputRef.current?.focus();
     } catch (failure) {
       if (currentId === clipboardRequestId.current) setError(String(failure));
     }
   }, [t]);
 
-  const pasteLatestClipboard = useCallback(() => readClipboard(true, true), [readClipboard]);
+  const pasteLatestClipboard = useCallback(() => readClipboard(true), [readClipboard]);
 
   const handleOpened = useCallback(() => {
     requestId.current += 1;
@@ -80,11 +76,10 @@ export function TranslationWindow() {
     setDidCopy(false);
     setIsLoading(false);
     setSecretCheck((value) => value + 1);
-    setClipboardPreview("");
     setInput("");
     setOutput("");
     skipAutoSource.current = null;
-    void readClipboard(pasteOnOpenRef.current, false);
+    if (pasteOnOpenRef.current) void readClipboard(false);
     window.requestAnimationFrame(() => inputRef.current?.focus());
   }, [readClipboard]);
 
@@ -179,7 +174,7 @@ export function TranslationWindow() {
               </div>
             </div>
             <textarea id="translation-input" aria-labelledby="translation-source-label" ref={inputRef} value={input} onChange={(event) => { setInput(event.target.value); setError(""); setDidCopy(false); }} onKeyDown={handleInputKeyDown} placeholder={t.translator.placeholder} />
-            {!input && clipboardPreview && <button type="button" className="translation-window__clipboard" onClick={() => void pasteLatestClipboard()}><Clipboard size={14} /><span>{t.translator.clipboard(clipboardPreview.slice(0, 120))}</span><kbd>Tab</kbd></button>}
+            {!input && <button type="button" className="translation-window__clipboard" onClick={() => void pasteLatestClipboard()}><Clipboard size={14} /><span>{t.translator.paste}</span><kbd>Tab</kbd></button>}
           </section>
           <section className="translation-window__panel translation-window__target" aria-busy={isLoading} aria-labelledby="translation-result-label">
             <div className="translation-window__panel-heading"><h2 id="translation-result-label">{t.translator.result}</h2><button type="button" className="translation-window__copy" onClick={() => void copyResult()} disabled={!output} aria-label={t.translator.copy}>{didCopy ? <><Check size={14} /><span>{t.translator.copied}</span></> : <Copy size={15} />}</button></div>

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { AppearanceSettingsPage } from "./AppearanceSettingsPage";
 import { DEFAULT_SETTINGS_CATEGORY, type SettingsCategory } from "./categories";
+import type { SettingsSearchTarget } from "./searchSettings";
+import { findSettingsTarget, revealSettingsTarget } from "./settingsJump";
 import { GeneralSettingsPage } from "./GeneralSettingsPage";
 import { ClipboardSettingsPage } from "./ClipboardSettingsPage";
 import { LayoutEditor } from "./LayoutEditor";
@@ -48,6 +50,23 @@ export function SettingsPanel({
   const saveDirectory = useSaveDirectorySetting();
   const [category, setCategory] = useState<SettingsCategory>(DEFAULT_SETTINGS_CATEGORY);
   const highlightSaveDirectory = saveDirectory.highlight;
+  // A picked search result: opens its page, then scrolls to the group or row and marks it for a moment.
+  const [searchJump, setSearchJump] = useState<{ target: SettingsSearchTarget; id: number } | null>(null);
+  const jumpToSearchResult = useCallback((target: SettingsSearchTarget) => {
+    setCategory(target.page);
+    setSearchJump((previous) => ({ target, id: (previous?.id ?? 0) + 1 }));
+  }, []);
+  useEffect(() => {
+    if (!searchJump || searchJump.target.page !== category) return;
+    let undo: (() => void) | undefined;
+    // After the page has rendered (it is keyed by page, so a new page mounts first).
+    const frame = window.requestAnimationFrame(() => {
+      const panel = document.querySelector<HTMLElement>(".editor-panel");
+      const found = panel ? findSettingsTarget(panel, searchJump.target) : null;
+      if (found) undo = revealSettingsTarget(found);
+    });
+    return () => { window.cancelAnimationFrame(frame); undo?.(); };
+  }, [searchJump, category]);
 
   // The island asks for the save path when an export has nowhere to go; it lives on the todos page.
   const focusSavePath = useCallback(() => {
@@ -83,6 +102,7 @@ export function SettingsPanel({
     <LayoutEditor
       category={category}
       onCategoryChange={setCategory}
+      onSearchJump={jumpToSearchResult}
       onContentHeight={onContentHeight}
       titleAction={category === "appearance" && <ResetAppearanceButton onReset={resetAppearance} />}
     >

@@ -1,4 +1,4 @@
 export { PixelCat } from "./PixelCat";
 export { PixelCatSettingsGroup } from "./PixelCatSettingsGroup";
-export { usePixelCat, setPixelCatSettings } from "./usePixelCat";
-export { pixelCatWidth, slotsHiddenWithCat } from "./model";
+export { usePixelCat, usePixelCatShown, setPixelCatSettings } from "./usePixelCat";
+export { pixelCatShown, pixelCatWidth, slotsHiddenWithCat } from "./model";

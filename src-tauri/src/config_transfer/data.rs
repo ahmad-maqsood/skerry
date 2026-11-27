@@ -28,7 +28,7 @@ pub(super) async fn collect(app: &tauri::AppHandle, history: bool) -> Result<Tra
         data.insert(name.into(), value);
     }
     let files = TransferFiles {
-        launch_at_startup: crate::system::startup::get_launch_at_startup()?,
+        launch_at_startup: crate::system::startup::is_enabled()?,
         plugins: crate::plugin_host::transfer::export(&root),
         clipboard: crate::clipboard_history::transfer::export(history)?,
         data,

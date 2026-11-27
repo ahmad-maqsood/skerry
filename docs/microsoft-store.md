@@ -50,9 +50,10 @@ appear.
 - The MSIX version is `major.minor.patch.0`; the Store reserves the last part.
 - The manifest declares `runFullTrust` and `userNotificationListener`. Expect
   Partner Center to ask why a restricted capability is needed.
-- Launch at startup: the app writes a registry Run entry, which MSIX redirects
-  into a private hive, so it has no effect in the packaged app. The manifest
-  instead declares a startup task, so users can switch Skerry on under
-  Settings -> Apps -> Startup. The in-app "launch at startup" toggle does not
-  control it.
+- Launch at startup: MSIX redirects registry Run writes into a private hive that
+  sign-in never reads, so the packaged app uses the startup task the manifest
+  declares (`system/startup_task.rs`). The in-app "launch at startup" toggle reads
+  and controls that task. If a user turns it off in Task Manager or Settings ->
+  Apps -> Startup, Windows only lets the user turn it back on there, and the app
+  says so. The task ID in the manifest and in `startup_task.rs` must match.
 - Packaged apps keep app data in a per-package location; uninstalling removes it.

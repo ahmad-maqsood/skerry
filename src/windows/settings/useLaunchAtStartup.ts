@@ -1,28 +1,46 @@
 import { useCallback, useEffect, useState } from "react";
 import { readLaunchAtStartup, saveLaunchAtStartup } from "./api";
 
-/** The launch-at-startup registry value, updated optimistically and rolled back on failure. */
+/**
+ * Whether Windows will start the app at sign-in. Task Manager can change that at any time, so
+ * it is read again whenever the window gets the focus. A change is shown optimistically, then
+ * replaced by what Windows reports; `error` says why Windows kept its own setting.
+ */
 export function useLaunchAtStartup() {
   const [launchAtStartup, setLaunchAtStartup] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void readLaunchAtStartup()
-      .then(setLaunchAtStartup)
-      .catch((error) => {
-        console.error("Failed to read launch at startup", error);
-      });
+  const refresh = useCallback(async () => {
+    try {
+      setLaunchAtStartup(await readLaunchAtStartup());
+    } catch (reason) {
+      console.error("Failed to read launch at startup", reason);
+    }
   }, []);
 
+  useEffect(() => {
+    const onFocus = () => {
+      setError(null);
+      void refresh();
+    };
+    onFocus();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refresh]);
+
   const updateLaunchAtStartup = useCallback(async (enabled: boolean) => {
+    setError(null);
     setLaunchAtStartup(enabled);
 
     try {
       await saveLaunchAtStartup(enabled);
-    } catch (error) {
-      console.error("Failed to update launch at startup", error);
+    } catch (reason) {
+      console.error("Failed to update launch at startup", reason);
       setLaunchAtStartup(!enabled);
+      setError(String(reason));
     }
-  }, []);
+    await refresh();
+  }, [refresh]);
 
-  return [launchAtStartup, updateLaunchAtStartup] as const;
+  return [launchAtStartup, updateLaunchAtStartup, error] as const;
 }

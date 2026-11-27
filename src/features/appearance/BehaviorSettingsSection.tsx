@@ -6,12 +6,15 @@ import type { ReactNode } from "react";
 /** Settings → General → System: start with Windows and where settings open. */
 export function BehaviorSettingsSection({
   launchAtStartup,
+  launchAtStartupError,
   detachedSettings,
   onLaunchAtStartupChange,
   onDetachedSettingsChange,
   children,
 }: {
   launchAtStartup: boolean;
+  /** Why Windows kept its own setting after the switch was last used. */
+  launchAtStartupError?: string | null;
   /** Whether settings open in their own window instead of as a page of the island. */
   detachedSettings: boolean;
   onDetachedSettingsChange: (detached: boolean) => void;
@@ -26,6 +29,7 @@ export function BehaviorSettingsSection({
     <SettingsGroup title={t.settings.behavior.title}>
       <SettingsToggleRow
         title={t.settings.layout.launchAtStartup}
+        description={launchAtStartupError ?? undefined}
         checked={launchAtStartup}
         onChange={onLaunchAtStartupChange}
       />

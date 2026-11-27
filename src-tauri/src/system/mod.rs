@@ -5,6 +5,7 @@ pub(crate) mod folder_dialog;
 pub(crate) mod fullscreen;
 pub(crate) mod theme_file;
 pub(crate) mod startup;
+mod startup_task;
 pub(crate) mod todo_export;
 pub(crate) mod todo_history;
 pub(crate) mod todo_sync;

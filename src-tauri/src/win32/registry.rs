@@ -8,7 +8,7 @@ use windows::{
     core::HSTRING,
     Win32::{
         Foundation::ERROR_FILE_NOT_FOUND,
-        System::Registry::{RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW, HKEY, REG_SZ, RRF_RT_REG_DWORD, RRF_RT_REG_SZ},
+        System::Registry::{RegDeleteKeyValueW, RegGetValueW, RegSetKeyValueW, HKEY, REG_SZ, RRF_RT_REG_BINARY, RRF_RT_REG_DWORD, RRF_RT_REG_SZ},
     },
 };
 
@@ -74,6 +74,33 @@ pub(crate) fn read_dword(root: HKEY, subkey: &str, value: &str) -> Option<u32> {
         return None;
     }
     Some(data)
+}
+
+/// Reads a `REG_BINARY` value of at most 64 bytes under `root\subkey`. Returns `None` when the key
+/// or value does not exist, is not binary, or does not fit in the buffer.
+pub(crate) fn read_binary(root: HKEY, subkey: &str, value: &str) -> Option<Vec<u8>> {
+    let subkey = HSTRING::from(subkey);
+    let value = HSTRING::from(value);
+    let mut data = [0u8; 64];
+    let mut bytes = data.len() as u32;
+    // SAFETY: `subkey` and `value` are NUL-terminated wide strings that outlive the call. `data`
+    // is a writable buffer of exactly `bytes` bytes and `bytes` a valid in/out pointer;
+    // RegGetValueW writes at most that many bytes.
+    let result = unsafe {
+        RegGetValueW(
+            root,
+            &subkey,
+            &value,
+            RRF_RT_REG_BINARY,
+            None,
+            Some(data.as_mut_ptr().cast()),
+            Some(&mut bytes),
+        )
+    };
+    if result.is_err() {
+        return None;
+    }
+    Some(data[..(bytes as usize).min(data.len())].to_vec())
 }
 
 /// Writes `data` as the `REG_SZ` value `value` under `root\subkey`, creating the key if needed.

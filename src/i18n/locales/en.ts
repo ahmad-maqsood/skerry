@@ -11,6 +11,7 @@ import * as clipboard from "../sections/clipboard.ts";
 import * as fileShelf from "../sections/fileShelf.ts";
 import * as systemMonitor from "../sections/systemMonitor.ts";
 import * as privacy from "../sections/privacy.ts";
+import * as pixelCat from "../sections/pixelCat.ts";
 import * as settings from "../sections/settings/index.ts";
 
 const en: Translations = {
@@ -39,6 +40,7 @@ const en: Translations = {
   systemMonitor: systemMonitor.en,
 
   privacy: privacy.en,
+  pixelCat: pixelCat.en,
 
   settings: settings.en,
 };

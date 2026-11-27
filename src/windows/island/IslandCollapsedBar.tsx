@@ -11,6 +11,7 @@ import { MusicWaveButton } from "../../features/media/MusicWaveButton";
 import type { MessagePreview } from "../../features/messages/messagePreview";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { CollapsedClock, CollapsedWeather, useClockWeather, useCurrentWeather } from "../../features/weather";
+import { PixelCat, usePixelCat } from "../../features/pixel-cat";
 import { CollapsedSystemChip } from "../../features/system-monitor/CollapsedSystemChip.tsx";
 import { PrivacyIndicator } from "../../features/privacy";
 import { useTranslation } from "../../i18n";
@@ -106,6 +107,8 @@ export function IslandCollapsedBar({
 }: IslandCollapsedBarProps) {
   const t = useTranslation();
   const clockWeather = useClockWeather();
+  // The pixel cat takes the clock's place: the time is not shown while it walks.
+  const pixelCat = usePixelCat().settings.enabled;
   const weatherOn = clockWeather.settings.showWeather && collapsedLayout.includes("weather");
   const weather = useCurrentWeather(weatherOn, clockWeather.settings.location);
   // A pending update shows a red dot even collapsed, so it is not missed.
@@ -174,7 +177,7 @@ export function IslandCollapsedBar({
         <span className="island__pulse" />
       </button>
     ),
-    clock: clockWeather.settings.showClock && (
+    clock: pixelCat ? <PixelCat active={!isExpanded && !isTucked} /> : clockWeather.settings.showClock && (
       <CollapsedClock
         active={!isExpanded && !isTucked}
         hourFormat={clockWeather.settings.hourFormat}
@@ -267,7 +270,7 @@ export function IslandCollapsedBar({
     <div
       className={`island__collapsed${restoring ? " island__collapsed--restoring" : ""}`}
       // Measured by useCollapsedStatusWidth, which then centres the clock (data-clock-centred).
-      data-clock-wanted={!focused && wantsCentredClock({ musicPlaying: isMusicPlaying, collapsedItem: showCollapsedText ? collapsedItem : null, taskTitle: collapsedTaskTitle }) || undefined}
+      data-clock-wanted={!pixelCat && !focused && wantsCentredClock({ musicPlaying: isMusicPlaying, collapsedItem: showCollapsedText ? collapsedItem : null, taskTitle: collapsedTaskTitle }) || undefined}
       aria-hidden={isExpanded}
       inert={isExpanded}
       onClick={(event) => {

@@ -1,0 +1,98 @@
+/* The cat's lane on the collapsed bar: it walks to one end, turns round and walks back. */
+.pixel-cat {
+  --pixel-cat-nose: #f2a0b6;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 var(--pixel-cat-lane);
+  width: var(--pixel-cat-lane);
+  height: 100%;
+  /* Decoration only: a click on the lane lands on the bar and opens the island. */
+  pointer-events: none;
+}
+
+.pixel-cat__walker {
+  flex: 0 0 auto;
+  width: var(--pixel-cat-width);
+  height: var(--pixel-cat-height);
+  animation: pixelCatWalk 9s linear infinite;
+}
+
+.pixel-cat__turn {
+  width: 100%;
+  height: 100%;
+  animation: pixelCatTurn 9s step-end infinite;
+}
+
+.pixel-cat__sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pixel-cat__px--fur {
+  fill: var(--task-text-color);
+}
+
+.pixel-cat__px--eye {
+  fill: var(--island-background-color, #000);
+}
+
+.pixel-cat__px--nose {
+  fill: var(--pixel-cat-nose);
+}
+
+/* Two leg poses, swapped in steps: the stride and the legs together. */
+.pixel-cat__legs--stride {
+  opacity: 1;
+  animation: pixelCatStride 480ms step-end infinite;
+}
+
+.pixel-cat__legs--together {
+  opacity: 0;
+  animation: pixelCatTogether 480ms step-end infinite;
+}
+
+/* While the island is open or tucked nothing on the bar is seen, so the cat waits. */
+.pixel-cat--paused .pixel-cat__walker,
+.pixel-cat--paused .pixel-cat__turn,
+.pixel-cat--paused .pixel-cat__legs {
+  animation-play-state: paused;
+}
+
+/* To the far end in the first 46% of the loop, a rest, then back by 96%; it turns at each end. */
+@keyframes pixelCatWalk {
+  0% { translate: 0 0; }
+  46%, 50% { translate: calc(var(--pixel-cat-lane) - var(--pixel-cat-width)) 0; }
+  96%, 100% { translate: 0 0; }
+}
+
+@keyframes pixelCatTurn {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes pixelCatStride {
+  0% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes pixelCatTogether {
+  0% { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+/* Reduced motion: the cat sits still in the middle of its lane. */
+@media (prefers-reduced-motion: reduce) {
+  .pixel-cat__walker {
+    animation: none;
+    translate: calc((var(--pixel-cat-lane) - var(--pixel-cat-width)) / 2) 0;
+  }
+
+  .pixel-cat__turn,
+  .pixel-cat__legs--stride,
+  .pixel-cat__legs--together {
+    animation: none;
+  }
+}

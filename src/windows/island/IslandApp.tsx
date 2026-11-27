@@ -72,7 +72,7 @@ export function IslandApp() {
   const { todos, activeTodoId, activeTodoIds, timer, timers, todoPageMode, todoListHeight, notesExpanded, notebookProps } = useIslandTodos({ settings, navigation, quiet: game.quiet });
 
   const songPlaying = settings.musicEnabled && media.mediaState.playbackStatus === "playing" && Boolean(media.mediaState.title);
-  // Off while a song plays when Settings → Appearance → Pixel cat says so.
+  // Never while a song plays: the song gets the bar.
   const pixelCatOn = pixelCatShown(pixelCatSettings, songPlaying);
   const cover = settings.collapsedShowCover && songPlaying ? media.mediaState.thumbnail : null;
   const { collapsedTaskTitle, collapsedTodoCount, collapsedItem, collapsedIslandWidth, todoRotation, collapsedTimer } =

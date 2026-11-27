@@ -108,7 +108,7 @@ export function IslandCollapsedBar({
   const t = useTranslation();
   const clockWeather = useClockWeather();
   // The pixel cat takes the clock's place: the time is not shown while it walks.
-  // Hidden while a song plays when Settings → Appearance → Pixel cat says so (the same test as IslandApp's).
+  // Never shown while a song plays (the same test as IslandApp's).
   const pixelCat = usePixelCatShown(showMusic && mediaState.playbackStatus === "playing" && Boolean(mediaState.title));
   const weatherOn = clockWeather.settings.showWeather && collapsedLayout.includes("weather");
   const weather = useCurrentWeather(weatherOn, clockWeather.settings.location);

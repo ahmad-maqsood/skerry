@@ -23,29 +23,22 @@ import {
 
 test("the pixel cat is off unless it was switched on", () => {
   for (const value of [undefined, null, [], "bad", 1, {}, { enabled: "true" }, { enabled: 1 }]) {
-    assert.deepEqual(normalizePixelCatSettings(value), { enabled: false, whilePlaying: true });
+    assert.deepEqual(normalizePixelCatSettings(value), { enabled: false });
   }
-  assert.deepEqual(normalizePixelCatSettings({ enabled: true }), { enabled: true, whilePlaying: true });
+  assert.deepEqual(normalizePixelCatSettings({ enabled: true }), { enabled: true });
 });
 
-test("the cat stays through a song unless that is switched off, and is hidden only while one plays", () => {
-  // On by default, also for settings saved before the switch existed.
-  assert.equal(normalizePixelCatSettings({ enabled: true }).whilePlaying, true);
-  assert.equal(normalizePixelCatSettings({ enabled: true, whilePlaying: "no" }).whilePlaying, true);
-  assert.equal(normalizePixelCatSettings({ enabled: true, whilePlaying: false }).whilePlaying, false);
-  const on = { enabled: true, whilePlaying: true };
-  const hiddenWhilePlaying = { enabled: true, whilePlaying: false };
+test("the cat is never on the island while a song plays, whatever an older version saved", () => {
+  const on = normalizePixelCatSettings({ enabled: true });
+  assert.deepEqual(on, { enabled: true });
   assert.equal(pixelCatShown(on, false), true);
-  assert.equal(pixelCatShown(on, true), true);
-  assert.equal(pixelCatShown(hiddenWhilePlaying, false), true);
-  assert.equal(pixelCatShown(hiddenWhilePlaying, true), false);
-  assert.equal(pixelCatShown({ enabled: false, whilePlaying: true }, false), false);
-  assert.equal(pixelCatShown({ enabled: false, whilePlaying: true }, true), false);
+  assert.equal(pixelCatShown(on, true), false);
+  assert.equal(pixelCatShown({ enabled: false }, false), false);
 });
 
 test("a fresh install starts with the cat on, and a missing key on an older install stays off", () => {
-  assert.deepEqual(FIRST_LAUNCH_PIXEL_CAT, { enabled: true, whilePlaying: true });
-  assert.deepEqual(normalizePixelCatSettings(undefined), { enabled: false, whilePlaying: true });
+  assert.deepEqual(FIRST_LAUNCH_PIXEL_CAT, { enabled: true });
+  assert.deepEqual(normalizePixelCatSettings(undefined), { enabled: false });
 });
 
 test("the cat's lane widens the island within what the window accepts", () => {

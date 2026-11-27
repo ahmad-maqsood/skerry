@@ -38,13 +38,6 @@ export async function checkClockWeatherSettings(locale: "en", check: (value: unk
   check(saved().showClock === true && savedCat().enabled === false, "Time on turns the pixel cat off");
   await act(async () => toggle(TRANSLATIONS[locale].pixelCat.show).click());
   check(savedCat().enabled === true && saved().showClock === false, "Pixel cat on turns the time off");
-  // The "when a song is playing" row shows with the cat, on by default, and saves on its own.
-  const whilePlayingToggle = toggle(TRANSLATIONS[locale].pixelCat.whilePlaying);
-  check(whilePlayingToggle.checked && savedCat().whilePlaying !== false, "Cat when a song is playing is on by default");
-  await act(async () => whilePlayingToggle.click());
-  check(savedCat().whilePlaying === false && savedCat().enabled === true, "Cat when a song is playing switches off alone");
-  await act(async () => toggle(TRANSLATIONS[locale].pixelCat.whilePlaying).click());
-  check(savedCat().whilePlaying === true, "Cat when a song is playing switches back on");
   await act(async () => toggle(TRANSLATIONS[locale].pixelCat.show).click());
   check(savedCat().enabled === false && saved().showClock === false, "Pixel cat off leaves the time as it was");
 

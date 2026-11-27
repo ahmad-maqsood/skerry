@@ -87,7 +87,6 @@ export const SETTINGS_SEARCH_INDEX: readonly SettingsSearchEntry[] = [
   { page: "appearance", group: "Appearance presets", title: "Preset name" },
   { page: "appearance", group: "Corners", title: "Curve size", conditional: true },
   { page: "appearance", group: "Clock & Weather", title: "Weather location", conditional: true },
-  { page: "appearance", group: "Pixel cat", title: "Show the pixel cat when a song is playing", conditional: true },
   { page: "todos", title: "Enable todos" },
   { page: "todos", group: "Tasks" },
   { page: "todos", group: "Tasks", title: "Carry unfinished tasks to next day" },

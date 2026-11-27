@@ -9,7 +9,7 @@ const listeners = new Set<() => void>();
 const snapshot = () => current ??= loadPixelCatSettings();
 function reread() {
   const next = loadPixelCatSettings();
-  if (current && current.enabled === next.enabled && current.whilePlaying === next.whilePlaying) return;
+  if (current && current.enabled === next.enabled) return;
   current = next;
   listeners.forEach((listener) => listener());
 }

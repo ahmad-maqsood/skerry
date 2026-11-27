@@ -13,8 +13,8 @@ import {
 } from "../../features/appearance/StyleRows";
 import { TopEdgeShoulderRows } from "../../features/appearance/TopEdgeShoulderRows";
 import { TuckLookRows } from "../../features/appearance/TuckLookRows";
-import { ClockWeatherSettingsGroup } from "../../features/weather";
-import { PixelCatSettingsGroup } from "../../features/pixel-cat";
+import { ClockWeatherSettingsGroup, setClockWeatherSettings, useClockWeather } from "../../features/weather";
+import { PixelCatSettingsGroup, setPixelCatSettings, usePixelCat } from "../../features/pixel-cat";
 import type { IslandSettings } from "../../features/appearance/types";
 import { requestPanelPreview } from "./storage";
 import { appearancePreviewMode } from "./appearancePreview";
@@ -42,6 +42,9 @@ export function AppearanceSettingsPage({
     if (mode) requestPanelPreview(mode);
   };
   const rows = { settings, onSettingsChange: updateAppearance };
+  // The cat walks where the time would be, so switching one on switches the other off.
+  const clockWeather = useClockWeather().settings;
+  const pixelCat = usePixelCat().settings;
   return (
     <>
       <IslandPreview settings={{
@@ -71,8 +74,8 @@ export function AppearanceSettingsPage({
         <PageButtonsRow {...rows} />
       </CollapsedLayoutEditor>
       <CollapsedIslandSection {...rows} />
-      <ClockWeatherSettingsGroup />
-      <PixelCatSettingsGroup />
+      <ClockWeatherSettingsGroup onClockShown={() => setPixelCatSettings({ ...pixelCat, enabled: false })} />
+      <PixelCatSettingsGroup onShown={() => setClockWeatherSettings({ ...clockWeather, showClock: false })} />
       <SettingsGroup title={t.settings.expand.tuckTitle}>
         <TuckLookRows {...rows} onPreviewTuck={() => requestPanelPreview("tucked")} />
       </SettingsGroup>

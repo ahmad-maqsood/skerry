@@ -11,7 +11,8 @@ import { setClockWeatherSettings, useClockWeather } from "./useClockWeather";
 import type { ClockHourFormat, WeatherLocation } from "./model";
 import "./ClockWeatherSettingsGroup.css";
 
-export function ClockWeatherSettingsGroup() {
+/** `onClockShown` runs when the time is switched on, so the page can turn the pixel cat off. */
+export function ClockWeatherSettingsGroup({ onClockShown }: { onClockShown?: () => void }) {
   const { settings } = useClockWeather();
   const t = useTranslation().settings.plugins.clockWeather;
   const { locale } = useLocale();
@@ -46,7 +47,10 @@ export function ClockWeatherSettingsGroup() {
       <SettingsToggleRow
         title={t.showClock}
         checked={settings.showClock}
-        onChange={(showClock) => setClockWeatherSettings({ ...settings, showClock })}
+        onChange={(showClock) => {
+          setClockWeatherSettings({ ...settings, showClock });
+          if (showClock) onClockShown?.();
+        }}
       />
       {settings.showClock && (
         <>

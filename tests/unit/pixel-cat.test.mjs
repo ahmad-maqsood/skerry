@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  catBesideText,
   FIRST_LAUNCH_PIXEL_CAT,
   PIXEL_CAT_LANE_WIDTH,
   normalizePixelCatSettings,
@@ -60,6 +61,15 @@ test("the clock's slot stays on the island while the cat is on", () => {
   const hidden = ["clock", "weather"];
   assert.deepEqual(slotsHiddenWithCat(hidden, false), ["clock", "weather"]);
   assert.deepEqual(slotsHiddenWithCat(hidden, true), ["weather"]);
+});
+
+test("the cat's lane moves up beside the text so the status icons gather at the right", () => {
+  const layout = ["pulse", "text", "shelf", "music", "clock", "weather", "system"];
+  assert.deepEqual(catBesideText(layout, "clock", "text"), ["pulse", "text", "clock", "shelf", "music", "weather", "system"]);
+  // Already beside the text, placed before it, or no text on the bar: left as arranged.
+  assert.deepEqual(catBesideText(["pulse", "text", "clock", "system"], "clock", "text"), ["pulse", "text", "clock", "system"]);
+  assert.deepEqual(catBesideText(["clock", "pulse", "text", "shelf"], "clock", "text"), ["clock", "pulse", "text", "shelf"]);
+  assert.deepEqual(catBesideText(["pulse", "shelf", "clock"], "clock", "text"), ["pulse", "shelf", "clock"]);
 });
 
 test("every sprite row is the same width and the grid has the height the component draws", () => {

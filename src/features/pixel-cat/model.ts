@@ -42,3 +42,16 @@ export function pixelCatWidth(width: number, minimum = 0) {
 export function slotsHiddenWithCat<T extends string>(hidden: readonly T[], catOn: boolean): readonly T[] {
   return catOn ? hidden.filter((slot) => slot !== "clock") : hidden;
 }
+
+/**
+ * The cat's lane is a fixed block, so any status icon (files, music) arranged before the clock's
+ * slot would sit in the middle of the bar with the empty lane to its right. With the cat on, its
+ * lane moves up to just after the text, and those icons gather at the right edge instead.
+ * A clock slot the user placed before the text, or a bar with no text, is left as arranged.
+ */
+export function catBesideText<T extends string>(layout: readonly T[], clockSlot: T, textSlot: T): readonly T[] {
+  const text = layout.indexOf(textSlot);
+  const clock = layout.indexOf(clockSlot);
+  if (text < 0 || clock < 0 || clock < text) return layout;
+  return [...layout.slice(0, text + 1), clockSlot, ...layout.slice(text + 1).filter((slot) => slot !== clockSlot)];
+}

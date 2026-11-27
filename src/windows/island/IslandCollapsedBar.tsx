@@ -273,8 +273,10 @@ export function IslandCollapsedBar({
       data-clock-wanted={!pixelCat && !focused && wantsCentredClock({ musicPlaying: isMusicPlaying, collapsedItem: showCollapsedText ? collapsedItem : null, taskTitle: collapsedTaskTitle }) || undefined}
       aria-hidden={isExpanded}
       inert={isExpanded}
+      // Anything that is not a control of its own (the clock, its date, the weather, the pixel
+      // cat, empty space) expands the island; buttons keep their own action.
       onClick={(event) => {
-        if (event.target === event.currentTarget) {
+        if (!(event.target as Element).closest("button")) {
           onExpand();
         }
       }}

@@ -88,7 +88,7 @@ function Fixture() {
         features={{ todo: true, music: true, clipboard: true, shelf: true, qq: true, translation: false, system: false }}
         shelfCount={null}
         onOpenPage={() => {}}
-        onExpand={() => {}}
+        onExpand={() => { expandCalls += 1; }}
         onOpenMessages={() => {}}
         onPageChange={() => {}}
         onWindowDragStart={() => {}}
@@ -105,6 +105,9 @@ function Fixture() {
     </div>
   );
 }
+
+/** How often the bar asked to expand. */
+let expandCalls = 0;
 
 async function notify(app: string, title: string, text: string) {
   await update(async () => {
@@ -135,6 +138,16 @@ const check = (condition: unknown, label: string) => {
 try {
   await render();
   check(document.querySelector(".island__collapsed") !== null, "Collapsed bar mounted");
+  // The middle of the bar can hold the clock, the weather or the pixel cat, none of them buttons.
+  const middle = document.createElement("span");
+  document.querySelector(".island__collapsed")!.append(middle);
+  await update(() => middle.click());
+  check(expandCalls === 1, "A click on non-button content in the bar expands the island");
+  middle.remove();
+  await update(() => document.querySelector<HTMLElement>(".island__open-button")!.click());
+  check(Number(expandCalls) === 2, "The text button expands once, not again through the bar");
+  await update(() => document.querySelector<HTMLElement>(".island-collapsed-minimize")!.click());
+  check(Number(expandCalls) === 2, "Minimize does not expand");
   await notify("WhatsApp", "Alice", "See you at 3pm");
   const preview = document.querySelector(".island-message-preview");
   check(preview !== null, "Notification preview displays on collapsed island");

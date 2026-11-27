@@ -14,6 +14,8 @@ import {
   STRIDE_RUNS,
   TOGETHER_RUNS,
   spriteRuns,
+  POSE_ROWS,
+  BLINK_PIXEL,
 } from "../../src/features/pixel-cat/sprite.ts";
 
 test("the pixel cat is off unless it was switched on", () => {
@@ -63,4 +65,14 @@ test("the cat has one eye and one nose, and the two leg poses sit below the body
   assert.equal(BODY_RUNS.filter((run) => run.kind === "nose").length, 1);
   const bodyRows = Math.max(...BODY_RUNS.map((run) => run.y));
   for (const run of [...STRIDE_RUNS, ...TOGETHER_RUNS]) assert.ok(run.y > bodyRows);
+});
+
+test("every extra pose fits the same grid, and the blink lands on the sitting eye", () => {
+  for (const [name, rows] of Object.entries(POSE_ROWS)) {
+    assert.equal(rows.length, SPRITE_HEIGHT, name);
+    for (const row of rows) assert.equal(row.length, SPRITE_WIDTH, name);
+  }
+  for (const rows of [SPRITE_ROWS, POSE_ROWS.sitTailDown, POSE_ROWS.sitTailUp]) {
+    assert.equal(rows[BLINK_PIXEL.y][BLINK_PIXEL.x], "e");
+  }
 });

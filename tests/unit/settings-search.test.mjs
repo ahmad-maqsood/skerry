@@ -12,7 +12,7 @@ const pages = [
 const index = [
   { page: "appearance", group: "Pixel cat" },
   { page: "appearance", group: "Pixel cat", title: "Show a pixel cat on the island" },
-  { page: "appearance", group: "Pixel cat", title: "Show the pixel cat when a song is playing", conditional: true },
+  { page: "appearance", group: "Pixel cat", title: "Show the pixel cat on narrow screens", conditional: true },
   { page: "general", group: "Island tabs", title: "Music" },
   { page: "music", title: "Enable music controls" },
 ];
@@ -24,14 +24,14 @@ test("an empty or blank search finds nothing", () => {
 });
 
 test("every word typed must be in the name, in any order and case", () => {
-  assert.deepEqual(labels("CAT pixel"), ["Pixel cat", "Show a pixel cat on the island", "Show the pixel cat when a song is playing"]);
-  assert.deepEqual(labels("song cat"), ["Show the pixel cat when a song is playing"]);
+  assert.deepEqual(labels("CAT pixel"), ["Pixel cat", "Show a pixel cat on the island", "Show the pixel cat on narrow screens"]);
+  assert.deepEqual(labels("narrow cat"), ["Show the pixel cat on narrow screens"]);
   assert.deepEqual(labels("nothing like this"), []);
 });
 
 test("names starting with the first word come first, then those that hold all the words", () => {
-  assert.deepEqual(labels("show"), ["Show a pixel cat on the island", "Show the pixel cat when a song is playing"]);
-  assert.deepEqual(labels("pixel").slice(0, 3), ["Pixel cat", "Show a pixel cat on the island", "Show the pixel cat when a song is playing"]);
+  assert.deepEqual(labels("show"), ["Show a pixel cat on the island", "Show the pixel cat on narrow screens"]);
+  assert.deepEqual(labels("pixel").slice(0, 3), ["Pixel cat", "Show a pixel cat on the island", "Show the pixel cat on narrow screens"]);
 });
 
 test("a page's name finds the page before the settings that share the word", () => {

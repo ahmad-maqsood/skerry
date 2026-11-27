@@ -64,6 +64,7 @@ localStorage.setItem("skerry-settings", JSON.stringify({
   // Capsules are what this tour's geometry checks look at; the default (icons) is covered below.
   pageButtonStyle: "capsule",
   lyricsOnline: query.get("lyrics") !== "0",
+  lyricsOnMusicPage: query.get("lyrics") !== "0",
   collapsedShowCover: query.get("cover") === "1",
   ...(query.get("priority") ? { collapsedPriority: query.get("priority")!.split(",") } : {}),
   ...(query.get("layout") ? { collapsedLayout: query.get("layout")!.split(",") } : {}),

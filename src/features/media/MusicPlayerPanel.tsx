@@ -17,7 +17,7 @@ import { hasTimeline } from "./trackClock";
 import { useMediaDiagnostics } from "./useMediaDiagnostics";
 import { MediaNotice, MediaNoticeButton, useMediaNotice } from "./MediaNotice";
 
-const NO_LYRICS = { lyricsFolder: "", lyricsOnline: false, lyricsOffsetMs: 0 };
+const NO_LYRICS = { lyricsFolder: "", lyricsOnline: false, lyricsOnMusicPage: false, lyricsOffsetMs: 0 };
 
 type MusicPlayerPanelProps = {
   mediaState: MediaState;
@@ -36,10 +36,10 @@ type MusicPlayerPanelProps = {
 };
 
 /**
- * The music page, drawn straight on the island rather than in a card of its own. The song's cover, title and artist sit at the top; under them the lyrics, when there are
- * any, then a progress bar with elapsed and remaining time and the transport. Without lyrics the
- * cover grows and takes their room. The cover's colours light the page softly from behind, and
- * its accent tints the progress wave, the player chip, the play button and the equalizer. Nothing playing shows its own quiet page (MusicIdle),
+ * The music page, drawn straight on the island rather than in a card of its own. The song's cover, title and artist sit at the top; under them the lyrics, only when
+ * Settings > Music > "Show lyrics on the music page" is on and some were found, then a progress bar with elapsed and remaining time and the transport.
+ * Without lyrics (the default) the cover grows and takes their room. The playing song colours the page: its cover is blurred into a slowly drifting
+ * glow behind everything, and its accent tints the progress wave, the player chip, the play button and the equalizer. Nothing playing shows its own quiet page (MusicIdle),
  * not an empty player.
  */
 export function MusicPlayerPanel({
@@ -63,7 +63,9 @@ export function MusicPlayerPanel({
   const onLyricPosition = !hasTimeline(mediaState) ? onCalibrate : mediaState.canSeek ? onSeek : undefined;
   const isPlaying = mediaState.playbackStatus === "playing";
   const hasTrack = Boolean(mediaState.title);
-  const { lines: lyrics, durationMs: lyricsDurationMs } = useLyrics(mediaState, lyricsSettings);
+  // Looked up either way: a player that reports no length borrows the lyrics source's. Shown only when switched on.
+  const { lines: foundLyrics, durationMs: lyricsDurationMs } = useLyrics(mediaState, lyricsSettings);
+  const lyrics = lyricsSettings.lyricsOnMusicPage === true ? foundLyrics : null;
   const [songOffsetMs, setSongOffsetMs] = useSongOffset(lyrics ? songOffsetKey(mediaState) : null);
   const tint = useArtworkTint(mediaState.thumbnail);
   const source = mediaState.sessions.find((session) => session.id === mediaState.activeSessionId)?.label ?? mediaState.sourceApp;
@@ -81,6 +83,11 @@ export function MusicPlayerPanel({
 
   return (
     <section className={className} style={style} aria-label={t.music.playerLabel}>
+      {hasTrack && mediaState.thumbnail && (
+        <div className="music-player__ambient" aria-hidden="true">
+          <img src={mediaState.thumbnail} alt="" draggable={false} />
+        </div>
+      )}
       {hasTrack ? (
         <header className="music-player__head">
           <div className="music-player__cover" aria-hidden="true">

@@ -18,6 +18,12 @@ export function LyricsSettingsSection({
   return (
     <SettingsGroup title={text.title} footer={text.hint}>
       <SettingsToggleRow
+        title={text.onMusicPage}
+        description={text.onMusicPageHint}
+        checked={settings.lyricsOnMusicPage}
+        onChange={(lyricsOnMusicPage) => onSettingsChange({ ...settings, lyricsOnMusicPage })}
+      />
+      <SettingsToggleRow
         title={text.online}
         description={text.onlineHint}
         checked={settings.lyricsOnline}

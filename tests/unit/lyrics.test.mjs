@@ -42,6 +42,11 @@ test("lyrics are looked up online unless turned off; the folder and global offse
   const settings = normalizeSettings({});
   assert.equal(settings.lyricsOnline, true);
   assert.equal(normalizeSettings({ lyricsOnline: false }).lyricsOnline, false);
+  // The music page shows no lyrics until switched on, and saved data without the key stays off.
+  assert.equal(settings.lyricsOnMusicPage, false);
+  assert.equal(normalizeSettings({}).lyricsOnMusicPage, false);
+  assert.equal(normalizeSettings({ lyricsOnMusicPage: true }).lyricsOnMusicPage, true);
+  assert.equal(normalizeSettings({ lyricsOnMusicPage: "yes" }).lyricsOnMusicPage, false);
   assert.equal(settings.lyricsFolder, "");
   assert.equal(normalizeSettings({ lyricsOffsetMs: -1200 }).lyricsOffsetMs, 0);
   assert.equal(normalizeSettings({ lyricsFolder: " D:\\Lyrics " }).lyricsFolder, "");

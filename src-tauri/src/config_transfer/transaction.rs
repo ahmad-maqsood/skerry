@@ -60,11 +60,12 @@ pub(super) fn apply(root: &Path, plan: &FilePlan, startup: bool) -> Result<(), S
         };
         files.insert(path.clone(), original);
     }
-    let journal = Journal { files, launch_at_startup: crate::system::startup::get_launch_at_startup()? };
+    let journal = Journal { files, launch_at_startup: crate::system::startup::is_enabled()? };
     write(&root.join(JOURNAL), Some(&serde_json::to_vec(&journal).map_err(|e| e.to_string())?))?;
     let result = (|| {
         for (path, bytes) in plan { write(path, bytes.as_deref())?; }
-        crate::system::startup::set_launch_at_startup(startup)
+        // A refusal (Windows keeps its own setting) must not fail the whole import.
+        crate::system::startup::apply(startup).map(|_| ())
     })();
     if let Err(error) = result {
         rollback(root)?;
@@ -81,7 +82,7 @@ pub(super) fn rollback(root: &Path) -> Result<(), String> {
         let bytes = bytes.map(|b| STANDARD.decode(b)).transpose().map_err(|e| e.to_string())?;
         write(&path, bytes.as_deref())?;
     }
-    crate::system::startup::set_launch_at_startup(journal.launch_at_startup)?;
+    crate::system::startup::apply(journal.launch_at_startup)?;
     commit(root)
 }
 

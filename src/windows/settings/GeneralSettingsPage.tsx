@@ -34,13 +34,14 @@ export function GeneralSettingsPage({
   onDetachedSettingsChange: (detached: boolean) => void;
 }) {
   const t = useTranslation();
-  const [launchAtStartup, updateLaunchAtStartup] = useLaunchAtStartup();
+  const [launchAtStartup, updateLaunchAtStartup, launchAtStartupError] = useLaunchAtStartup();
   const rows = { settings, onSettingsChange };
 
   return (
     <>
       <BehaviorSettingsSection
         launchAtStartup={launchAtStartup}
+        launchAtStartupError={launchAtStartupError}
         locale={locale}
         detachedSettings={detachedSettings}
         onDetachedSettingsChange={onDetachedSettingsChange}

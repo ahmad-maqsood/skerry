@@ -192,6 +192,8 @@ export type IslandSettings = {
   lyricsFolder: string;
   /** Lyrics not in the folder are looked up on LRCLIB. */
   lyricsOnline: boolean;
+  /** The music page shows the synced lyrics (off by default: the page shows the cover and song). */
+  lyricsOnMusicPage: boolean;
   /** Fill word-timed lyrics as they are sung, in both island states. */
   lyricWordFill: boolean;
   /** Lyrics shown this many ms later (positive) or earlier than the position Windows reports. */

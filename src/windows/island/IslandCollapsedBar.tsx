@@ -11,7 +11,7 @@ import { MusicWaveButton } from "../../features/media/MusicWaveButton";
 import type { MessagePreview } from "../../features/messages/messagePreview";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { CollapsedClock, CollapsedWeather, useClockWeather, useCurrentWeather } from "../../features/weather";
-import { PixelCat, usePixelCatShown } from "../../features/pixel-cat";
+import { catBesideText, PixelCat, usePixelCatShown } from "../../features/pixel-cat";
 import { CollapsedSystemChip } from "../../features/system-monitor/CollapsedSystemChip.tsx";
 import { PrivacyIndicator } from "../../features/privacy";
 import { useTranslation } from "../../i18n";
@@ -108,7 +108,7 @@ export function IslandCollapsedBar({
   const t = useTranslation();
   const clockWeather = useClockWeather();
   // The pixel cat takes the clock's place: the time is not shown while it walks.
-  // Hidden while a song plays when Settings → Appearance → Pixel cat says so (the same test as IslandApp's).
+  // Never shown while a song plays (the same test as IslandApp's).
   const pixelCat = usePixelCatShown(showMusic && mediaState.playbackStatus === "playing" && Boolean(mediaState.title));
   const weatherOn = clockWeather.settings.showWeather && collapsedLayout.includes("weather");
   const weather = useCurrentWeather(weatherOn, clockWeather.settings.location);
@@ -282,7 +282,9 @@ export function IslandCollapsedBar({
         }
       }}
     >
-      {focusedCollapsedSlots(collapsedLayout, focused).map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
+      {/* With the cat on, its fixed lane follows the text so the status icons gather at the right edge, not the middle. */}
+      {(pixelCat ? catBesideText(focusedCollapsedSlots(collapsedLayout, focused), "clock", "text") : focusedCollapsedSlots(collapsedLayout, focused))
+        .map((slot) => <Fragment key={slot}>{slots[slot]}</Fragment>)}
       {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot, and it stays during an alert. */}
       <PrivacyIndicator active={!isExpanded && !isTucked} />
       {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}

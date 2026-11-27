@@ -21,6 +21,7 @@ import { gitRunner, pushScreenshots, resolveBranch } from "./push-screenshots.mj
 import { withRegressionBrowser } from "./run-regression.mjs";
 
 export const SHOTS = [
+  { file: "screenshot-pixel-cat.png", scene: "cat" },
   { file: "screenshot-collapsed-clock.png", scene: "clock" },
   { file: "screenshot-collapsed-notification.png", scene: "notification" },
   { file: "screenshot-messages.png", scene: "messages" },

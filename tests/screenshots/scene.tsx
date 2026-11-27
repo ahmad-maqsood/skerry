@@ -4,7 +4,7 @@
 // then tells scripts/capture-screenshots.mjs where to crop (<html data-scene-ready, data-capture>;
 // <html data-scene-error> when the scene failed).
 //
-//   scene = clock | notification | messages | music | todos | shelf | system | translation | clipboard | settings
+//   scene = cat | clock | notification | messages | music | todos | shelf | system | translation | clipboard | settings
 //   ?material=graphite|liquidGlass|frostedGlass|aurora|prism  ?theme=dark|light  ?wallpaper=1  ?page=<settings page>
 //
 // Open it under `pnpm dev` to look at a scene by eye; `pnpm screenshots` (run by hand) captures
@@ -68,6 +68,7 @@ localStorage.setItem("skerry-settings", JSON.stringify({
   ...(query.get("material") && query.get("material") !== "graphite" ? { material: query.get("material") } : {}),
   ...(query.get("theme") ? { colorScheme: query.get("theme") } : {}),
 }));
+if (scene === "cat") localStorage.setItem("skerry-pixel-cat", JSON.stringify({ enabled: true }));
 const todosScene = scene === "todos";
 localStorage.setItem("skerry-todos", JSON.stringify(todosScene ? DEMO_TODOS(now) : []));
 if (todosScene) {
@@ -94,6 +95,9 @@ const ready = (capture: { x: number; y: number; width: number; height: number })
   document.documentElement.dataset.capture = JSON.stringify(capture);
   document.documentElement.dataset.sceneReady = "true";
 };
+
+/** The moment of the cat's loop its picture shows. */
+const CAT_POSE_MS = 2100;
 
 async function islandScene() {
   let revision = 1;
@@ -137,6 +141,17 @@ async function islandScene() {
   const island = () => element(".island");
   const framed = () => rectOf(island(), { x: 28, bottom: 28 });
   if (scene === "clock") return ready(framed());
+  if (scene === "cat") {
+    // The cat never stops moving: hold every one of its animations at the same moment, a quarter of
+    // the way along the lane and facing right, so each run takes the same picture.
+    const animations = element(".pixel-cat").getAnimations({ subtree: true });
+    for (const animation of animations) {
+      animation.pause();
+      animation.currentTime = CAT_POSE_MS;
+    }
+    await sleep(100);
+    return ready(framed());
+  }
   if (scene === "notification") {
     const toast = incomingToast(Date.now());
     await emit(SYSTEM_NOTIFICATIONS_CHANGED_EVENT, { snapshot: notificationSnapshot([toast], ++revision), newestId: toast.id, windowVisible: true });

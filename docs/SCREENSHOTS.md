@@ -45,6 +45,7 @@ The images always come back as the `skerry-screenshots` artifact on the run page
 
 | Image | Scene | Contents |
 |---|---|---|
+| `screenshot-pixel-cat.png` | `cat` | Collapsed island with the pixel cat in place of the time |
 | `screenshot-collapsed-clock.png` | `clock` | Collapsed island and idle clock |
 | `screenshot-collapsed-notification.png` | `notification` | Incoming toast preview |
 | `screenshot-messages.png` | `messages` | Expanded notification feed |

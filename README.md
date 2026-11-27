@@ -72,6 +72,15 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 
 <!-- Note: Screenshot assets are captured by hand with `pnpm screenshots` (see docs/SCREENSHOTS.md) and stored in docs/assets/screenshots/ -->
 
+### Pixel Cat
+
+<!-- screenshot-pixel-cat.png placeholder: Shows the collapsed island with the pixel cat walking where the time would be -->
+<p align="center">
+  <img src="docs/assets/screenshots/screenshot-pixel-cat.png" alt="Collapsed island with a pixel cat walking in place of the time" width="680">
+  <br>
+  <b>Pixel Cat</b>: Switch it on in Settings and a small cat walks the collapsed island in place of the time.
+</p>
+
 ### Collapsed Island and Clock
 
 <!-- screenshot-collapsed-clock.png placeholder: Shows the collapsed island displaying idle tabular clock -->

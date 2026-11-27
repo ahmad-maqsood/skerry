@@ -88,7 +88,7 @@ try {
     await act(async () => newest.resolve([])); await wait();
     await act(async () => requests[0].reject("old request failed")); await wait();
     check(!document.body.textContent?.includes(t.unavailable), "Stale requests cannot overwrite newer index results");
-    check(document.body.textContent?.includes(t.noneAvailable), "An empty list says there is nothing else to install");
+    check(document.body.textContent?.includes(t.noneAvailable), "An empty list says nothing is published");
     await act(async () => document.querySelector<HTMLButtonElement>(`button[aria-label='${t.develop}']`)!.click());
     check(opened === "https://github.com/ahmad-maqsood/skerry-island/blob/main/docs/plugins/README.md", "Development guide uses existing external link opener");
     check(input.getBoundingClientRect().right <= document.getElementById("fixture")!.getBoundingClientRect().right + 1, "Path input box does not overflow in narrow layouts");
@@ -133,6 +133,15 @@ try {
     await act(async () => popupSwitch().click());
     check(popupSwitch().checked && savedOff() === "[]", "Switching it back on takes the plugin off the list");
     localStorage.removeItem(PLUGIN_POPUPS_OFF_KEY);
+    await act(async () => [...document.querySelectorAll<HTMLButtonElement>(".settings-choice__option")].find((item) => item.textContent?.startsWith(t.available))!.click());
+    const only = { en: "GitHub", "zh-CN": "GitHub" };
+    await act(async () => requests[requests.length - 1].resolve([
+      { id: "github", version: "0.1.0", name: only, description: name, apiVersion: 1, url: "x", sha256: "x", size: 1, minAppVersion: "1.0.0" },
+    ])); await wait();
+    check(document.body.textContent?.includes(t.allInstalled) && document.body.textContent.includes(t.allInstalledHint("GitHub"))
+      && !document.body.textContent.includes(t.noneAvailable), "With every published plugin installed, the list says so and names them");
+    await act(async () => button(t.viewInstalled).click());
+    check(document.querySelector(".plugins-settings__plugin"), "View installed opens the Installed section");
     await act(async () => installed.unmount());
   }
   document.getElementById("results")!.textContent = [...messages, "ALL PASS"].join("\n");

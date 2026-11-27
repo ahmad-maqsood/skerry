@@ -7,7 +7,7 @@ export type SettingsPluginsText = {
   developer: string; developerMode: string; develop: string; unavailable: string; index: string; directory: string; load: string; secret: string; loading: string;
   status: Record<string, string>; permission: Record<string, string>;
   plan: string; comingSoon: string; invitation: string; guide: string;
-  guideHint: string; readGuide: string; openGuideFailed: string; pluginGuide: string; sections: string; noneAvailable: string; permissionsNotice: string; trustNotice: string; version: string; popup: string; popupHint: string;
+  guideHint: string; readGuide: string; openGuideFailed: string; pluginGuide: string; sections: string; noneAvailable: string; allInstalled: string; allInstalledHint: (names: string) => string; viewInstalled: string; permissionsNotice: string; trustNotice: string; version: string; popup: string; popupHint: string;
 };
 
 
@@ -20,7 +20,8 @@ export const en: SettingsPluginsText = {
   empty: "No plugins yet", installed: "Installed", available: "Available", install: "Install", update: "Update",
   uninstall: "Uninstall", version: "Version", popup: "Pop up on new notifications",
   popupHint: "Show a short notice on the island when this plugin reports something new. Everything is still listed under Notifications.",
-  pluginGuide: "Guide", sections: "Plugin lists", noneAvailable: "No other plugins available",
+  pluginGuide: "Guide", sections: "Plugin lists", noneAvailable: "No plugins are published yet",
+  allInstalled: "All available plugins are installed", allInstalledHint: (names) => `Already installed: ${names}`, viewInstalled: "View installed",
   permissionsNotice: "Listed by the plugin. Skerry does not enforce limits on file or network access.",
   trustNotice: "Plugins run as programs with your Windows account’s access. Install only plugins you trust.",
   enabled: "Enable", permissions: "Permissions", retry: "Refresh", save: "Save",

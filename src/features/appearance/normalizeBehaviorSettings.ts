@@ -55,6 +55,10 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     alwaysShowIsland: settings?.alwaysShowIsland === true,
     // On unless switched off.
     alwaysShowOnDesktop: settings?.alwaysShowOnDesktop !== false,
+    // Saved before this was a setting: "Always display island" removed the button, so it stays
+    // removed for those who had it on; everyone else keeps the button.
+    showMinimizeButton: typeof settings?.showMinimizeButton === "boolean"
+      ? settings.showMinimizeButton : settings?.alwaysShowIsland !== true,
     autoTuck,
     tuckStyle: oneOf(["edge", "line", "hidden"] as const, settings?.tuckStyle, DEFAULT_SETTINGS.tuckStyle),
     tuckEdgeHeight: wholeSeconds(settings?.tuckEdgeHeight, TUCK_EDGE_HEIGHT, TUCK_EDGE_HEIGHT.default),

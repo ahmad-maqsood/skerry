@@ -72,7 +72,7 @@ type IslandCollapsedBarProps = {
   onWindowDragStart: () => void;
   /** False when the minimize button tucks the island to the top edge instead of the tray. */
   minimizesToTray: boolean;
-  /** Null hides the minimize button ("always display island"). */
+  /** Null hides the minimize button (Settings → General → "Show minimize button"). */
   onMinimize: (() => void) | null;
 };
 

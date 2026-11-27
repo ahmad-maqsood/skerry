@@ -1,3 +1,5 @@
+import type { IslandMode } from "./types";
+
 /**
  * When the island comes out of, or goes back to, the top edge by itself. Pure, so the
  * rules can be tested apart from the hooks that apply them (useIslandTucking).
@@ -59,4 +61,31 @@ export function messagePeekSettles(state: TuckState & { messagePeek: boolean; is
   if (state.isTucked) return false;
   if (state.hasMessagePreview) return false;
   return !retractsPeek(state);
+}
+
+/**
+ * What the island does when the desktop clears or a window opens, with "Always display island on the
+ * desktop" on. Pure, so the rules are tested apart from the hook that applies them
+ * (useDesktopIsland). `previous` is the last answer, or null before the first one.
+ *
+ * - The desktop is clear: the island comes out of any tuck, a minimized one included, and sits in
+ *   its collapsed form (`reveal`). It does not undo a tuck made by game mode.
+ * - A window opens while the desktop was clear: a collapsed island tucks (`tuck`). An open panel
+ *   is left alone: it collapses on its own, and the ordinary idle tuck follows over the window.
+ * - Over windows from the start (no earlier answer) nothing moves, so switching the setting on or
+ *   starting the app does not slam a shown island shut; the idle tuck still applies.
+ *
+ * Only a change moves the island, so a minimize on the clear desktop stays minimized.
+ */
+export type DesktopAction = "reveal" | "tuck" | null;
+
+export function desktopAction(
+  previous: boolean | null,
+  desktopClear: boolean | null,
+  state: { mode: IslandMode; isTucked: boolean; gameHolds: boolean },
+): DesktopAction {
+  if (desktopClear === null || previous === desktopClear || state.gameHolds) return null;
+  if (desktopClear) return state.isTucked ? "reveal" : null;
+  if (previous === null) return null;
+  return state.mode === "collapsed" && !state.isTucked ? "tuck" : null;
 }

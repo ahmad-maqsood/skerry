@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import type { IslandSettings } from "../../features/appearance/types";
-import { getForegroundFullscreen, listenForegroundFullscreen, listenIslandHover } from "./api";
+import { listenIslandHover } from "./api";
 import { idlePlan } from "./idleCollapse";
 import { keepIslandVisible, keepVisibleChangesAt } from "./keepVisible";
 import { MESSAGE_PEEK_RETRACT_MS, messagePeekSettles, retractsPeek, revealsForKeepVisible } from "./tuckRules";
 import { useIdleTuck, useRevealOnMessage } from "./useIslandAutomation";
 import { isEditingText } from "./useHoverExpand";
 import type { useIslandNavigation } from "./useIslandNavigation";
+import { useDesktopIsland } from "./useDesktopIsland";
 import { useTuckPeek } from "./useTuckPeek";
 import { isIslandPickerOpen, useIslandPickerOpen } from "../../lib/islandPicker";
 
@@ -29,8 +30,13 @@ export function useIslandTucking({ settings, navigation, hasMessagePreview, acti
   const isHovering = useIslandHovering();
   const pickerOpen = useIslandPickerOpen();
   const keepForActivity = useKeepVisible(settings, activity);
-  // Only worth watching while the island could idle-tuck at all.
-  const onDesktop = useDesktopInFront(settings.alwaysShowOnDesktop && settings.autoTuck && !settings.alwaysShowIsland);
+  // A window opening tucks the island the way idling does: a peek slides it back, if that is on.
+  const tuckWhenIdle = useCallback(
+    () => idleTuck(settings.autoTuckRetract ? settings.autoTuckRetractDelayMs : null),
+    [idleTuck, settings.autoTuckRetract, settings.autoTuckRetractDelayMs],
+  );
+  // While no window is open the island stays out in its collapsed form; see useDesktopIsland.
+  const onDesktop = useDesktopIsland({ settings, mode, isTucked, gameHolds, tuckForWindow: tuckWhenIdle, revealIsland });
   const keepVisible = keepForActivity || onDesktop;
   const tuckState = {
     isTucked, isPeeking, tuckedAutomatically, keepVisible, hasMessagePreview, isPreviewing: navigation.isPreviewing, gameHolds,
@@ -44,10 +50,6 @@ export function useIslandTucking({ settings, navigation, hasMessagePreview, acti
     if (revealForActivity) revealIsland();
   }, [revealForActivity, revealIsland]);
   // A showing preview holds the idle timer, which then restarts in full once it ends.
-  const tuckWhenIdle = useCallback(
-    () => idleTuck(settings.autoTuckRetract ? settings.autoTuckRetractDelayMs : null),
-    [idleTuck, settings.autoTuckRetract, settings.autoTuckRetractDelayMs],
-  );
   // Closing under a draft would lose it; the next keystroke or move starts the wait again.
   const collapseWhenIdle = useCallback(() => {
     if (!isEditingText() && !isIslandPickerOpen()) collapseIsland();
@@ -63,33 +65,6 @@ export function useIslandTucking({ settings, navigation, hasMessagePreview, acti
   useRevealOnMessage(hasMessagePreview, isTucked, revealForMessage);
   // A preview holds the peek; the island slides back once it has gone and the cursor is away.
   useTuckPeek(retractsPeek(tuckState), endPeek, messagePeek ? MESSAGE_PEEK_RETRACT_MS : peekRetractDelayMs ?? undefined);
-}
-
-/** Whether the Windows desktop is in front, from the native foreground check; false while not watching. */
-function useDesktopInFront(watching: boolean) {
-  const [onDesktop, setOnDesktop] = useState(false);
-  useEffect(() => {
-    if (!watching) return;
-    let didCancel = false;
-    let unlisten: (() => void) | null = null;
-    // An event is newer than the first read, which may resolve after it.
-    let heard = false;
-    const failed = (error: unknown) => console.error("Failed to watch for the desktop", error);
-    void listenForegroundFullscreen((state) => { heard = true; setOnDesktop(state.onDesktop); })
-      .then((next) => {
-        if (didCancel) next();
-        else unlisten = next;
-      })
-      .catch(failed);
-    void getForegroundFullscreen()
-      .then((state) => { if (!didCancel && !heard) setOnDesktop(state?.onDesktop === true); })
-      .catch(failed);
-    return () => {
-      didCancel = true;
-      unlisten?.();
-    };
-  }, [watching]);
-  return watching && onDesktop;
 }
 
 /**

@@ -111,12 +111,18 @@ export type IslandSettings = {
   todoTimerReminder: boolean;
   todoTimerReminderSound: boolean;
   /**
-   * Never hides: no idle tuck and no minimize button, so the island stays on screen. Game mode
-   * and the tray menu still follow their own settings.
+   * Never hides by itself: no idle tuck, so the island stays on screen. Game mode, the tray
+   * menu and the minimize button still follow their own settings.
    */
   alwaysShowIsland: boolean;
-  /** While the Windows desktop is in front, the collapsed island does not idle-tuck (and one that did comes back). */
+  /**
+   * While no app window is open (the desktop is clear) the island sits out in its collapsed form,
+   * and one that was tucked comes out; as soon as any window opens, even a small one, it tucks.
+   * Part of "Tuck to the edge": it does nothing with that off, or with `alwaysShowIsland` on.
+   */
   alwaysShowOnDesktop: boolean;
+  /** The minimize button on the collapsed bar, the expanded header and the message reader. */
+  showMinimizeButton: boolean;
   autoTuck: boolean;
   tuckStyle: TuckStyle;
   /** Px of the island left on screen by the "edge" tuck (TUCK_EDGE_HEIGHT). */

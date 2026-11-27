@@ -6,6 +6,8 @@ export type SettingsLayoutText = {
   alwaysShowIslandHint: string;
   alwaysShowOnDesktop: string;
   alwaysShowOnDesktopHint: string;
+  showMinimizeButton: string;
+  showMinimizeButtonHint: string;
   autoTuck: string;
   autoTuckHint: string;
   /** Game mode: quiet while a full-screen app (usually a game) is in front. */
@@ -21,9 +23,11 @@ export const en: SettingsLayoutText = {
   opacity: "Opacity",
   launchAtStartup: "Launch at startup",
   alwaysShowIsland: "Always display island",
-  alwaysShowIslandHint: "The island never tucks to the edge when idle, and the minimize button is removed. Game mode and the tray menu still work as set.",
+  alwaysShowIslandHint: "The island never tucks to the edge when idle. Game mode, the tray menu and the minimize button still work as set.",
   alwaysShowOnDesktop: "Always display island on the desktop",
-  alwaysShowOnDesktopHint: "While the desktop is in front, the island stays out. Over apps, your tuck settings apply.",
+  alwaysShowOnDesktopHint: "While no window is open, the island sits out in its collapsed form, even if it was tucked. As soon as any window opens, even a small one, it tucks to the edge.",
+  showMinimizeButton: "Show minimize button",
+  showMinimizeButtonHint: "A button on the island, collapsed or open, that tucks it away. It works with the clock or the pixel cat, and while the island is always displayed.",
   autoTuck: "Tuck to the edge when idle",
   autoTuckHint: "After a while without use, the collapsed island slides up to the top of the screen and shows only an edge.",
   gameTitle: "Game mode",

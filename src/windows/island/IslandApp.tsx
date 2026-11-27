@@ -240,7 +240,7 @@ export function IslandApp() {
         onCollapse={collapseIsland}
         onResetPosition={resetIslandPosition}
         minimizesToTray={settings.minimizeAction === "tray"}
-        onMinimize={settings.alwaysShowIsland ? null : minimizeAndDismiss}
+        onMinimize={settings.showMinimizeButton ? minimizeAndDismiss : null}
         onOpenTranslator={settings.translationEnabled ? openTranslator : null}
         onOpenSettings={openSettings}
         onReveal={hoverTucked}

@@ -15,6 +15,7 @@ pub(crate) mod known_folder;
 pub(crate) mod message_window;
 pub(crate) mod notification_state;
 pub(crate) mod ole;
+pub(crate) mod open_windows;
 pub(crate) mod power;
 pub(crate) mod process;
 pub(crate) mod process_job;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DEFAULT_SETTINGS } from "../../src/features/appearance/settings.ts";
 import { keepIslandVisible, keepVisibleChangesAt } from "../../src/windows/island/keepVisible.ts";
-import { MESSAGE_PEEK_RETRACT_MS, messagePeekSettles, retractsPeek, revealsForKeepVisible } from "../../src/windows/island/tuckRules.ts";
+import { MESSAGE_PEEK_RETRACT_MS, desktopAction, messagePeekSettles, retractsPeek, revealsForKeepVisible } from "../../src/windows/island/tuckRules.ts";
 
 const base = { isTucked: true, isPeeking: false, tuckedAutomatically: true, keepVisible: true,
   hasMessagePreview: false, isPreviewing: false, gameHolds: false };
@@ -57,4 +57,33 @@ test("the ordinary content returns when the cursor takes the island, or when not
 
 test("a pop-up's peek retracts within the pop-up's own exit", () => {
   assert.ok(MESSAGE_PEEK_RETRACT_MS >= 200 && MESSAGE_PEEK_RETRACT_MS <= 400);
+});
+
+const desk = { mode: "collapsed", isTucked: false, gameHolds: false };
+
+test("the desktop clearing brings out a tucked island, however it was tucked", () => {
+  assert.equal(desktopAction(false, true, { ...desk, isTucked: true }), "reveal");
+  assert.equal(desktopAction(null, true, { ...desk, isTucked: true }), "reveal", "tucked already when the first answer comes");
+  assert.equal(desktopAction(false, true, desk), null, "already out");
+});
+
+test("a window opening tucks the collapsed island, however small the window is", () => {
+  assert.equal(desktopAction(true, false, desk), "tuck");
+});
+
+test("an open panel is left alone when a window opens", () => {
+  assert.equal(desktopAction(true, false, { ...desk, mode: "expanded" }), null);
+  assert.equal(desktopAction(true, false, { ...desk, isTucked: true }), null, "already tucked");
+});
+
+test("only a change moves the island: a minimize on the clear desktop stays minimized", () => {
+  assert.equal(desktopAction(true, true, { ...desk, isTucked: true }), null);
+  assert.equal(desktopAction(false, false, desk), null, "over windows, the idle tuck is what applies");
+  assert.equal(desktopAction(null, false, desk), null, "windows were already open at the first answer");
+  assert.equal(desktopAction(true, null, desk), null, "no answer yet");
+});
+
+test("game mode's hold is never undone by the desktop", () => {
+  assert.equal(desktopAction(false, true, { ...desk, isTucked: true, gameHolds: true }), null);
+  assert.equal(desktopAction(true, false, { ...desk, gameHolds: true }), null);
 });

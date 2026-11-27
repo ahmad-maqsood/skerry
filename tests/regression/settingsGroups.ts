@@ -31,11 +31,11 @@ export async function checkGroups(category: string, panel: HTMLElement, check: (
     check(game().length === 1, "General: game-mode notifications hide while game mode is off");
     await act(async () => quiet.click());
     const tuck = () => rowsOf(panel, "Tuck to the edge");
-    check(titles(tuck()).join() === "Always display island,Always display island on the desktop,Tuck to the edge when idle,Tuck the collapsed island,Stay out while lyrics show,Stay out while a to-do is timed"
-      && tuck().slice(3).every((row) => row.classList.contains("settings-row--indent")), "General: both always-display switches first, then auto-tuck with its delay and when not to tuck, all indented under it");
+    check(titles(tuck()).join() === "Always display island,Always display island on the desktop,Show minimize button,Tuck to the edge when idle,Tuck the collapsed island,Stay out while lyrics show,Stay out while a to-do is timed"
+      && tuck().slice(4).every((row) => row.classList.contains("settings-row--indent")), "General: both always-display switches and the minimize button first, then auto-tuck with its delay and when not to tuck, all indented under it");
     const always = tuck()[0].querySelector<HTMLInputElement>("[role='switch']")!;
     await act(async () => always.click());
-    check(titles(tuck()).join() === "Always display island", "General: with the island always displayed, the idle-tuck rows step aside");
+    check(titles(tuck()).join() === "Always display island,Show minimize button", "General: with the island always displayed, the idle-tuck rows step aside and the minimize button stays");
     await act(async () => always.click());
     check(titles(rowsOf(panel, "Position")).join() === "Distance from top,Back to the default position,Lock island position", "General: the position rows come last");
   } else if (category === "todos") {

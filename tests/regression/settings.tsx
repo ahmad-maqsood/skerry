@@ -124,8 +124,9 @@ if (!automated) {
       // General 21 -> 22: 2026-11-23 the Distance from top row joined the Position group.
       // General 22 -> 23: 2026-11-27 the Always display island row opened the Tuck to the edge group.
       // General 23 -> 24: the Always display island on the desktop row.
+      // General 24 -> 25: the Show minimize button row.
       // Appearance 30 -> 31: the Pixel cat switch.
-      const maxRows = category === "general" ? 24 : category === "appearance" ? 31 : category === "clipboard" ? 12 : category === "system" ? 11 : category === "todos" ? 9 : 8;
+      const maxRows = category === "general" ? 25 : category === "appearance" ? 31 : category === "clipboard" ? 12 : category === "system" ? 11 : category === "todos" ? 9 : 8;
       if (category === "appearance") {
         const row = [...panel.querySelectorAll<HTMLElement>(".settings-row")].find((item) => item.textContent?.includes("Top edge curves"))!;
         const toggle = row.querySelector<HTMLInputElement>("[role='switch']")!;

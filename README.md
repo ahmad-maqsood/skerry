@@ -212,7 +212,7 @@ Each published GitHub Release page also provides GitHub-generated source archive
 
 - **Dynamic Island Core**
   - **Opening**: Choose hover or click. A click anywhere on the collapsed bar that is not a button opens the island, including on the clock or the pixel cat.
-  - **Always Display**: "Always display island on the desktop" (on by default) stops idle tucking while the desktop is in front. "Always display island" stops it everywhere and removes the minimize button. Game mode and the tray menu still apply.
+  - **Always Display**: "Always display island on the desktop" (on by default) keeps the island out in its collapsed form while no window is open, and tucks it as soon as any window opens, even a small one. "Always display island" stops idle tucking everywhere. "Show minimize button" (on by default) is its own switch and works with the clock, the pixel cat and either always-display setting. Game mode and the tray menu still apply.
   - **Game Mode**: While a full-screen game, video or slideshow is in front, the island does not open on hover, take the focus or pop up messages. You can still allow notifications.
   - **Pixel Cat**: Switch it on under Settings -> Appearance to show an animated cat in place of the time. It stays still when reduced motion is on.
   - **Three Adaptive States**: Collapsed pill for passive monitoring, expanded dashboard for active interaction, and tucked mode (docked to screen edge as a minimal bar or hidden with hover expand).

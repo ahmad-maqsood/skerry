@@ -69,3 +69,18 @@ test("always display island on the desktop is on unless switched off", () => {
   assert.equal(normalizeSettings(null).alwaysShowOnDesktop, true);
   assert.equal(normalizeSettings({ alwaysShowOnDesktop: false }).alwaysShowOnDesktop, false);
 });
+
+test("the minimize button is shown by default and no longer depends on always display island", () => {
+  assert.equal(DEFAULT_SETTINGS.showMinimizeButton, true);
+  assert.equal(normalizeSettings({}).showMinimizeButton, true);
+  assert.equal(normalizeSettings(null).showMinimizeButton, true);
+  assert.equal(normalizeSettings({ showMinimizeButton: false }).showMinimizeButton, false);
+  assert.equal(normalizeSettings({ showMinimizeButton: "no" }).showMinimizeButton, true);
+  // A choice made now wins, with always display island on or off.
+  assert.equal(normalizeSettings({ alwaysShowIsland: true, showMinimizeButton: true }).showMinimizeButton, true);
+  assert.equal(normalizeSettings({ alwaysShowIsland: false, showMinimizeButton: false }).showMinimizeButton, false);
+});
+
+test("saved with always display island on, before the button had its own setting, the button stays removed", () => {
+  assert.equal(normalizeSettings({ alwaysShowIsland: true }).showMinimizeButton, false);
+});

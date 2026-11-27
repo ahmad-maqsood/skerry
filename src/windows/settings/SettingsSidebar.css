@@ -1,7 +1,8 @@
 /* Darker than the pages, with a clear edge, so the list reads as its own column. */
 .settings-sidebar {
   display: grid;
-  grid-template-rows: minmax(0, 1fr);
+  /* The search box, then the page list (or the search results) filling the rest. */
+  grid-template-rows: auto minmax(0, 1fr);
   /* minmax(0, …) columns: a long English label must shrink to an ellipsis, not widen the column. */
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;

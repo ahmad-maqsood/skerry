@@ -26,7 +26,7 @@ function Page({ category }: { category: SettingsCategory }) {
 function Panel() {
   const [category, setCategory] = useState<SettingsCategory>("clipboard");
   return (
-    <LayoutEditor category={category} onCategoryChange={setCategory}>
+    <LayoutEditor category={category} onCategoryChange={setCategory} onSearchJump={(target) => setCategory(target.page)}>
       <SettingsErrorBoundary key={category}>
         <Page category={category} />
       </SettingsErrorBoundary>

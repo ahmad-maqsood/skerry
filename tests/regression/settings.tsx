@@ -13,6 +13,8 @@ import { commands, translationShortcutCalls, unmockedCommands } from "./settings
 import { checkAppearance, prepareColorRegression } from "./settingsAppearance";
 import { checkGeneralControls } from "./settingsGeneral";
 import { checkGroups } from "./settingsGroups";
+import { checkSearchIndex } from "./settingsSearchIndex";
+import { checkSettingsSearch } from "./settingsSearch";
 import { checkTodoRotation } from "./settingsTodoRotation";
 import { checkTodoFileSync } from "./settingsTodoFileSync";
 import { checkMessagePreview } from "./settingsMessagePreview";
@@ -107,6 +109,7 @@ if (!automated) {
       // Appearance +1: optional top-edge curves (2026-11-13); the size row is hidden by default.
       // Appearance 14 -> 16: the colour scheme and the material the owner asked for on 2026-11-14
       // (the glass strength row shows only with a glass).
+      checkSearchIndex(category, panel, check);
       await checkGroups(category, panel, check);
       if (category === "todos") {
         await checkTodoRotation(panel, check);
@@ -150,6 +153,7 @@ if (!automated) {
       }
       check(category === "messages" || rowCount <= maxRows, `${category}: the page keeps to a handful of rows (${rowCount})`);
     }
+    await checkSettingsSearch({ check, openPage, type });
     check(settingsCategoryFor("qq") === "messages" && settingsCategoryFor("mail") === "messages" && settingsCategoryFor("shelf") === "clipboard"
       && settingsCategoryFor("agents") === null, "Old names of merged pages open the page they became; retired pages open nothing");
     if (PLUGINS_ENABLED) {

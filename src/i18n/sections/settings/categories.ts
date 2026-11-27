@@ -1,5 +1,12 @@
 export type SettingsCategoriesText = {
   label: string;
+  /** The search box above the page list. */
+  search: {
+    label: string;
+    placeholder: string;
+    found: (count: number) => string;
+    none: string;
+  };
   groups: {
     basics: string;
     features: string;
@@ -27,6 +34,12 @@ export type SettingsCategoriesText = {
 
 export const en: SettingsCategoriesText = {
   label: "Settings categories",
+  search: {
+    label: "Search settings",
+    placeholder: "Search settings",
+    found: (count) => (count === 1 ? "1 match" : `${count} matches`),
+    none: "No matching settings",
+  },
   groups: {
     basics: "Basics",
     features: "Features",

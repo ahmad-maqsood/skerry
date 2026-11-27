@@ -1,0 +1,82 @@
+/* The search box on top of the sidebar; its results take the place of the page list. */
+.settings-search {
+  padding-bottom: 8px;
+}
+
+.settings-search__input {
+  height: 30px;
+  padding: 0 10px;
+}
+
+.settings-search__results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.settings-search__results li {
+  min-width: 0;
+}
+
+.settings-search__result {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  padding: 5px 10px;
+  color: rgba(var(--overlay-rgb), 0.82);
+  background: transparent;
+  border: 0;
+  border-radius: var(--corner-md);
+  corner-shape: var(--corner-shape);
+  outline: none;
+  font: inherit;
+  font-size: calc(13px * var(--island-font-scale, 1));
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background 140ms ease;
+}
+
+.settings-search__label,
+.settings-search__where {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-search__where {
+  color: var(--color-text-subtle);
+  font-size: calc(11px * var(--island-font-scale, 1));
+}
+
+.settings-search__result:hover,
+.settings-search__result:focus-visible {
+  color: var(--color-fg-strong);
+  background: var(--color-white-a06);
+}
+
+.settings-search__result:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.settings-search__status {
+  margin: 0 0 4px;
+  padding: 0 10px;
+  color: var(--color-text-subtle);
+  font-size: calc(11px * var(--island-font-scale, 1));
+}
+
+/* The setting a search result opened, marked for a moment (settingsJump.ts). */
+.settings-row.settings-found,
+.settings-group.settings-found {
+  border-radius: var(--corner-md);
+  corner-shape: var(--corner-shape);
+  box-shadow: 0 0 0 2px var(--color-accent);
+}

@@ -4,7 +4,7 @@ import { act } from "react";
 
 const GROUPS: Record<string, string[]> = {
   general: ["Startup & language", "Island tabs", "Opening & closing", "Position", "Tuck to the edge", "Game mode", "Backup & transfer"],
-  appearance: ["Theme", "Colors", "Text", "Size", "Corners", "On the island", "Island display priority", "Clock & Weather", "Tuck to the edge", "Appearance presets"],
+  appearance: ["Theme", "Colors", "Text", "Size", "Corners", "On the island", "Island display priority", "Clock & Weather", "Pixel cat", "Tuck to the edge", "Appearance presets"],
   todos: ["Tasks", "Focus timer", "Collapsed island", "Save location"],
   clipboard: ["What's saved", "Display & window", "Shortcuts", "Storage", "File shelf"],
 };

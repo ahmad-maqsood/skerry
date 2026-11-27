@@ -69,6 +69,15 @@ export function TuckRows({ settings, onSettingsChange }: RowsProps) {
         checked={settings.alwaysShowIsland}
         onChange={(alwaysShowIsland) => update({ alwaysShowIsland })}
       />
+      {/* Already covered while the island is always displayed. */}
+      {settings.alwaysShowIsland ? null : (
+        <SettingsToggleRow
+          title={t.settings.layout.alwaysShowOnDesktop}
+          description={t.settings.layout.alwaysShowOnDesktopHint}
+          checked={settings.alwaysShowOnDesktop}
+          onChange={(alwaysShowOnDesktop) => update({ alwaysShowOnDesktop })}
+        />
+      )}
       {/* Idle tucking never runs while the island is always displayed (idleCollapse.ts), so its rows step aside. */}
       {settings.alwaysShowIsland ? null : (
         <SettingsToggleRow

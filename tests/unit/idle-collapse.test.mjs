@@ -62,3 +62,10 @@ test("always display island is off unless saved as true", () => {
   assert.equal(normalizeSettings({}).alwaysShowIsland, false);
   assert.equal(normalizeSettings(null).alwaysShowIsland, false);
 });
+
+test("always display island on the desktop is on unless switched off", () => {
+  assert.equal(DEFAULT_SETTINGS.alwaysShowOnDesktop, true);
+  assert.equal(normalizeSettings({}).alwaysShowOnDesktop, true);
+  assert.equal(normalizeSettings(null).alwaysShowOnDesktop, true);
+  assert.equal(normalizeSettings({ alwaysShowOnDesktop: false }).alwaysShowOnDesktop, false);
+});

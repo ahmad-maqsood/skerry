@@ -115,6 +115,8 @@ export type IslandSettings = {
    * and the tray menu still follow their own settings.
    */
   alwaysShowIsland: boolean;
+  /** While the Windows desktop is in front, the collapsed island does not idle-tuck (and one that did comes back). */
+  alwaysShowOnDesktop: boolean;
   autoTuck: boolean;
   tuckStyle: TuckStyle;
   /** Px of the island left on screen by the "edge" tuck (TUCK_EDGE_HEIGHT). */

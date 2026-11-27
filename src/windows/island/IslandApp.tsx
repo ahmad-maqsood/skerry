@@ -8,6 +8,7 @@ import { IslandPages } from "./IslandPages";
 import { useSettingsPresentation } from "../settings/useSettingsPresentation";
 import { useSettingsNavigation } from "./useSettingsNavigation";
 import { useIslandSettings } from "../../features/appearance/useIslandSettings";
+import { slotsHiddenWithCat, usePixelCat } from "../../features/pixel-cat";
 import { useDocumentTheme } from "../../features/appearance/useDocumentTheme";
 import { resolveSchemeColors } from "../../features/appearance/theme";
 import { useClipboardHistory } from "../../features/clipboard/useClipboardHistory";
@@ -57,6 +58,7 @@ export function IslandApp() {
   }, []);
   const { mode, isTucked, messagePeek, page, setPage, collapseIsland, tuckIsland, revealIsland, minimizeToEdge, openIslandPage, toggleClipboardHistory } = navigation;
   const [settings, setSettings] = useIslandSettings();
+  const pixelCatOn = usePixelCat().settings.enabled;
   const detachedSettings = useSettingsPresentation();
   const { openSettings, changePresentation } = useSettingsNavigation(openIslandPage, setPage);
   const { settingsContentHeight, reportSettingsHeight } = useSettingsPageHeight();
@@ -223,7 +225,7 @@ export function IslandApp() {
         todoTimer={settings.todoEnabled ? collapsedTimer : null}
         collapsedTodoCount={collapsedTodoCount}
         collapsedItem={collapsedItem}
-        collapsedLayout={visibleCollapsedSlots(settings.collapsedLayout, settings.collapsedHidden)}
+        collapsedLayout={visibleCollapsedSlots(settings.collapsedLayout, slotsHiddenWithCat(settings.collapsedHidden, pixelCatOn))}
         collapsedCover={collapsedCover}
         lyricsSettings={settings}
         pageOrder={settings.pageOrder}
@@ -238,7 +240,7 @@ export function IslandApp() {
         onCollapse={collapseIsland}
         onResetPosition={resetIslandPosition}
         minimizesToTray={settings.minimizeAction === "tray"}
-        onMinimize={minimizeAndDismiss}
+        onMinimize={settings.alwaysShowIsland ? null : minimizeAndDismiss}
         onOpenTranslator={settings.translationEnabled ? openTranslator : null}
         onOpenSettings={openSettings}
         onReveal={hoverTucked}

@@ -24,6 +24,8 @@ pub struct ForegroundFullscreen {
     active: bool,
     /// It fills the monitor the island is on, so the island sits over it.
     on_island_monitor: bool,
+    /// The Windows desktop is in front (after Win+D or a click on the wallpaper).
+    on_desktop: bool,
 }
 
 impl ForegroundFullscreen {
@@ -36,11 +38,19 @@ impl ForegroundFullscreen {
 static STATE: Mutex<ForegroundFullscreen> = Mutex::new(ForegroundFullscreen {
     active: false,
     on_island_monitor: false,
+    on_desktop: false,
 });
 
 /// Shell windows that can sit in front covering a whole monitor without being an app in
 /// full screen: the desktop (after Win+D or a click on it) and the taskbars.
 const SHELL_CLASSES: [&str; 4] = ["Progman", "WorkerW", "Shell_TrayWnd", "Shell_SecondaryTrayWnd"];
+
+/// The shell windows that are the desktop itself: Explorer hosts the icons in either one.
+const DESKTOP_CLASSES: [&str; 2] = ["Progman", "WorkerW"];
+
+fn is_desktop_class(class: &str) -> bool {
+    DESKTOP_CLASSES.contains(&class)
+}
 
 /// Whether the foreground counts as a full-screen app. The shell's QUNS_BUSY is only a
 /// guess, and some machines report it for long stretches with no full-screen app in front
@@ -75,13 +85,14 @@ fn read(app: &AppHandle) -> ForegroundFullscreen {
     if !foreground.is_invalid() && win32::process::window_process_id(foreground) == std::process::id() {
         return get_foreground_fullscreen();
     }
+    let class = win32::window::class_name(foreground);
     let active = is_fullscreen_foreground(
         win32::notification_state::fullscreen_signal(),
         (!foreground.is_invalid() && win32::window::is_visible(foreground))
             .then(|| win32::window::window_rect(foreground))
             .flatten(),
         win32::window::monitor_rect(foreground),
-        &win32::window::class_name(foreground),
+        &class,
     );
     let on_island_monitor = active
         && island::main_window(app)
@@ -90,7 +101,7 @@ fn read(app: &AppHandle) -> ForegroundFullscreen {
             .map_or(true, |island| {
                 win32::window::share_monitor(win32::window::foreground_window(), island)
             });
-    ForegroundFullscreen { active, on_island_monitor }
+    ForegroundFullscreen { active, on_island_monitor, on_desktop: is_desktop_class(&class) }
 }
 
 pub(crate) fn start(app: &AppHandle) {
@@ -135,6 +146,15 @@ mod tests {
         assert!(!is_fullscreen_foreground(FullscreenSignal::FullscreenApp, None, Some(MONITOR), "Notepad"));
         for shell in SHELL_CLASSES {
             assert!(!is_fullscreen_foreground(FullscreenSignal::FullscreenApp, Some(MONITOR), Some(MONITOR), shell));
+        }
+    }
+
+    #[test]
+    fn only_the_desktop_itself_counts_as_the_desktop() {
+        assert!(is_desktop_class("Progman"));
+        assert!(is_desktop_class("WorkerW"));
+        for other in ["Shell_TrayWnd", "Shell_SecondaryTrayWnd", "CabinetWClass", "Notepad", ""] {
+            assert!(!is_desktop_class(other));
         }
     }
 

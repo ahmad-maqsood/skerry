@@ -5,13 +5,14 @@ import type { IslandMode } from "./types";
 export type IdleAction = "tuck" | "collapse";
 export type IdlePlan = { seconds: number; action: IdleAction };
 
-type IdleSettings = Pick<IslandSettings, "autoTuck" | "tuckDelaySeconds" | "autoCollapseSeconds">;
+type IdleSettings = Pick<IslandSettings, "autoTuck" | "tuckDelaySeconds" | "autoCollapseSeconds" | "alwaysShowIsland">;
 
 /**
  * The idle timer for the island as it is now, or null when it has none. Two separate timers:
  * (A) the open island collapses `autoCollapseSeconds` after the cursor leaves it (it waits while
  * the cursor is on it); (B) the collapsed island tucks into a line after `tuckDelaySeconds`
  * without use, when tucking is on and no message preview shows. (A) never tucks by itself.
+ * With "always display island" on, (B) never runs: the collapsed island stays where it is.
  */
 export function idlePlan(
   mode: IslandMode,
@@ -25,6 +26,6 @@ export function idlePlan(
     if (seconds <= 0 || isHovering) return null;
     return { seconds, action: "collapse" };
   }
-  if (!settings.autoTuck || hasMessagePreview || keepVisible) return null;
+  if (settings.alwaysShowIsland || !settings.autoTuck || hasMessagePreview || keepVisible) return null;
   return { seconds: settings.tuckDelaySeconds, action: "tuck" };
 }

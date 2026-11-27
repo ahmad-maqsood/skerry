@@ -1,13 +1,14 @@
 export type TranslationTarget = "window" | "island";
 
 /**
- * The island's material: classic (a flat fill), liquid glass (a nearly clear pane with lit edges),
+ * The island's material: graphite (a flat fill with a satin finish; it took the place of "classic"
+ * on 2026-11-27), liquid glass (a nearly clear pane with lit edges),
  * frosted glass (a milky pane), aurora (a smoky pane lit from below by drifting northern-light
  * colour) or prism (a clear crystal pane with an iridescent film and a rim that splits the light).
  * All the glasses are drawn in CSS over a clear window: nothing blurs the desktop behind them
  * (island/glass.rs).
  */
-export type Material = "classic" | "liquidGlass" | "frostedGlass" | "aurora" | "prism";
+export type Material = "graphite" | "liquidGlass" | "frostedGlass" | "aurora" | "prism";
 /** Colour scheme of the island and the windows: dark, light, or whichever Windows uses. */
 export type ColorScheme = "dark" | "light" | "system";
 export type IslandFont = "system" | "pixel";
@@ -109,6 +110,13 @@ export type IslandSettings = {
   /** Starting a todo timer can also ask for a reminder before it ends; optionally with a sound. */
   todoTimerReminder: boolean;
   todoTimerReminderSound: boolean;
+  /**
+   * Never hides: no idle tuck and no minimize button, so the island stays on screen. Game mode
+   * and the tray menu still follow their own settings.
+   */
+  alwaysShowIsland: boolean;
+  /** While the Windows desktop is in front, the collapsed island does not idle-tuck (and one that did comes back). */
+  alwaysShowOnDesktop: boolean;
   autoTuck: boolean;
   tuckStyle: TuckStyle;
   /** Px of the island left on screen by the "edge" tuck (TUCK_EDGE_HEIGHT). */
@@ -211,7 +219,7 @@ export type IslandSettings = {
 };
 
 export type LegacyIslandSettings = Partial<IslandSettings> & {
-  /** Before 2026-11-14: "classic" or "liquidGlass", now `material`. */
+  /** Before 2026-11-14: "classic" or "liquidGlass", now `material` ("classic" reads as "graphite"). */
   appearanceMode?: unknown;
   margin?: number;
   sizeScale?: number;

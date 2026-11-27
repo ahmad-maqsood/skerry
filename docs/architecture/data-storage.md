@@ -67,6 +67,8 @@ Index download/parse diagnostics are logged to `plugin-logs/catalog.log` with sa
 
 ## Clock and Weather 
 
+Frontend `features/pixel-cat/storage.ts` safely reads and writes WebView2 localStorage: `skerry-pixel-cat` stores one switch, `{ enabled }`, default off. While it is on the collapsed island shows a pixel cat where the time would be (on a 24 s loop it walks, sits and flicks its tail, hops, stretches and naps; it blinks, and stays still under reduced motion) and grows wider to give it room.
+
 Frontend `features/weather/storage.ts` safely reads and writes WebView2 localStorage: `skerry-clock-weather` stores two display toggles and user-selected city name / coordinates, `skerry-weather-cache` stores one record of city coordinates, Celsius temperature, WMO code, observation time, and fetch time (Unix milliseconds). Installation record reuses `clockWeather` id in `skerry-native-plugins`; uninstallation only removes installed state, retaining preferences and cache. Cache older than three hours is not displayed.
 
 Rust `weather/` queries Open-Meteo only based on explicit city search or saved coordinates, writing no app data files, credentials, or user location history, without using IP auto-location. Frontend subscriptions stop refreshing after toggling off weather or uninstallation; requests and cache are shared within the same window. See [Clock and Weather](../plugins/clock-weather.md).

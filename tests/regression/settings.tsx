@@ -122,7 +122,10 @@ if (!automated) {
       // General: 14 existing rows + 7 Island tabs switches; the tabs are intentionally one row each.
       // System 9 -> 11: the WiFi and quick-controls cards and the privacy indicator joined the page.
       // General 21 -> 22: 2026-11-23 the Distance from top row joined the Position group.
-      const maxRows = category === "general" ? 22 : category === "appearance" ? 30 : category === "clipboard" ? 12 : category === "system" ? 11 : category === "todos" ? 9 : 8;
+      // General 22 -> 23: 2026-11-27 the Always display island row opened the Tuck to the edge group.
+      // General 23 -> 24: the Always display island on the desktop row.
+      // Appearance 30 -> 31: the Pixel cat switch.
+      const maxRows = category === "general" ? 24 : category === "appearance" ? 31 : category === "clipboard" ? 12 : category === "system" ? 11 : category === "todos" ? 9 : 8;
       if (category === "appearance") {
         const row = [...panel.querySelectorAll<HTMLElement>(".settings-row")].find((item) => item.textContent?.includes("Top edge curves"))!;
         const toggle = row.querySelector<HTMLInputElement>("[role='switch']")!;
@@ -160,15 +163,15 @@ if (!automated) {
     await checkAppearance(check);
     const materialButton = (label: string) => [...document.querySelectorAll<HTMLButtonElement>(".editor-panel button")].find((button) => button.textContent === label);
     const strengthRow = () => [...document.querySelectorAll(".settings-row")].some((row) => row.textContent?.includes("Glass strength"));
-    check(!document.querySelector(".island-preview__island--glass") && materialButton("Classic") && materialButton("Frosted") && !strengthRow(),
-      "The material defaults to classic with the glasses offered, and no glass strength row");
+    check(!document.querySelector(".island-preview__island--glass") && materialButton("Graphite") && materialButton("Frosted") && !strengthRow(),
+      "The material defaults to graphite with the glasses offered, and no glass strength row");
     await act(async () => materialButton("Liquid")!.click());
     check(document.querySelector(".island-preview__island--liquidGlass") && strengthRow(), "Liquid glass draws on the preview and shows the glass strength");
     for (const [label, material] of [["Aurora", "aurora"], ["Prism", "prism"]] as const) {
       await act(async () => materialButton(label)!.click());
       check(document.querySelector(`.island-preview__island--${material}`) && strengthRow(), `${label} draws on the preview and shows the glass strength`);
     }
-    await act(async () => materialButton("Classic")!.click());
+    await act(async () => materialButton("Graphite")!.click());
     check(document.querySelectorAll("[title]").length === 0, "No hover tooltips anywhere in Settings");
 
     await openPage("general");

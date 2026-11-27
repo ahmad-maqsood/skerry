@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useClockWeather, useCurrentWeather } from "../../features/weather";
 import { useCollapsedStatusWidth } from "./useCollapsedStatusWidth";
 import { clockWeatherWidth } from "../../features/weather";
+import { pixelCatWidth, usePixelCat } from "../../features/pixel-cat";
 import { COLLAPSED_PADDING } from "../../features/appearance/settingsLimits";
 import type { IslandSettings } from "../../features/appearance/types";
 import type { TodoItem } from "../../features/todos/types";
@@ -42,10 +43,12 @@ export function useCollapsedTodo(
   const t = useTranslation();
   const clockWeather = useClockWeather();
   // Dragged off the island in Settings → Appearance, they take no room and fetch nothing.
-  const clockOn = clockWeather.settings.showClock && !settings.collapsedHidden.includes("clock");
+  // The pixel cat walks where the clock would be: no time, and a wider island for it to walk in.
+  const catOn = usePixelCat().settings.enabled;
+  const clockOn = !catOn && clockWeather.settings.showClock && !settings.collapsedHidden.includes("clock");
   const weather = useCurrentWeather(clockWeather.settings.showWeather && !settings.collapsedHidden.includes("weather"),
     clockWeather.settings.location);
-  const statusMinimum = useCollapsedStatusWidth(clockOn || weather !== null, settings.islandFontPercent / 100);
+  const statusMinimum = useCollapsedStatusWidth(clockOn || catOn || weather !== null, settings.islandFontPercent / 100);
   const pendingTodoIds = useMemo(
     () => todos.filter((todo) => !todo.completed && !isUpdateTodo(todo)).map((todo) => todo.id),
     [todos],
@@ -122,7 +125,7 @@ export function useCollapsedTodo(
   }, [collapsedItem, collapsedTaskTitle, collapsedTodoCount, coverWanted, settings.collapsedAutoWidth,
     settings.collapsedPadding, settings.collapsedWidth, settings.islandFontPercent, settings.showCollapsedText, settings.showTitle, t, timer, timers, rotating, rotationTodos]);
 
-  const collapsedIslandWidth = clockWeatherWidth(
+  const clockWeatherSized = clockWeatherWidth(
     baseIslandWidth,
     clockOn,
     weather !== null,
@@ -130,5 +133,6 @@ export function useCollapsedTodo(
     statusMinimum,
     clockWeather.settings.showSeconds,
   );
+  const collapsedIslandWidth = catOn ? pixelCatWidth(clockWeatherSized, statusMinimum) : clockWeatherSized;
   return { collapsedTaskTitle, collapsedTodoCount, collapsedItem, collapsedIslandWidth, todoRotation, collapsedTimer };
 }

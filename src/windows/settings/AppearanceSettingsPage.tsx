@@ -14,6 +14,7 @@ import {
 import { TopEdgeShoulderRows } from "../../features/appearance/TopEdgeShoulderRows";
 import { TuckLookRows } from "../../features/appearance/TuckLookRows";
 import { ClockWeatherSettingsGroup } from "../../features/weather";
+import { PixelCatSettingsGroup } from "../../features/pixel-cat";
 import type { IslandSettings } from "../../features/appearance/types";
 import { requestPanelPreview } from "./storage";
 import { appearancePreviewMode } from "./appearancePreview";
@@ -71,6 +72,7 @@ export function AppearanceSettingsPage({
       </CollapsedLayoutEditor>
       <CollapsedIslandSection {...rows} />
       <ClockWeatherSettingsGroup />
+      <PixelCatSettingsGroup />
       <SettingsGroup title={t.settings.expand.tuckTitle}>
         <TuckLookRows {...rows} onPreviewTuck={() => requestPanelPreview("tucked")} />
       </SettingsGroup>

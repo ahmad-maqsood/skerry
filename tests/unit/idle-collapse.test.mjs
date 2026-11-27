@@ -49,3 +49,23 @@ test("typed-in delays are rounded and kept in range, and older settings keep wha
   // autoTuckSeconds was saved by older versions that hid the setting; it is not read back.
   assert.equal(normalizeSettings({ autoTuckSeconds: 90 }).tuckDelaySeconds, 30);
 });
+
+test("always display island: the collapsed island never tucks, the open one still collapses", () => {
+  assert.equal(DEFAULT_SETTINGS.alwaysShowIsland, false);
+  assert.equal(idlePlan("collapsed", settings({ alwaysShowIsland: true }), false), null);
+  assert.deepEqual(idlePlan("expanded", settings({ alwaysShowIsland: true }), false), { seconds: 30, action: "collapse" });
+});
+
+test("always display island is off unless saved as true", () => {
+  assert.equal(normalizeSettings({ alwaysShowIsland: true }).alwaysShowIsland, true);
+  assert.equal(normalizeSettings({ alwaysShowIsland: "yes" }).alwaysShowIsland, false);
+  assert.equal(normalizeSettings({}).alwaysShowIsland, false);
+  assert.equal(normalizeSettings(null).alwaysShowIsland, false);
+});
+
+test("always display island on the desktop is on unless switched off", () => {
+  assert.equal(DEFAULT_SETTINGS.alwaysShowOnDesktop, true);
+  assert.equal(normalizeSettings({}).alwaysShowOnDesktop, true);
+  assert.equal(normalizeSettings(null).alwaysShowOnDesktop, true);
+  assert.equal(normalizeSettings({ alwaysShowOnDesktop: false }).alwaysShowOnDesktop, false);
+});

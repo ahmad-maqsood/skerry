@@ -1,0 +1,41 @@
+/*
+ * Graphite (2026-11-27): the island's flat fill with a satin finish, not a glass. The fill is
+ * lifted toward a cool slate, a soft light falls from the top left, a cool glow rises in the
+ * lower corner, and a hairline rim lifts the edge off a dark wallpaper. It stays one opaque fill (no capture, no native glass),
+ * so the opacity setting and the three colour pickers work as they always did on the flat fill.
+ * Replaces the plain "classic" material; saved "classic" settings read as Graphite.
+ */
+.island.island--material-graphite {
+  --island-rim: rgba(255, 255, 255, 0.16);
+  /* Lifted toward a cool slate, never deepened: the island reads as polished metal, not as a black hole. */
+  --graphite-base: color-mix(in srgb, var(--island-fill, var(--island-background-color)), #8d97c4 11%);
+  background:
+    radial-gradient(120% 90% at 10% 0%, rgba(255, 255, 255, 0.15), transparent 56%),
+    radial-gradient(90% 85% at 100% 100%, rgba(108, 124, 205, 0.26), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0.17) 100%),
+    var(--graphite-base);
+}
+
+/* Lit like the open island's rim; the shadow goes for keyboard focus, which draws its own. */
+.island.island--material-graphite:not(:has(:focus-visible)) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 8px 22px rgba(0, 0, 0, 0.26);
+}
+
+/* On a light island a darker base would only turn it grey: keep the colour, lift the top, ground the foot. */
+[data-tone="light"] .island.island--material-graphite {
+  --island-rim: rgba(0, 0, 0, 0.08);
+  --graphite-base: var(--island-fill, var(--island-background-color));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0.06) 100%),
+    var(--graphite-base);
+}
+
+[data-tone="light"] .island.island--material-graphite:not(:has(:focus-visible)) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 8px 22px rgba(0, 0, 0, 0.14);
+}

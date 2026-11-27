@@ -133,6 +133,8 @@ export type ForegroundFullscreen = {
   active: boolean;
   /** It fills the monitor the island is on. */
   onIslandMonitor: boolean;
+  /** The Windows desktop is in front. */
+  onDesktop: boolean;
 };
 
 /** The full-screen state at the last native check (every 800 ms). */

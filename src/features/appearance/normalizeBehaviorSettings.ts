@@ -51,6 +51,10 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     todoReorderVersion: 1,
     enableTodoReorder: settings?.todoReorderVersion === 1
       && typeof settings.enableTodoReorder === "boolean" ? settings.enableTodoReorder : true,
+    // New: off unless switched on.
+    alwaysShowIsland: settings?.alwaysShowIsland === true,
+    // On unless switched off.
+    alwaysShowOnDesktop: settings?.alwaysShowOnDesktop !== false,
     autoTuck,
     tuckStyle: oneOf(["edge", "line", "hidden"] as const, settings?.tuckStyle, DEFAULT_SETTINGS.tuckStyle),
     tuckEdgeHeight: wholeSeconds(settings?.tuckEdgeHeight, TUCK_EDGE_HEIGHT, TUCK_EDGE_HEIGHT.default),

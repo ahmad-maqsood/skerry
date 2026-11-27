@@ -43,7 +43,7 @@
 
 ## Overview
 
-Skerry brings a streamlined, glanceable floating island to the top of your Windows desktop. It consolidates notifications, music playback with synced lyrics, clipboard history, to-dos, file staging, and live PC health monitoring into one compact interface that expands on hover and tucks away when idle.
+Skerry brings a streamlined, glanceable floating island to the top of your Windows desktop. It consolidates notifications, music playback with synced lyrics, clipboard history, to-dos, file staging, and live PC health monitoring into one compact interface that opens on hover or click and tucks away when idle.
 
 ### Core Principles
 
@@ -51,12 +51,15 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 | --- | --- |
 | **Tiny and Fast** | Occupies less than 0.3% of system RAM on typical systems, launches instantly, and renders fluidly via native Windows Direct3D hardware acceleration. |
 | **Local-First with No Accounts** | All clipboard history, task lists, daily notes, and settings are stored locally on your machine with no registration or cloud dependencies. |
-| **Private by Design** | No tracking, telemetry, or analytics. Outbound network activity is strictly limited to user-configured translation, optional weather, and in-app update checks. |
+| **Private by Design** | No tracking, telemetry, or analytics. The app goes online only for its own features, listed under [Privacy and Permissions](#privacy-and-permissions). |
 
 ### Highlights
 
 - **Universal Windows Toast Feed**: Reads notifications from any app (WhatsApp, Telegram, Outlook, Teams, Chrome, Edge) with real-time one-line previews in the collapsed island.
 - **Glanceable Clock and Weather**: Tabular digits time display and optional Open-Meteo local weather forecasts when the island sits idle.
+- **Pixel Cat**: An optional cat that takes the clock's place on the collapsed island. It walks, sits and flicks its tail, hops, stretches, naps and blinks.
+- **Stays Where You Want It**: Keep the island out while the desktop is in front (on by default), or keep it displayed all the time.
+- **Island Pop-ups**: Short notices for copied text, new songs, the charger, Bluetooth connections, airplane mode, volume and brightness, each with its own switch.
 - **System Media and Synced Lyrics**: Global media controls via Windows GSMTC with real-time lyrics fetched from LRCLIB.
 - **Today's To-Dos and Focus Timer**: Fast daily task management, Markdown file sync, and built-in Pomodoro timers.
 - **Searchable Clipboard History**: Standalone hotkey-activated window (`Ctrl + Shift + W` by default, changeable in Settings) storing text, images, and file paths in a local history file.
@@ -64,13 +67,23 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 - **Live PC Health**: Real-time CPU usage with sparklines, memory consumption, disk storage, and network speed cards on the island, plus volume and (on laptops) brightness sliders at the top of the System page.
 - **Microphone and Camera Indicator**: A small dot on the collapsed island while an app is using the microphone or camera (on by default, switchable under Settings -> System).
 - **Instant Translation**: Dedicated fast translation window (`Ctrl + Shift + F`) supporting free providers and custom OpenAI-compatible endpoints.
-- **Fluid Visual Styles**: Refined Classic, Liquid Glass, Frosted Glass, Aurora, and Prism materials with adaptive dark and light themes.
+- **Fluid Visual Styles**: Graphite, Liquid Glass, Frosted Glass, Aurora, and Prism materials with adaptive dark and light themes.
+- **In-App Changelog**: Read the release notes under Settings -> Changelog.
 
 ---
 
 ## Screenshots
 
 <!-- Note: Screenshot assets are captured by hand with `pnpm screenshots` (see docs/SCREENSHOTS.md) and stored in docs/assets/screenshots/ -->
+
+### Pixel Cat
+
+<!-- screenshot-pixel-cat.png placeholder: Shows the collapsed island with the pixel cat walking where the time would be -->
+<p align="center">
+  <img src="docs/assets/screenshots/screenshot-pixel-cat.png" alt="Collapsed island with a pixel cat walking in place of the time" width="680">
+  <br>
+  <b>Pixel Cat</b>: Switch it on in Settings and a small cat walks the collapsed island in place of the time.
+</p>
 
 ### Collapsed Island and Clock
 
@@ -122,14 +135,16 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 
 ## Installation
 
-### Method 1: Microsoft Store (Recommended)
+### Method 1: Microsoft Store
 
 [**Download Skerry from the Microsoft Store**](https://apps.microsoft.com/detail/9MV21HG0T71J) (or open `ms-windows-store://pdp/?productid=9MV21HG0T71J`). The Store installs Skerry and keeps it up to date, and it needs no SmartScreen prompt.
+
+> **Note:** [GitHub releases](https://github.com/ahmad-maqsood/skerry-island/releases/latest) get new updates first. The Microsoft Store version receives them later.
 
 ### Method 2: Installer Package
 
 1. Navigate to the [Latest Release](https://github.com/ahmad-maqsood/skerry-island/releases/latest) page.
-2. Download `skerry_<version>_x64-setup.exe` (or the `.msi` package for enterprise environments).
+2. Download `Skerry_<version>_x64-setup.exe` (or the `.msi` package for enterprise environments).
 3. Run the installer:
    - Skerry releases are signed with cryptographic minisign signatures verified by the in-app updater.
    - Because open-source binaries without commercial certificate authority stamps may prompt Windows SmartScreen, click **More info** and then **Run anyway**.
@@ -196,19 +211,26 @@ Each published GitHub Release page also provides GitHub-generated source archive
 ## Features
 
 - **Dynamic Island Core**
+  - **Opening**: Choose hover or click. A click anywhere on the collapsed bar that is not a button opens the island, including on the clock or the pixel cat.
+  - **Always Display**: "Always display island on the desktop" (on by default) stops idle tucking while the desktop is in front. "Always display island" stops it everywhere and removes the minimize button. Game mode and the tray menu still apply.
+  - **Game Mode**: While a full-screen game, video or slideshow is in front, the island does not open on hover, take the focus or pop up messages. You can still allow notifications.
+  - **Pixel Cat**: Switch it on under Settings -> Appearance to show an animated cat in place of the time. It stays still when reduced motion is on.
   - **Three Adaptive States**: Collapsed pill for passive monitoring, expanded dashboard for active interaction, and tucked mode (docked to screen edge as a minimal bar or hidden with hover expand).
-  - **Idle Clock &amp; Weather**: Monospace tabular digits clock and local Open-Meteo weather report when no media or active alerts are pending.
+  - **Idle Clock &amp; Weather**: Tabular digits clock (12 or 24 hour, optional seconds, date on hover) and an optional Open-Meteo weather report for a city you choose.
   - **Screen Edge Snapping**: Draggable positioning along the top screen edge with automatic multi-monitor awareness.
 
 - **Universal Windows Notifications**
   - **WinRT UserNotificationListener**: Captures native Windows toast notifications from messaging apps, email clients, browsers, and system services.
   - **App-Grouped Inbox**: Cards organized by originating application with timestamps, unread counts, and quick clearance options.
   - **Glanceable Collapsed Preview**: Incoming messages slide across the collapsed island for non-intrusive awareness.
+  - **Reading and Control**: Optionally expand long messages on the island, hide message text, or mute individual apps.
+  - **Island Pop-ups**: Copied text (needs clipboard history), new songs, charger changes (laptops), Bluetooth connections, airplane mode, volume and brightness (supported laptop screens).
 
 - **Media Control and Live Lyrics**
   - **System Media Integration**: Controls active audio streams from Spotify, Apple Music, browsers, and media players via Windows GSMTC.
-  - **Synchronized Lyrics**: Queries LRCLIB for word-by-word or line-by-line lyrics synchronized with playback.
+  - **Synchronized Lyrics**: Queries LRCLIB for line-by-line lyrics synchronized with playback.
   - **Collapsed Lyric Glance**: Active lyrical line tracks within the collapsed pill during playback.
+  - **Players and Shortcuts**: Set which player takes priority, and assign optional global music shortcuts.
 
 - **Tasks, Notes, and Timers**
   - **Daily Checklist**: Quick task creation, completion toggles, and rotation.
@@ -226,7 +248,12 @@ Each published GitHub Release page also provides GitHub-generated source archive
 
 - **Quick Translation**
   - **Instant Hotkey**: Press `Ctrl + Shift + F` to open a lightweight translation card.
-  - **Flexible Providers**: Keyless Google Translate and MyMemory, plus OpenAI and custom OpenAI-compatible API endpoints (keys are kept in Windows Credential Manager).
+  - **Flexible Providers**: Keyless MyMemory (the default) and Google Translate, plus OpenAI and custom OpenAI-compatible API endpoints (keys are kept in Windows Credential Manager).
+
+- **Settings, Updates and Changelog**
+  - **Appearance**: Arrange the collapsed island, choose which item takes priority, and adjust colors, text, size, corners and appearance presets.
+  - **Updates**: GitHub installs update inside the app. The Microsoft Store version is updated by the Store, and Settings -> About links to the GitHub download.
+  - **Changelog**: Settings -> Changelog shows the release notes published on GitHub.
 
 - **Privacy, Backup and Extensibility**
   - **Mic and Camera Indicator**: Reads the Windows privacy consent store, locally and read-only.
@@ -320,7 +347,7 @@ flowchart TD
 ├── scripts/                  # Release automation, size checks, screenshots, and regression runner
 ├── tests/                    # Unit tests, script tests, browser regression pages, screenshot scenes
 ├── docs/                     # Architecture, design notes, updater/release guide, plugin guide, screenshot shot list
-├── .github/workflows/        # CI and Release workflows
+├── .github/workflows/        # CI, Release, Screenshots and Microsoft Store package workflows
 ├── release-features.json     # Release feature flags shared by the frontend and Rust
 ├── AGENTS.md / DESIGN.md     # Contributor and AI-agent rules; confirmed UI design conventions
 ├── SECURITY.md               # Vulnerability reporting process
@@ -340,6 +367,9 @@ Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a r
   - **Clippy** and **Rust tests** (`windows-latest`, one job each): `cargo clippy --all-targets -- -D warnings` for the app and the plugin workspace, and `cargo test --lib` for the app plus `cargo test --workspace` for the plugins, each with its own Rust cache.
   - **Gate Check**: a lightweight `CI passed` status check that needs all of the above, for branch protection.
 
+- **Screenshots (`.github/workflows/screenshots.yml`)**, started by hand: captures the 11 README screenshots on Windows and can commit them to the branch; see [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
+- **Microsoft Store package (`.github/workflows/msix.yml`)**, started by hand: builds the unsigned MSIX with the in-app updater switched off; see [docs/microsoft-store.md](docs/microsoft-store.md).
+
 - **Releases (`.github/workflows/release.yml`)**, started by hand with **Run workflow**:
   - **Publish unticked**: a quick trial that builds and signs only the NSIS installer and attaches it to the run.
   - **Publish ticked**: runs `pnpm check`, builds and signs the NSIS and MSI installers, generates `latest.json` and publishes the GitHub Release. Clippy and the Rust tests are not repeated; CI already ran them.
@@ -355,7 +385,7 @@ Skerry's CI/CD runs entirely on GitHub Actions. CI jobs run side by side, so a r
 | **Notification Listener** | Captures incoming toast alerts to display on the island. | In-memory only; cleared upon quitting the application. |
 | **Clipboard History** | Stores copied text, images, and file paths when enabled. | The app data folder (`clipboard-history.json` and a `clipboard-images` folder). Stored unencrypted. |
 | **API Keys &amp; Secrets** | Optional custom translation API keys and credentials. | Windows Credential Manager (OS-level secure vault). |
-| **Network Requests** | Limited strictly to: in-app update checks (`github.com`), weather forecast queries (`open-meteo.com`), lyrics queries (`lrclib.net`), user-initiated translation, the plugin catalog and package downloads (`github.com`), and whatever installed plugins contact (the GitHub plugin uses `api.github.com`) when the plugin host is switched on. | No external analytics or tracking servers are ever contacted. |
+| **Network Requests** | Used for: in-app update checks (`github.com`), release notes for the changelog (GitHub), weather forecast queries (`open-meteo.com`), lyrics queries (`lrclib.net`), user-initiated translation, the plugin catalog and package downloads (`github.com`), and whatever installed plugins contact (the GitHub plugin uses `api.github.com`) when the plugin host is switched on. | No external analytics or tracking servers are ever contacted. |
 
 ### Known Limitations
 

@@ -11,6 +11,7 @@ import { MusicWaveButton } from "../../features/media/MusicWaveButton";
 import type { MessagePreview } from "../../features/messages/messagePreview";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { CollapsedClock, CollapsedWeather, useClockWeather, useCurrentWeather } from "../../features/weather";
+import { PixelCat, usePixelCat } from "../../features/pixel-cat";
 import { CollapsedSystemChip } from "../../features/system-monitor/CollapsedSystemChip.tsx";
 import { PrivacyIndicator } from "../../features/privacy";
 import { useTranslation } from "../../i18n";
@@ -71,7 +72,8 @@ type IslandCollapsedBarProps = {
   onWindowDragStart: () => void;
   /** False when the minimize button tucks the island to the top edge instead of the tray. */
   minimizesToTray: boolean;
-  onMinimize: () => void;
+  /** Null hides the minimize button ("always display island"). */
+  onMinimize: (() => void) | null;
 };
 
 /** The collapsed island: status light, todo or message summary, music button and tuck handle. */
@@ -105,6 +107,8 @@ export function IslandCollapsedBar({
 }: IslandCollapsedBarProps) {
   const t = useTranslation();
   const clockWeather = useClockWeather();
+  // The pixel cat takes the clock's place: the time is not shown while it walks.
+  const pixelCat = usePixelCat().settings.enabled;
   const weatherOn = clockWeather.settings.showWeather && collapsedLayout.includes("weather");
   const weather = useCurrentWeather(weatherOn, clockWeather.settings.location);
   // A pending update shows a red dot even collapsed, so it is not missed.
@@ -173,7 +177,7 @@ export function IslandCollapsedBar({
         <span className="island__pulse" />
       </button>
     ),
-    clock: clockWeather.settings.showClock && (
+    clock: pixelCat ? <PixelCat active={!isExpanded && !isTucked} /> : clockWeather.settings.showClock && (
       <CollapsedClock
         active={!isExpanded && !isTucked}
         hourFormat={clockWeather.settings.hourFormat}
@@ -266,11 +270,13 @@ export function IslandCollapsedBar({
     <div
       className={`island__collapsed${restoring ? " island__collapsed--restoring" : ""}`}
       // Measured by useCollapsedStatusWidth, which then centres the clock (data-clock-centred).
-      data-clock-wanted={!focused && wantsCentredClock({ musicPlaying: isMusicPlaying, collapsedItem: showCollapsedText ? collapsedItem : null, taskTitle: collapsedTaskTitle }) || undefined}
+      data-clock-wanted={!pixelCat && !focused && wantsCentredClock({ musicPlaying: isMusicPlaying, collapsedItem: showCollapsedText ? collapsedItem : null, taskTitle: collapsedTaskTitle }) || undefined}
       aria-hidden={isExpanded}
       inert={isExpanded}
+      // Anything that is not a control of its own (the clock, its date, the weather, the pixel
+      // cat, empty space) expands the island; buttons keep their own action.
       onClick={(event) => {
-        if (event.target === event.currentTarget) {
+        if (!(event.target as Element).closest("button")) {
           onExpand();
         }
       }}
@@ -279,17 +285,19 @@ export function IslandCollapsedBar({
       {/* An orange or green dot while an app is using the microphone or camera; not an arrangeable slot, and it stays during an alert. */}
       <PrivacyIndicator active={!isExpanded && !isTucked} />
       {/* Last on the bar, outside the arrangeable slots: tucks the island to the edge. */}
-      <button
-        className="island-collapsed-minimize"
-        type="button"
-        aria-label={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
-        onClick={(event) => {
-          event.stopPropagation();
-          onMinimize();
-        }}
-      >
-        <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
-      </button>
+      {onMinimize && (
+        <button
+          className="island-collapsed-minimize"
+          type="button"
+          aria-label={minimizesToTray ? t.island.minimizeToTray : t.island.tuckToTop}
+          onClick={(event) => {
+            event.stopPropagation();
+            onMinimize();
+          }}
+        >
+          <Minus size={14} strokeWidth={1.5} absoluteStrokeWidth aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

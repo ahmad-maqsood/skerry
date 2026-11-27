@@ -1,0 +1,29 @@
+export type PixelCatSettings = { enabled: boolean };
+
+/** Room the cat walks in, in px before island scaling; the island grows by this much while it is on. */
+export const PIXEL_CAT_LANE_WIDTH = 112;
+/** The widest collapsed island the native window accepts (geometry.rs). */
+const MAX_ISLAND_WIDTH = 480;
+/** Gap the bar puts between the cat's lane and its neighbours. */
+const LANE_GAP = 8;
+
+export function normalizePixelCatSettings(value: unknown): PixelCatSettings {
+  const item = value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  return { enabled: item.enabled === true };
+}
+
+/**
+ * The collapsed width with the cat's lane added to `width`, kept within what the window accepts and
+ * never below `minimum`, the room the measured status icons need (useCollapsedStatusWidth).
+ */
+export function pixelCatWidth(width: number, minimum = 0) {
+  return Math.min(MAX_ISLAND_WIDTH, Math.max(minimum, Math.ceil(width + PIXEL_CAT_LANE_WIDTH + LANE_GAP)));
+}
+
+/**
+ * The cat takes the clock's place on the bar, so the clock's slot has to stay on the island even
+ * when Settings → Appearance moved the clock off it.
+ */
+export function slotsHiddenWithCat<T extends string>(hidden: readonly T[], catOn: boolean): readonly T[] {
+  return catOn ? hidden.filter((slot) => slot !== "clock") : hidden;
+}

@@ -21,6 +21,7 @@ import "./IslandShell.css";
 import "./IslandPageText.css";
 import "./IslandGlass.css";
 import "./IslandGlassColour.css";
+import "./IslandGraphite.css";
 import "./IslandTuckStyle.css";
 import { useTuckMorph } from "./useTuckMorph";
 
@@ -76,7 +77,8 @@ type IslandShellProps = {
   onCollapse: () => void;
   onResetPosition: () => void;
   minimizesToTray: boolean;
-  onMinimize: () => void;
+  /** Null with "always display island" on, which hides the minimize buttons. */
+  onMinimize: (() => void) | null;
   /** Null while translation is switched off, which hides its button. */
   onOpenTranslator: (() => void) | null;
   /** One line from the selection shortcut, shown on the collapsed island, or null. */

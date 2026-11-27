@@ -25,6 +25,13 @@ test("the shots are the ones the README shows and docs/SCREENSHOTS.md lists", ()
   }
 });
 
+test("there are 11 shots, the pixel cat first in the script and the README", () => {
+  assert.equal(SHOTS.length, 11);
+  assert.equal(SHOTS[0].file, "screenshot-pixel-cat.png");
+  const readme = readFileSync(path.join(root, "README.md"), "utf8");
+  assert.equal(/docs\/assets\/screenshots\/(screenshot-[a-z-]+\.png)/.exec(readme)[1], SHOTS[0].file);
+});
+
 test("the scene page the shots open exists", () => {
   assert.ok(existsSync(path.join(root, "tests/screenshots/scene.html")));
   assert.ok(existsSync(path.join(root, "tests/screenshots/scene.tsx")));

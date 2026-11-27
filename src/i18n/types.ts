@@ -10,6 +10,7 @@ import type { ClipboardText } from "./sections/clipboard";
 import type { FileShelfText } from "./sections/fileShelf";
 import type { SystemMonitorText } from "./sections/systemMonitor";
 import type { PrivacyText } from "./sections/privacy";
+import type { PixelCatText } from "./sections/pixelCat";
 import type { SettingsText } from "./sections/settings/index";
 
 export type LocaleCode = "en";
@@ -42,6 +43,8 @@ export type Translations = {
   systemMonitor: SystemMonitorText;
 
   privacy: PrivacyText;
+
+  pixelCat: PixelCatText;
 
   settings: SettingsText;
 };

@@ -5,6 +5,8 @@
 //   pnpm screenshots music settings      only the shots whose scene or file name matches
 //   pnpm screenshots --scale=2           pixel density (default 3, so a 700 px island is 2100 px wide)
 //   pnpm screenshots --out=./out         another folder
+//   pnpm screenshots --push              then commit the new pictures into docs/assets/screenshots and push
+//                                        the checked-out branch (--branch=<name> names another; push-screenshots.mjs)
 //
 // Every picture is 16:9 (the Microsoft Store gallery shows that shape; the README uses the same files).
 //
@@ -15,9 +17,11 @@
 import { mkdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { gitRunner, pushScreenshots, resolveBranch } from "./push-screenshots.mjs";
 import { withRegressionBrowser } from "./run-regression.mjs";
 
 export const SHOTS = [
+  { file: "screenshot-pixel-cat.png", scene: "cat" },
   { file: "screenshot-collapsed-clock.png", scene: "clock" },
   { file: "screenshot-collapsed-notification.png", scene: "notification" },
   { file: "screenshot-messages.png", scene: "messages" },
@@ -37,7 +41,7 @@ const ASPECT = 16 / 9;
 /** How much room the island gets in its picture: its width times this, at least. */
 const ROOM = 1.6;
 const THEMES = [
-  { material: "classic", label: "Classic" },
+  { material: "graphite", label: "Graphite" },
   { material: "liquidGlass", label: "Liquid Glass" },
   { material: "frostedGlass", label: "Frosted Glass" },
 ];
@@ -168,10 +172,14 @@ async function composeThemes(session, parts, scale) {
 }
 
 async function main() {
-  const { options, words } = parseArgs(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  const { options, words } = parseArgs(argv);
   const scale = parseScale(options.scale);
   const out = path.resolve(root, options.out ?? "docs/assets/screenshots");
   const shots = selectShots(SHOTS, words);
+  // With --push the branch is settled before the capture, so a detached HEAD fails now, not after minutes of work.
+  const push = argv.includes("--push") ? { run: gitRunner(root) } : null;
+  if (push) push.branch = resolveBranch(push.run, options.branch);
   mkdirSync(out, { recursive: true });
   // The regression helper serves this checkout with Vite and drives a headless browser over the
   // DevTools protocol. Its first page only proves the server answers.
@@ -197,6 +205,7 @@ async function main() {
     }
   });
   console.log(`Captured ${shots.length} screenshot(s) at ${scale}x into ${path.relative(root, out) || "."}.`);
+  if (push) pushScreenshots({ root, files: shots.map((shot) => path.join(out, shot.file)), branch: push.branch, run: push.run });
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

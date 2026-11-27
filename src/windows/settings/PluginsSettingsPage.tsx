@@ -108,7 +108,13 @@ function EnabledPluginsSettingsPage() {
       </SettingsGroup>}
       {!known && catalogLoading && <SettingsGroup><SettingsRow title={t.loading} control={<Puzzle size={18} aria-hidden="true" />} /></SettingsGroup>}
       {catalogUnavailable && <SettingsGroup><SettingsRow title={t.unavailable} control={<SettingsLinkButton disabled={busy || catalogLoading} onClick={() => { void refreshCatalog(); }}>{t.retry}</SettingsLinkButton>} /></SettingsGroup>}
-      {known && !catalogUnavailable && available.length === 0 && <SettingsGroup><SettingsRow title={t.noneAvailable} control={<Puzzle size={18} aria-hidden="true" />} /></SettingsGroup>}
+      {/* Nothing to install is not a failed fetch: say whether the list is empty or all of it is installed. */}
+      {known && !catalogUnavailable && available.length === 0 && <SettingsGroup>
+        {catalog.length === 0
+          ? <SettingsRow title={t.noneAvailable} control={<Puzzle size={18} aria-hidden="true" />} />
+          : <SettingsRow title={t.allInstalled} description={t.allInstalledHint(catalog.map((entry) => entry.name[locale]).join(", "))}
+              control={<SettingsLinkButton onClick={() => setSection("installed")}>{t.viewInstalled}</SettingsLinkButton>} />}
+      </SettingsGroup>}
     </>}
     {error && <p className="plugins-settings__error" role="alert">{error}</p>}
     <details className="plugins-settings__developer"><summary>{t.developer}</summary><SettingsGroup>

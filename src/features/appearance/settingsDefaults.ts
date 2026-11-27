@@ -15,7 +15,7 @@ import type { IslandSettings } from "./types";
 // versions did, so upgrading never flips them.
 export const DEFAULT_SETTINGS: IslandSettings = {
   topEdgeLayoutVersion: 1,
-  material: "classic",
+  material: "graphite",
   colorScheme: "dark",
   fontFamily: "system",
   islandFontPercent: ISLAND_FONT_PERCENT.default,
@@ -70,6 +70,8 @@ export const DEFAULT_SETTINGS: IslandSettings = {
   gameNoticeSeconds: GAME_NOTICE_SECONDS.default,
   todoTimerReminder: false,
   todoTimerReminderSound: false,
+  alwaysShowIsland: false,
+  alwaysShowOnDesktop: true,
   autoTuck: true,
   tuckStyle: "line",
   tuckEdgeHeight: TUCK_EDGE_HEIGHT.default,

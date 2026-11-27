@@ -16,7 +16,7 @@ mockIPC((command) => {
   switch (command) {
     case "has_translation_secret": return true;
     case "set_translation_shortcut": return "Ctrl+Alt+T";
-    case "read_translation_clipboard": return "";
+    case "read_translation_clipboard": return "private clipboard text";
     default: return null;
   }
 }, { shouldMockEvents: true });
@@ -50,6 +50,12 @@ if (query.has("test")) {
   check(document.documentElement.dataset.theme === expected, `Window writes data-theme=${expected} according to theme`);
   check(expected === "light" ? surface > 0.8 : surface < 0.05, `Window surface follows theme (luminance ${surface.toFixed(2)})`);
   check(contrast >= 7, `Text and surface contrast is sufficient (${contrast.toFixed(1)}:1)`);
+  const source = document.querySelector<HTMLTextAreaElement>("#translation-input")!;
+  check(source.value === "", "Opening leaves the source box empty");
+  check(!windowElement.textContent?.includes("private clipboard text"), "Clipboard text is not shown before pasting");
+  const pasteButton = document.querySelector<HTMLButtonElement>(".translation-window__clipboard");
+  await act(async () => { pasteButton?.click(); await new Promise((resolve) => setTimeout(resolve, 50)); });
+  check(source.value === "private clipboard text", "The paste button pastes the clipboard on request");
   const results = document.getElementById("results")!;
   const failed = messages.some((line) => line.startsWith("FAIL"));
   results.textContent = `${messages.join("\n")}\n${failed ? "FAILED" : "ALL PASS"}`;

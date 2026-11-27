@@ -49,7 +49,6 @@ export type TranslatorText = {
   panelPlaceholder: string;
   emptySource: string;
   tooLong: string;
-  clipboard: (text: string) => string;
 };
 
 export const en: TranslatorText = {
@@ -100,5 +99,4 @@ export const en: TranslatorText = {
   panelPlaceholder: "Type text to translate; Enter translates",
   emptySource: "Enter source text, or press Tab to paste from the clipboard.",
   tooLong: "Translate up to 5,000 characters at a time.",
-  clipboard: (text) => `Clipboard: ${text}`,
 };

@@ -3,7 +3,8 @@ import type { MediaState } from "../api";
 import { getLyrics } from "./api";
 import { parseLrc, trackKey, withTranslations, type LyricLine } from "./lrc";
 
-export type LyricsSettings = { lyricsFolder: string; lyricsOnline: boolean; lyricWordFill?: boolean };
+/** `lyricsOnMusicPage` is read by the music page only; the lookup itself ignores it. */
+export type LyricsSettings = { lyricsFolder: string; lyricsOnline: boolean; lyricsOnMusicPage?: boolean; lyricWordFill?: boolean };
 
 type Found = { lookup: string; lines: LyricLine[]; durationMs: number; expiresAt: number };
 // The last few lookups' answers. The music page mounts again on every visit; without these its

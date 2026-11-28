@@ -1,5 +1,7 @@
 //! The live wallpaper's saved settings, status and the rules that need no desktop.
 
+use std::time::Duration;
+
 use serde::{Deserialize, Serialize};
 
 /// How a video whose shape differs from the screen's is shown.
@@ -66,9 +68,27 @@ pub(crate) fn playback_error(code: u32) -> String {
         3 => "The video could not be decoded. The file may be damaged, or your graphics driver cannot play it.",
         4 => "Windows cannot play this video's format. HEVC (common in iPhone .MOV files), AV1 and VP9 may need \
               Microsoft's video extensions from the Microsoft Store. ProRes is not supported: use an H.264 or HEVC copy.",
-        _ => "The video stopped playing. Check that the file is still there, then switch live wallpaper off and on.",
+        _ => "The video stopped playing, even after trying again. Check that the file is still there, then switch \
+              live wallpaper off and on.",
     }
     .to_string()
+}
+
+/// How many times in a row playback is restarted from where it stopped before the error is shown.
+pub(crate) const MAX_RECOVERIES: u32 = 3;
+/// Playing this long without an error counts the last recovery as having worked.
+pub(crate) const STABLE_AFTER: Duration = Duration::from_secs(15);
+
+/// Whether trying again could help. An unsupported format (4) never gets better by itself, while a
+/// sleep, a graphics driver reset or a briefly unreadable file usually does.
+pub(crate) fn is_recoverable(code: u32) -> bool {
+    code != 4
+}
+
+/// The wait before restart number `attempt` (1, 2, 3...): 1 s, 2 s, 4 s, so a driver that is still
+/// coming back from sleep has time to do so.
+pub(crate) fn recovery_delay(attempt: u32) -> Duration {
+    Duration::from_secs(1 << attempt.saturating_sub(1).min(4))
 }
 
 #[cfg(test)]
@@ -93,6 +113,20 @@ mod tests {
         assert!(tall[0] == 0.0 && tall[1] > 0.3 && (tall[1] + tall[3] - 1.0).abs() < 0.001);
         assert_eq!(source_rect(Fit::Fit, (2560, 1080), (1920, 1080)), [0.0, 0.0, 1.0, 1.0]);
         assert_eq!(source_rect(Fit::Fill, (0, 0), (1920, 1080)), [0.0, 0.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn only_an_unsupported_format_is_never_retried() {
+        assert!(is_recoverable(3) && is_recoverable(1) && is_recoverable(99));
+        assert!(!is_recoverable(4));
+    }
+
+    #[test]
+    fn restarts_wait_longer_each_time() {
+        let waits: Vec<u64> = (1..=MAX_RECOVERIES).map(|attempt| recovery_delay(attempt).as_secs()).collect();
+        assert_eq!(waits, [1, 2, 4]);
+        assert_eq!(recovery_delay(0).as_secs(), 1);
+        assert_eq!(recovery_delay(u32::MAX).as_secs(), 16);
     }
 
     #[test]

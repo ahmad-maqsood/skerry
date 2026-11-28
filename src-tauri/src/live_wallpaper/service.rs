@@ -9,7 +9,9 @@ use std::{
 
 use windows::Win32::Foundation::RECT;
 
-use super::model::{playback_error, source_rect, Fit, Status};
+use super::model::{
+    is_recoverable, playback_error, recovery_delay, source_rect, Fit, Status, MAX_RECOVERIES, STABLE_AFTER,
+};
 use crate::win32::{
     self,
     desktop_layer::{self, DesktopLayer, DesktopSurface},
@@ -90,6 +92,9 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
     let mut next_check = Instant::now();
     let mut retry_at = Instant::now();
     let mut failures = 0u32;
+    // Playback restarts since the video last played steadily, and when it last began to.
+    let mut recoveries = 0u32;
+    let mut healthy_since: Option<Instant> = None;
 
     loop {
         loop {
@@ -130,16 +135,34 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
                 screen.surface.keep_order();
             }
             covered = win32::open_windows::covered_monitors();
+            // Remembered so a restart after an error carries on from here.
+            if let Some(screen) = screens.first().filter(|screen| screen.player.is_loaded() && screen.resume_at == 0.0) {
+                position = screen.player.position();
+            }
         }
 
         // No cursor to read means the lock screen or another secure desktop is up.
         let locked = win32::window::cursor_position().is_none();
+        if let Some(code) = screens.iter().find_map(|screen| screen.player.error_code()) {
+            if !is_recoverable(code) || recoveries >= MAX_RECOVERIES {
+                return Err(playback_error(code));
+            }
+            // Start again from the last known place, after a wait that grows each time.
+            recoveries += 1;
+            eprintln!("live wallpaper: playback error {code}, restart {recoveries} of {MAX_RECOVERIES}");
+            screens.clear();
+            retry_at = Instant::now() + recovery_delay(recoveries);
+            next_check = Instant::now();
+            healthy_since = None;
+            report(Status::Starting);
+            last_status = Status::Starting;
+            desktop_layer::wait_and_pump(TICK_MS);
+            continue;
+        }
+
         let mut any_playing = false;
         let mut all_loaded = !screens.is_empty();
         for screen in &mut screens {
-            if let Some(code) = screen.player.error_code() {
-                return Err(playback_error(code));
-            }
             if !screen.player.is_loaded() {
                 all_loaded = false;
                 continue;
@@ -157,6 +180,15 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
             let play = !locked && !covered.contains(&screen.monitor);
             screen.player.set_playing(play);
             any_playing |= play;
+        }
+
+        if all_loaded {
+            let since = *healthy_since.get_or_insert_with(Instant::now);
+            if recoveries > 0 && since.elapsed() >= STABLE_AFTER {
+                recoveries = 0;
+            }
+        } else {
+            healthy_since = None;
         }
 
         let status = match (all_loaded, any_playing) {

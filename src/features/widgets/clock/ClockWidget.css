@@ -9,8 +9,12 @@
   font-family: Bahnschrift, "Segoe UI Variable Display", "Segoe UI", sans-serif;
   font-weight: 600;
   user-select: none;
-  cursor: default;
+  /* The whole widget drags: an open hand says so, closed while it is held. */
+  cursor: grab;
   transition: color 0.8s ease;
+}
+.widget-clock:active {
+  cursor: grabbing;
 }
 /* The window itself is the drag handle (data-tauri-drag-region), so its contents must not take the click. */
 .widget-clock > * {

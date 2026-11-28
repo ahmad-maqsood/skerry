@@ -63,6 +63,7 @@ localStorage.setItem("skerry-settings", JSON.stringify({
   collapsedAutoWidth: true,
   lyricsOnline: true,
   lyricsOnMusicPage: query.get("lyrics") !== "0",
+  lyricsOnCollapsed: query.get("lyrics") !== "0",
   todoTimerEnabled: true,
   // The incoming message grows the collapsed island to fit its text instead of cutting it short.
   messageAutoExpand: true,

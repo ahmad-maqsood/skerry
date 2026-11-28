@@ -21,8 +21,8 @@ function CollapsedSungWords({ words, mediaState, offsetMs, playing }: {
 }
 
 /**
- * The line being sung, for the collapsed island; the song's title and artist when it has no
- * lyrics or between lines. It wakes on its own for each line, so only this leaf re-renders while a
+ * The playing song on the collapsed island: its title and artist, or the line being sung when
+ * collapsed lyrics are switched on (title and artist again with no lyrics or between lines). It wakes on its own for each line, so only this leaf re-renders while a
  * song plays; a new line replaces the last at once (the music page lets it rise in).
  * Keep prefetching while expanded; only the visible leaf drives the line-change clock.
  */
@@ -35,7 +35,9 @@ export function CollapsedLyric({
   lyricsSettings: LyricsSettings & { lyricsOffsetMs: number };
   active: boolean;
 }) {
-  const { lines } = useLyrics(mediaState, lyricsSettings);
+  // Looked up even with the line switched off, so it is there at once when switched on.
+  const { lines: foundLines } = useLyrics(mediaState, lyricsSettings);
+  const lines = lyricsSettings.lyricsOnCollapsed === true ? foundLines : null;
   const [songOffsetMs] = useSongOffset(lines ? songOffsetKey(mediaState) : null);
   const offsetMs = lyricsSettings.lyricsOffsetMs + songOffsetMs;
   const { index, playing } = useLyricClock(lines, mediaState, offsetMs, active);

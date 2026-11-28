@@ -230,7 +230,7 @@ Each published GitHub Release page also provides GitHub-generated source archive
 - **Media Control and Live Lyrics**
   - **System Media Integration**: Controls active audio streams from Spotify, Apple Music, browsers, and media players via Windows GSMTC.
   - **Synchronized Lyrics**: Queries LRCLIB for line-by-line lyrics synchronized with playback.
-  - **Collapsed Lyric Glance**: Active lyrical line tracks within the collapsed pill during playback.
+  - **Collapsed Lyric Glance**: The collapsed pill shows the song title and artist during playback, or the active lyric line when switched on in Settings -> Music.
   - **Players and Shortcuts**: Set which player takes priority, and assign optional global music shortcuts.
 
 - **Tasks, Notes, and Timers**

@@ -108,6 +108,7 @@ export const SETTINGS_SEARCH_INDEX: readonly SettingsSearchEntry[] = [
   { page: "music", group: "Shortcuts" },
   { page: "music", group: "Lyrics" },
   { page: "music", group: "Lyrics", title: "Show lyrics on the music page" },
+  { page: "music", group: "Lyrics", title: "Show lyrics on the collapsed island" },
   { page: "music", group: "Lyrics", title: "Find lyrics online" },
   { page: "music", group: "Player compatibility" },
   { page: "translation", title: "Enable quick translation" },

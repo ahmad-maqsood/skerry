@@ -29,7 +29,7 @@ const base: MediaState = { ...DEFAULT_MEDIA_STATE, title: "Word test", artist: "
 async function render(state: Partial<MediaState> = {}, active = true, fill = true, offset = 0) {
   await act(async () => {
     root.render(<StrictMode><CollapsedLyric active={active} mediaState={{ ...base, ...state }}
-      lyricsSettings={{ lyricsFolder: "", lyricsOnline: true, lyricsOnMusicPage: true, lyricsOffsetMs: offset, lyricWordFill: fill }} /></StrictMode>);
+      lyricsSettings={{ lyricsFolder: "", lyricsOnline: true, lyricsOnMusicPage: true, lyricsOnCollapsed: true, lyricsOffsetMs: offset, lyricWordFill: fill }} /></StrictMode>);
   });
 }
 const words = () => [...document.querySelectorAll<HTMLElement>(".collapsed-lyric__word")];
@@ -42,7 +42,7 @@ function check(ok: unknown, label: string) {
 
 if (preview) {
   root.render(<CollapsedLyric active mediaState={{ ...base, playbackStatus: "playing", positionMs: 1000, updatedAt: Date.now() }}
-    lyricsSettings={{ lyricsFolder: "", lyricsOnline: true, lyricsOnMusicPage: true, lyricWordFill: true, lyricsOffsetMs: 0 }} />);
+    lyricsSettings={{ lyricsFolder: "", lyricsOnline: true, lyricsOnMusicPage: true, lyricsOnCollapsed: true, lyricWordFill: true, lyricsOffsetMs: 0 }} />);
   results.remove();
 } else try {
   await render(); await tick();

@@ -23,6 +23,8 @@ export type SettingsCategoriesText = {
   clipboard: string;
   translation: string;
   system: string;
+  /** Optional extras, such as the live wallpaper. */
+  advanced: string;
   /** The file shelf's group on the Clipboard page. */
   shelf: string;
   plugins: string;
@@ -54,6 +56,7 @@ export const en: SettingsCategoriesText = {
   clipboard: "Clipboard & files",
   translation: "Translation",
   system: "System",
+  advanced: "Advanced",
   shelf: "File shelf",
   plugins: "Plugins",
   changelog: "Changelog",

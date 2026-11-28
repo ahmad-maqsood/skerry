@@ -16,6 +16,7 @@ src/
 │   ├── todos/               # Todos, daily notes, archive, Markdown export and optional reverse sync
 │   ├── media/               # Media controls, global shortcuts (useMusicShortcuts), waveform, player diagnostic cards, and compatibility settings; lyrics/ for synced lyrics (LRC parsing, progress tracking, click-to-seek, settings)
 │   ├── clipboard/           # Clipboard history, shortcuts
+│   ├── live-wallpaper/      # Settings → Advanced live wallpaper: typed IPC, state hook, settings section (playback is native)
 │   ├── config-transfer/     # Configuration backup / transfer: format validation, prefix filtering, batch storage restoration, native dialogs, and startup restore
 │   ├── file-shelf/          # File shelf: files dragged to the island (stores paths only), drag-out, copy, open
 │   ├── messages/            # Notification cards, previews, and reader; system-notifications/ holds the Windows toast listener hook (useSystemNotifications.ts), api.ts, storage.ts, and types

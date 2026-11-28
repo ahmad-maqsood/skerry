@@ -101,6 +101,13 @@
   flex: 0 1 auto;
 }
 
+/* A song's artist list can be longer than the widest bar: it gives way first, and the title keeps
+   its room (up to 70% of the row) instead of shrinking along with it. */
+.island-message-preview__text[data-kind="music"] > .island-message-preview__sender {
+  flex-shrink: 0;
+  max-width: 70%;
+}
+
 @keyframes islandSummaryEnter {
   from {
     opacity: 0;

@@ -123,8 +123,8 @@ test("a short message's reader is only as wide as the message, even narrower tha
 
 test("short status pop-ups widen the one-line bar and never become a reader", async () => {
   const { widensToFit } = await import("../../src/windows/island/noticeRules.ts");
-  for (const kind of ["battery", "bluetooth", "airplane"]) assert.equal(widensToFit(kind), true, kind);
-  for (const kind of [undefined, "clipboard", "music", "volume", "brightness"]) assert.equal(widensToFit(kind), false, String(kind));
+  for (const kind of ["battery", "bluetooth", "airplane", "music"]) assert.equal(widensToFit(kind), true, kind);
+  for (const kind of [undefined, "clipboard", "volume", "brightness"]) assert.equal(widensToFit(kind), false, String(kind));
   const narrow = { ...limits, baseWidth: 240, oneLineOnly: true };
   const charger = { sender: "Charger plugged in", body: "90%" };
   // Cut off as laid out, so the island grows by at least what was measured.

@@ -58,14 +58,14 @@ try {
     "Pages sit in two named groups (Plugins, Changelog and About after them), set apart by space rather than visible headings");
   check(host.querySelectorAll("input").length === 1 && host.querySelector("input")?.getAttribute("role") === "searchbox"
     && !host.querySelector("button[aria-expanded]"), "One search box above the list and nothing to fold");
-  check(listed().join() === "general,appearance,todos,music,translation,clipboard,messages,system,plugins,changelog,about",
+  check(listed().join() === "general,appearance,todos,music,translation,clipboard,messages,system,advanced,plugins,changelog,about",
     "Every page is listed once, in sidebar order");
   const listGroups = [...host.querySelectorAll<HTMLElement>(".settings-sidebar__list .settings-sidebar__group")];
   const lastGroup = listGroups[listGroups.length - 1];
   // Plugins and Changelog share the final untitled group with About.
   check(!host.querySelector(".settings-sidebar__footer") && !lastGroup?.getAttribute("aria-label")
     && [...lastGroup.querySelectorAll<HTMLElement>("[data-category]")].map(item => item.dataset.category).join() === "plugins,changelog,about"
-    && lastGroup.previousElementSibling?.querySelector("li:last-child [data-category='system']"),
+    && lastGroup.previousElementSibling?.querySelector("li:last-child [data-category='advanced']"),
     "Plugins, Changelog then About share the final untitled group below Features, not pinned to a footer");
   check(settingsCategoryFor("plugins") === "plugins", "The plugin guide route is always available");
   check(element(".settings-sidebar__item--active").dataset.category === "general", "The open page is marked");
@@ -81,7 +81,7 @@ try {
   });
   check(listed().length === 0 && host.querySelectorAll(".settings-search__result").length > 0, "Typing replaces the page list with matching results");
   await act(async () => { host.querySelector<HTMLButtonElement>(".settings-search__result")!.click(); });
-  check(jumps.length === 1 && jumps[0].page === "appearance" && jumps[0].group === "Pixel cat" && listed().length === 11 && box.value === "",
+  check(jumps.length === 1 && jumps[0].page === "appearance" && jumps[0].group === "Pixel cat" && listed().length === 12 && box.value === "",
     "Picking a result reports its page and group, clears the box and brings the list back");
 
   document.documentElement.dataset.testResult = "passed";

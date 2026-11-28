@@ -47,3 +47,22 @@ pub(crate) fn query_battery_status() -> Option<BatteryStatus> {
         remaining_seconds,
     })
 }
+
+/// Whether the computer is running on its battery, and whether Windows' Battery Saver is on.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct PowerSaving {
+    pub on_battery: bool,
+    pub battery_saver: bool,
+}
+
+/// Reads the power source. A desktop computer, or a reading that fails, counts as plugged in.
+pub(crate) fn query_power_saving() -> PowerSaving {
+    let mut status = SYSTEM_POWER_STATUS::default();
+
+    // SAFETY: GetSystemPowerStatus accepts a valid mutable pointer to a stack-allocated struct.
+    if unsafe { GetSystemPowerStatus(&mut status) }.is_err() {
+        return PowerSaving::default();
+    }
+    // ACLineStatus: 0 offline (on battery), 1 online, 255 unknown. SystemStatusFlag bit 0: Battery Saver on.
+    PowerSaving { on_battery: status.ACLineStatus == 0, battery_saver: status.SystemStatusFlag & 1 != 0 }
+}

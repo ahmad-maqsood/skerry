@@ -24,6 +24,12 @@ export function LyricsSettingsSection({
         onChange={(lyricsOnMusicPage) => onSettingsChange({ ...settings, lyricsOnMusicPage })}
       />
       <SettingsToggleRow
+        title={text.onCollapsed}
+        description={text.onCollapsedHint}
+        checked={settings.lyricsOnCollapsed}
+        onChange={(lyricsOnCollapsed) => onSettingsChange({ ...settings, lyricsOnCollapsed })}
+      />
+      <SettingsToggleRow
         title={text.online}
         description={text.onlineHint}
         checked={settings.lyricsOnline}

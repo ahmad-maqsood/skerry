@@ -65,6 +65,7 @@ localStorage.setItem("skerry-settings", JSON.stringify({
   pageButtonStyle: "capsule",
   lyricsOnline: query.get("lyrics") !== "0",
   lyricsOnMusicPage: query.get("lyrics") !== "0",
+  lyricsOnCollapsed: query.get("lyrics") !== "0",
   collapsedShowCover: query.get("cover") === "1",
   ...(query.get("priority") ? { collapsedPriority: query.get("priority")!.split(",") } : {}),
   ...(query.get("layout") ? { collapsedLayout: query.get("layout")!.split(",") } : {}),

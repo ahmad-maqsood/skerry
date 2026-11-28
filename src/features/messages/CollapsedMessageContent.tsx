@@ -19,7 +19,7 @@ function MessageContent({ preview }: { preview: MessagePreview }) {
   return (
     <>
       <MessageSourceIcon logo={preview.appLogo} name={preview.appDisplayName} size={16} kind={preview.kind} />
-      <span className="island-message-preview__text">
+      <span className="island-message-preview__text" data-kind={preview.kind}>
         <strong className="island-message-preview__sender">
           {preview.title.trim() || preview.appDisplayName || "App"}
         </strong>

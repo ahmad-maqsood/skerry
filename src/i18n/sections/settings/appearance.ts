@@ -129,12 +129,12 @@ export const en: SettingsAppearanceText = {
     title: "Island display priority",
     priorityFooter: "When several have something to show, the collapsed island shows the first. Drag to reorder.",
     items: {
-      lyrics: { name: "Lyrics", hint: "The current line while a song plays, or its title" },
+      lyrics: { name: "Song", hint: "Title and artist, or lyrics if switched on in Music" },
       todo: { name: "Todos", hint: "The todo you started; until then, the count left comes last" },
     },
     moveLabel: (name) => `Reorder "${name}": drag, or press the up and down arrow keys`,
     showCover: "Show the song's cover",
-    showCoverHint: "The song's cover in front of the lyric line",
+    showCoverHint: "The song's cover in front of its title or lyric line",
     layout: {
       title: "On the island",
       footer: "Hold an icon and drag it left or right; icons left of the text sit on the island's left. Drop one in the box below to take it off the island. Grey ones are switched off and keep their place.",

@@ -8,10 +8,10 @@
 use windows::{
     core::BOOL,
     Win32::{
-        Foundation::{HWND, LPARAM},
+        Foundation::{HWND, LPARAM, RECT},
         Graphics::{
             Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED},
-            Gdi::{MonitorFromWindow, MONITOR_DEFAULTTONULL},
+            Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST, MONITOR_DEFAULTTONULL},
         },
         UI::WindowsAndMessaging::{
             EnumWindows, GetWindow, GW_OWNER, WS_EX_APPWINDOW, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
@@ -119,6 +119,88 @@ unsafe extern "system" fn check_window(hwnd: HWND, found: LPARAM) -> BOOL {
     BOOL::from(true)
 }
 
+/// One open app window on a monitor: the monitor's full rectangle, its work area (without the
+/// taskbar) and the window's bounds.
+struct Tile {
+    monitor: RECT,
+    work: RECT,
+    window: RECT,
+}
+
+/// Whether `rects` together leave no part of `work` uncovered. One maximized or full-screen window
+/// does; so do two windows side by side, or a few that overlap their way across the screen.
+fn union_covers(work: RECT, rects: &[RECT]) -> bool {
+    let clipped: Vec<RECT> = rects
+        .iter()
+        .map(|rect| RECT {
+            left: rect.left.max(work.left),
+            top: rect.top.max(work.top),
+            right: rect.right.min(work.right),
+            bottom: rect.bottom.min(work.bottom),
+        })
+        .filter(|rect| rect.left < rect.right && rect.top < rect.bottom)
+        .collect();
+    if work.left >= work.right || work.top >= work.bottom || clipped.is_empty() {
+        return false;
+    }
+    // Cut the work area along every window edge; each resulting cell is covered or it is not.
+    let cuts = |low: i32, high: i32, edges: Vec<i32>| {
+        let mut cuts = vec![low, high];
+        cuts.extend(edges);
+        cuts.sort_unstable();
+        cuts.dedup();
+        cuts
+    };
+    let xs = cuts(work.left, work.right, clipped.iter().flat_map(|rect| [rect.left, rect.right]).collect());
+    let ys = cuts(work.top, work.bottom, clipped.iter().flat_map(|rect| [rect.top, rect.bottom]).collect());
+    xs.windows(2).all(|x| {
+        ys.windows(2).all(|y| {
+            clipped.iter().any(|rect| rect.left <= x[0] && x[1] <= rect.right && rect.top <= y[0] && y[1] <= rect.bottom)
+        })
+    })
+}
+
+unsafe extern "system" fn collect_covered(hwnd: HWND, list: LPARAM) -> BOOL {
+    if !window::is_visible(hwnd) || window::is_minimized(hwnd) {
+        return BOOL::from(true);
+    }
+    let class = window::class_name(hwnd);
+    if !is_open_app_window(&facts_of(hwnd, &class)) {
+        return BOOL::from(true);
+    }
+    let mut info = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+    // SAFETY: DEFAULTTONEAREST always returns a monitor; GetMonitorInfoW writes only into `info`,
+    // whose cbSize is set.
+    let read = unsafe {
+        GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &mut info).as_bool()
+    };
+    if let (true, Some(window)) = (read, window::window_rect(hwnd)) {
+        // SAFETY: `list` is the address of the Vec on `covered_monitors`'s stack, which outlives
+        // the EnumWindows call that runs this callback on the same thread.
+        unsafe { (*(list.0 as *mut Vec<Tile>)).push(Tile { monitor: info.rcMonitor, work: info.rcWork, window }) };
+    }
+    BOOL::from(true)
+}
+
+/// The monitors (full rectangles) whose desktop the open app windows hide, alone or together, right now.
+pub(crate) fn covered_monitors() -> Vec<RECT> {
+    let mut tiles: Vec<Tile> = Vec::new();
+    // SAFETY: the callback matches WNDENUMPROC and only writes through the pointer to `tiles`,
+    // which stays alive for the whole call.
+    let _ = unsafe { EnumWindows(Some(collect_covered), LPARAM((&mut tiles as *mut Vec<Tile>) as isize)) };
+    let mut covered: Vec<RECT> = Vec::new();
+    for tile in &tiles {
+        if covered.contains(&tile.monitor) {
+            continue;
+        }
+        let windows: Vec<RECT> = tiles.iter().filter(|other| other.monitor == tile.monitor).map(|other| other.window).collect();
+        if union_covers(tile.work, &windows) {
+            covered.push(tile.monitor);
+        }
+    }
+    covered
+}
+
 /// Whether any app window is open on screen right now.
 pub(crate) fn any_open_app_window() -> bool {
     let mut found = false;
@@ -146,6 +228,31 @@ mod tests {
             width: 640,
             height: 480,
         }
+    }
+
+    #[test]
+    fn one_maximized_or_full_screen_window_hides_the_desktop_and_a_smaller_one_does_not() {
+        let work = RECT { left: 0, top: 0, right: 1920, bottom: 1040 };
+        let rect = |left, top, right, bottom| RECT { left, top, right, bottom };
+        // Maximized windows hang a few pixels past the work area; full screen covers the taskbar.
+        assert!(union_covers(work, &[rect(-8, -8, 1928, 1048)]));
+        assert!(union_covers(work, &[rect(0, 0, 1920, 1080)]));
+        assert!(!union_covers(work, &[rect(0, 0, 960, 1040)]));
+        assert!(!union_covers(work, &[rect(100, 100, 1800, 900)]));
+        assert!(!union_covers(work, &[]));
+    }
+
+    #[test]
+    fn windows_hide_the_desktop_together_only_when_nothing_shows_between_them() {
+        let work = RECT { left: 0, top: 0, right: 1920, bottom: 1040 };
+        let rect = |left, top, right, bottom| RECT { left, top, right, bottom };
+        // Two windows snapped side by side, and four snapped into corners.
+        assert!(union_covers(work, &[rect(0, 0, 960, 1040), rect(960, 0, 1920, 1040)]));
+        assert!(union_covers(work, &[rect(0, 0, 960, 520), rect(960, 0, 1920, 520), rect(0, 520, 960, 1040), rect(960, 520, 1920, 1040)]));
+        // Overlapping windows count; a gap, or a missing corner, shows the desktop.
+        assert!(union_covers(work, &[rect(0, 0, 1200, 1040), rect(800, 0, 1920, 1040)]));
+        assert!(!union_covers(work, &[rect(0, 0, 900, 1040), rect(960, 0, 1920, 1040)]));
+        assert!(!union_covers(work, &[rect(0, 0, 960, 520), rect(960, 0, 1920, 520), rect(0, 520, 960, 1040)]));
     }
 
     #[test]

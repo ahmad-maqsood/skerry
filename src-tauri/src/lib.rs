@@ -7,6 +7,7 @@ mod config_transfer;
 mod device_status;
 mod file_shelf;
 mod island;
+mod live_wallpaper;
 mod lyrics;
 mod media_control;
 mod plugin_host;
@@ -88,6 +89,7 @@ pub fn run() {
                 island::start_cursor_passthrough_loop(window);
             }
             system::fullscreen::start(app.handle());
+            live_wallpaper::init(app.handle());
             if let Err(error) = plugin_host::init(app.handle()) {
                 eprintln!("failed to initialize plugins: {error}");
             }
@@ -116,6 +118,7 @@ pub fn run() {
             ; brightness
             ; device_status
             ; changelog
+            ; live_wallpaper
         ))
         .build(context)
         .map(|app| {
@@ -124,6 +127,7 @@ pub fn run() {
                     clipboard_history::flush();
                     clipboard_window::remember_bounds(handle);
                     plugin_host::shutdown(handle);
+                    live_wallpaper::shutdown();
                 }
             })
         });

@@ -1,4 +1,4 @@
-//! JSON open/save dialogs. Each call owns an STA on a fresh thread, like folder_dialog.
+//! JSON open/save dialogs and the video open dialog. Each call owns an STA on a fresh thread, like folder_dialog.
 use std::marker::PhantomData;
 use windows::{
     core::{HRESULT, HSTRING, PWSTR},
@@ -28,6 +28,17 @@ impl Drop for ShellString {
 }
 
 pub(crate) fn choose_json(owner: isize, save_name: Option<&str>, title: &str) -> windows::core::Result<Option<String>> {
+    choose(owner, save_name, title, "JSON (*.json)", "*.json", Some("json"))
+}
+
+fn choose(
+    owner: isize,
+    save_name: Option<&str>,
+    title: &str,
+    filter_label: &str,
+    filter_pattern: &str,
+    default_extension: Option<&str>,
+) -> windows::core::Result<Option<String>> {
     // SAFETY: reserved argument is null, and successful initialization is paired by the guard.
     unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE) }.ok()?;
     let _apartment = Apartment(PhantomData);
@@ -41,15 +52,15 @@ pub(crate) fn choose_json(owner: isize, save_name: Option<&str>, title: &str) ->
             dialog.into()
         }
     };
-    let label = HSTRING::from("JSON (*.json)");
-    let pattern = HSTRING::from("*.json");
+    let label = HSTRING::from(filter_label);
+    let pattern = HSTRING::from(filter_pattern);
     let filters = [COMDLG_FILTERSPEC { pszName: windows::core::PCWSTR(label.as_ptr()), pszSpec: windows::core::PCWSTR(pattern.as_ptr()) }];
     // SAFETY: all strings and filter buffers outlive these calls; owner is the calling window.
     unsafe {
         let options = dialog.GetOptions()? | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST;
         dialog.SetOptions(options | if save_name.is_some() { FOS_OVERWRITEPROMPT } else { FOS_FILEMUSTEXIST })?;
         dialog.SetFileTypes(&filters)?;
-        dialog.SetDefaultExtension(&HSTRING::from("json"))?;
+        if let Some(extension) = default_extension { dialog.SetDefaultExtension(&HSTRING::from(extension))?; }
         dialog.SetTitle(&HSTRING::from(title))?;
         if let Some(name) = save_name { dialog.SetFileName(&HSTRING::from(name))?; }
         if let Err(error) = dialog.Show(Some(HWND(owner as *mut _))) {
@@ -62,4 +73,10 @@ pub(crate) fn choose_json(owner: isize, save_name: Option<&str>, title: &str) ->
     // SAFETY: GetDisplayName returned a valid NUL-terminated UTF-16 string.
     let result = unsafe { path.0.to_string() }.map_err(|_| windows::core::Error::from_hresult(windows::Win32::Foundation::E_UNEXPECTED))?;
     Ok(Some(result))
+}
+
+/// The open dialog for a live wallpaper video; `None` when cancelled. Like `choose_json`, it
+/// needs a fresh thread of its own.
+pub(crate) fn choose_video(owner: isize, title: &str) -> windows::core::Result<Option<String>> {
+    choose(owner, None, title, "Video files", "*.mp4;*.mov;*.m4v;*.mkv;*.webm;*.avi;*.wmv;*.3gp;*.ts;*.m2ts", None)
 }

@@ -3,6 +3,7 @@ export type LyricsSettingValues = {
   lyricsFolder: string;
   lyricsOnline: boolean;
   lyricsOnMusicPage: boolean;
+  lyricsOnCollapsed: boolean;
   lyricWordFill: boolean;
   lyricsOffsetMs: number;
 };
@@ -10,7 +11,8 @@ export type LyricsSettingValues = {
 export const DEFAULT_LYRICS_SETTINGS: LyricsSettingValues = {
   lyricsFolder: "",
   lyricsOnline: true,
-  lyricsOnMusicPage: false,
+  lyricsOnMusicPage: true,
+  lyricsOnCollapsed: false,
   lyricWordFill: false,
   lyricsOffsetMs: 0,
 };
@@ -19,8 +21,10 @@ export function normalizeLyricsSettings(saved: Partial<Record<keyof LyricsSettin
   return {
     ...DEFAULT_LYRICS_SETTINGS,
     lyricsOnline: saved?.lyricsOnline !== false,
-    // Off unless the user switched it on: saved data from before this setting stays off.
-    lyricsOnMusicPage: saved?.lyricsOnMusicPage === true,
+    // Data saved without lyricsOnCollapsed is from when the music page was off by default, and
+    // every save wrote that default out: it takes the new default once.
+    lyricsOnMusicPage: saved?.lyricsOnCollapsed === undefined || saved.lyricsOnMusicPage !== false,
+    lyricsOnCollapsed: saved?.lyricsOnCollapsed === true,
     lyricWordFill: false,
   };
 }

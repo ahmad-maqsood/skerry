@@ -192,8 +192,10 @@ export type IslandSettings = {
   lyricsFolder: string;
   /** Lyrics not in the folder are looked up on LRCLIB. */
   lyricsOnline: boolean;
-  /** The music page shows the synced lyrics (off by default: the page shows the cover and song). */
+  /** The music page shows the synced lyrics (on by default; off, it shows the cover and song). */
   lyricsOnMusicPage: boolean;
+  /** The collapsed island shows the line being sung (off by default: it shows the title and artist). */
+  lyricsOnCollapsed: boolean;
   /** Fill word-timed lyrics as they are sung, in both island states. */
   lyricWordFill: boolean;
   /** Lyrics shown this many ms later (positive) or earlier than the position Windows reports. */

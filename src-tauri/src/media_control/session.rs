@@ -603,6 +603,10 @@ pub(super) fn friendly_app_label(id: &str) -> String {
         ("msedge", "Edge"),
         ("edge", "Edge"),
         ("firefox", "Firefox"),
+        ("librewolf", "LibreWolf"),
+        ("waterfox", "Waterfox"),
+        ("floorp", "Floorp"),
+        ("vivaldi", "Vivaldi"),
         ("brave", "Brave"),
         ("opera", "Opera"),
         ("vlc", "VLC"),
@@ -624,6 +628,13 @@ pub(super) fn friendly_app_label(id: &str) -> String {
         if lowered.contains(needle) {
             return label.to_string();
         }
+    }
+
+    // Firefox's id is a 16-digit hex hash of its install (e.g. `308046B0AF4A39CB`), which would
+    // otherwise be shown as the source. Other Firefox-based browsers use the same kind of id and
+    // are called Firefox too until the user names them (Settings > Music > Player compatibility).
+    if id.len() == 16 && id.chars().all(|c| c.is_ascii_hexdigit()) {
+        return "Firefox".to_string();
     }
 
     if let Some(stripped) = lowered.strip_suffix(".exe") {
@@ -663,7 +674,14 @@ pub(super) fn current_unix_millis() -> i64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{thumbnail_is_fresh, CachedThumbnail};
+    use super::{friendly_app_label, thumbnail_is_fresh, CachedThumbnail};
+
+    #[test]
+    fn firefox_is_named_even_though_its_id_is_a_hash() {
+        assert_eq!(friendly_app_label("308046B0AF4A39CB"), "Firefox");
+        assert_eq!(friendly_app_label("Spotify.exe"), "Spotify");
+        assert_eq!(friendly_app_label("SomeApp"), "SomeApp");
+    }
 
     #[test]
     fn a_missing_or_new_cover_is_read_again() {

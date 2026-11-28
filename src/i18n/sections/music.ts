@@ -16,6 +16,8 @@ export type MusicText = {
   calibrateLine: (line: string) => string;
   seekLine: (line: string) => string;
   diagnostics: MusicDiagnosticsText;
+  sourceRenameHint: string;
+  sourceRenameLabel: (name: string) => string;
   playerLabel: string;
   controlFailed: string;
   nothingPlaying: string;
@@ -46,6 +48,8 @@ export const en: MusicText = {
     smtcOff: "Enable system media controls in player settings to sync progress.",
     noTimeline: "This player provides no timeline. Lyrics use estimated timing.",
   },
+  sourceRenameHint: "Type a name under a player to call it that on the music page and in the player order. Clear it to use the original name.",
+  sourceRenameLabel: (name) => `Name for ${name}`,
   playerLabel: "Music player",
   controlFailed: "Control failed",
   nothingPlaying: "Nothing playing",

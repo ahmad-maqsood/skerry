@@ -68,6 +68,23 @@
         "center": true,
         "resizable": true,
         "backgroundColor": "#17191d"
+      },
+      {
+        "label": "widget-clock",
+        "create": false,
+        "title": "Skerry Clock",
+        "url": "index.html?window=widget-clock",
+        "width": 560,
+        "height": 230,
+        "decorations": false,
+        "transparent": true,
+        "resizable": false,
+        "alwaysOnBottom": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "focusable": false,
+        "visible": false,
+        "shadow": false
       }
     ],
     "security": {

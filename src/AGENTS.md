@@ -9,6 +9,7 @@ src/
 ├── main.tsx                 # Sole entry point: dispatches via ?window= to root components under windows/
 ├── windows/                 # One directory per Tauri window, responsible only for composition and window-level behavior
 │   ├── island/              # Main window: IslandApp (composition only), IslandShell, expanded panel views (IslandPages), feature wiring hooks (useIslandNotices / Todos / Tucking / Shelf / Hover / Translation / Navigation; wire new features here, not in IslandApp), window dimension/drag/tuck hooks, automation hooks
+│   ├── widgets/             # Desktop widget windows (?window=widget-<id>): WidgetWindow picks the widget
 │   ├── settings/            # Settings window
 │   ├── clipboard/           # Clipboard history standalone window: custom titlebar (drag, pin on top, close), reuses panel from features/clipboard
 │   └── translation/         # Quick translation window
@@ -16,6 +17,7 @@ src/
 │   ├── todos/               # Todos, daily notes, archive, Markdown export and optional reverse sync
 │   ├── media/               # Media controls, global shortcuts (useMusicShortcuts), waveform, player diagnostic cards, and compatibility settings; lyrics/ for synced lyrics (LRC parsing, progress tracking, click-to-seek, settings)
 │   ├── clipboard/           # Clipboard history, shortcuts
+│   ├── widgets/             # Settings → Advanced → Widgets: typed IPC, switches hook, settings section; clock/ is the desktop clock (glyphs.ts weekday letters, text.ts lines, ink.ts colour choice from the backdrop, ClockWidget)
 │   ├── live-wallpaper/      # Settings → Advanced live wallpaper: typed IPC, state hook, settings section (playback is native)
 │   ├── config-transfer/     # Configuration backup / transfer: format validation, prefix filtering, batch storage restoration, native dialogs, and startup restore
 │   ├── file-shelf/          # File shelf: files dragged to the island (stores paths only), drag-out, copy, open

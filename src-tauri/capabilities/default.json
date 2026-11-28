@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Local island, translation, clipboard and settings windows",
-  "windows": ["main", "translation", "settings", "clipboard"],
+  "description": "Local island, translation, clipboard, settings and widget windows",
+  "windows": ["main", "translation", "settings", "clipboard", "widget-*"],
   "permissions": [
     "core:default",
     "core:window:allow-set-title",

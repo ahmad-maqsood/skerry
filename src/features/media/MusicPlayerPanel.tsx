@@ -12,6 +12,8 @@ import { useLyrics, type LyricsSettings } from "./lyrics/useLyrics";
 import { LyricsOffsetControl } from "./lyrics/LyricsOffsetControl";
 import { songOffsetKey } from "./lyrics/lrc";
 import { useSongOffset } from "./lyrics/useSongOffset";
+import { sourceDisplayName } from "./sourceNames";
+import { useSourceNames } from "./useSourceNames";
 import "./MusicPlayerPanel.css";
 import { hasTimeline } from "./trackClock";
 import { useMediaDiagnostics } from "./useMediaDiagnostics";
@@ -68,7 +70,9 @@ export function MusicPlayerPanel({
   const lyrics = lyricsSettings.lyricsOnMusicPage === true ? foundLyrics : null;
   const [songOffsetMs, setSongOffsetMs] = useSongOffset(lyrics ? songOffsetKey(mediaState) : null);
   const tint = useArtworkTint(mediaState.thumbnail);
-  const source = mediaState.sessions.find((session) => session.id === mediaState.activeSessionId)?.label ?? mediaState.sourceApp;
+  const { names: sourceNames } = useSourceNames();
+  const sourceLabel = mediaState.sessions.find((session) => session.id === mediaState.activeSessionId)?.label ?? mediaState.sourceApp;
+  const source = sourceDisplayName(sourceNames, currentId, sourceLabel);
   const artist = mediaState.artist || t.music.unknownArtist;
 
   const prevDisabled = mediaState.available && !mediaState.canPrevious;

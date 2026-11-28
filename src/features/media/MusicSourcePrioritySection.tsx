@@ -6,7 +6,9 @@ import { SettingsLinkButton } from "../../components/settings/SettingsLinkButton
 import { SettingsRow } from "../../components/settings/SettingsRow";
 import { useTranslation } from "../../i18n";
 import { getMediaState, type MediaState } from "./api";
+import { sourceDisplayName } from "./sourceNames";
 import { useMusicSourcePriority } from "./useMusicSourcePriority";
+import { useSourceNames } from "./useSourceNames";
 import "./MusicSourcePrioritySection.css";
 
 // Often enough for "playing" to follow a player that starts or stops.
@@ -45,6 +47,7 @@ function useLiveMediaSessions() {
 export function MusicSourcePrioritySection() {
   const text = useTranslation().settings.musicSources;
   const live = useLiveMediaSessions();
+  const { names } = useSourceNames();
   const { musicSourcePriority, archivedMusicSources, setMusicSourceOrder, archiveMusicSource, restoreMusicSource } = useMusicSourcePriority(live);
 
   return (
@@ -70,7 +73,7 @@ export function MusicSourcePrioritySection() {
             const state = session?.playing ? "playing" : session ? "open" : "notOpen";
             return {
               id: source.id,
-              name: source.label,
+              name: sourceDisplayName(names, source.id, source.label),
               hint: text[state],
               icon: <span className={`music-sources__dot music-sources__dot--${state}`} aria-hidden="true" />,
             };
@@ -88,7 +91,7 @@ export function MusicSourcePrioritySection() {
         {archivedMusicSources.map((source) => (
           <SettingsRow
             key={source.id}
-            title={source.label}
+            title={sourceDisplayName(names, source.id, source.label)}
             control={<SettingsLinkButton onClick={() => restoreMusicSource(source.id)}>{text.restore}</SettingsLinkButton>}
           />
         ))}

@@ -10,8 +10,8 @@ use std::{
 use windows::Win32::Foundation::RECT;
 
 use super::model::{
-    is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, unload_due, Fit, Status,
-    MAX_RECOVERIES, STABLE_AFTER,
+    is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, still_size, unload_due, Fit, Status,
+    UnloadAfter, MAX_RECOVERIES, STABLE_AFTER,
 };
 use crate::win32::{
     self,
@@ -24,11 +24,14 @@ use crate::win32::{
 const TICK_MS: u32 = 100;
 /// How often the open windows, monitors and desktop are looked at.
 const CHECK_EVERY: Duration = Duration::from_millis(500);
+/// The same, while the players are closed: a desktop that shows again is noticed sooner, so the
+/// picture is back with as little gap as possible.
+const CHECK_EVERY_UNLOADED: Duration = Duration::from_millis(150);
 /// How long to wait before rebuilding after Explorer went away.
 const RETRY_AFTER: Duration = Duration::from_secs(2);
 
 enum Command {
-    SetOptions { fit: Fit, pause_on_battery: bool },
+    SetOptions { fit: Fit, pause_on_battery: bool, unload_after: UnloadAfter },
     Stop,
 }
 
@@ -42,11 +45,12 @@ impl Worker {
         path: String,
         fit: Fit,
         pause_on_battery: bool,
+        unload_after: UnloadAfter,
         report: impl Fn(Status) + Send + 'static,
     ) -> Self {
         let (commands, receiver) = mpsc::channel();
         let thread = thread::spawn(move || {
-            if let Err(message) = run(&path, fit, pause_on_battery, &receiver, &report) {
+            if let Err(message) = run(&path, fit, pause_on_battery, unload_after, &receiver, &report) {
                 eprintln!("live wallpaper stopped: {message}");
                 report(Status::Error(message));
             }
@@ -54,8 +58,8 @@ impl Worker {
         Self { commands, thread }
     }
 
-    pub(super) fn set_options(&self, fit: Fit, pause_on_battery: bool) {
-        let _ = self.commands.send(Command::SetOptions { fit, pause_on_battery });
+    pub(super) fn set_options(&self, fit: Fit, pause_on_battery: bool, unload_after: UnloadAfter) {
+        let _ = self.commands.send(Command::SetOptions { fit, pause_on_battery, unload_after });
     }
 
     /// Returns once the windows are gone and the video file is closed.
@@ -75,12 +79,29 @@ struct Screen {
     resume_at: f64,
 }
 
-fn build(runtime: &MediaRuntime, path: &str, monitors: &[RECT], resume_at: f64) -> Result<Vec<Screen>, String> {
+/// Desktop windows kept while the players are closed, so the desktop is never handed back to
+/// Explorer's static wallpaper (which showed for a moment when the video came back).
+type Parked = Vec<(RECT, DesktopSurface)>;
+
+fn build(
+    runtime: &MediaRuntime,
+    path: &str,
+    monitors: &[RECT],
+    resume_at: f64,
+    parked: &mut Parked,
+) -> Result<Vec<Screen>, String> {
     let layer = DesktopLayer::find()?;
     monitors
         .iter()
         .map(|&monitor| {
-            let surface = DesktopSurface::new(layer, monitor)?;
+            let kept = parked
+                .iter()
+                .position(|(rect, surface)| *rect == monitor && surface.is_alive())
+                .map(|index| parked.swap_remove(index).1);
+            let surface = match kept {
+                Some(surface) => surface,
+                None => DesktopSurface::new(layer, monitor)?,
+            };
             let player = VideoPlayer::open(runtime, surface.video_window(), path)?;
             Ok(Screen { player, surface, monitor, laid_out: None, resume_at })
         })
@@ -91,6 +112,7 @@ fn run(
     path: &str,
     mut fit: Fit,
     mut pause_on_battery: bool,
+    mut unload_after: UnloadAfter,
     commands: &Receiver<Command>,
     report: &dyn Fn(Status),
 ) -> Result<(), String> {
@@ -121,14 +143,16 @@ fn run(
     // Every desktop hidden since when, and whether the players were closed to free their memory.
     let mut hidden_since: Option<Instant> = None;
     let mut unloaded = false;
+    let mut parked: Parked = Vec::new();
     let mut monitors_now: Vec<RECT> = Vec::new();
 
     loop {
         loop {
             match commands.try_recv() {
-                Ok(Command::SetOptions { fit: next_fit, pause_on_battery: next_pause }) => {
+                Ok(Command::SetOptions { fit: next_fit, pause_on_battery: next_pause, unload_after: next_unload }) => {
                     fit = next_fit;
                     pause_on_battery = next_pause;
+                    unload_after = next_unload;
                 }
                 Ok(Command::Stop) | Err(TryRecvError::Disconnected) => return Ok(()),
                 Err(TryRecvError::Empty) => break,
@@ -136,7 +160,7 @@ fn run(
         }
 
         if Instant::now() >= next_check {
-            next_check = Instant::now() + CHECK_EVERY;
+            next_check = Instant::now() + if unloaded { CHECK_EVERY_UNLOADED } else { CHECK_EVERY };
             let monitors = desktop_layer::monitors();
             let stale = !unloaded
                 && (screens.is_empty() || monitors != built_for
@@ -148,9 +172,13 @@ fn run(
                     position = screen.player.position();
                 }
                 screens.clear();
-                match build(&runtime, path, &monitors, position) {
+                if monitors != built_for {
+                    parked.clear();
+                }
+                match build(&runtime, path, &monitors, position, &mut parked) {
                     Ok(next) => {
                         screens = next;
+                        parked.clear();
                         built_for = monitors;
                         failures = 0;
                     }
@@ -209,11 +237,23 @@ fn run(
             let since = *hidden_since.get_or_insert_with(Instant::now);
             let settled = !screens.is_empty()
                 && screens.iter().all(|screen| screen.player.is_loaded() && screen.resume_at == 0.0);
-            if unload_due(since.elapsed()) && settled {
+            if unload_due(since.elapsed(), unload_after) && settled {
                 if let Some(screen) = screens.first() {
                     position = screen.player.position();
                 }
-                screens.clear();
+                // Close the players but keep their windows on the desktop, each showing the
+                // picture the video had stopped on (black where that could not be read).
+                for Screen { player, surface, monitor, .. } in screens.drain(..) {
+                    let (width, height) = (monitor.right - monitor.left, monitor.bottom - monitor.top);
+                    let (still_width, still_height) = still_size(width, height);
+                    let still = player
+                        .video_size()
+                        .map(|video| source_rect(fit, video, (width, height)))
+                        .and_then(|source| player.still_frame(source, still_width, still_height));
+                    drop(player);
+                    surface.show_still(still.as_ref());
+                    parked.push((monitor, surface));
+                }
                 unloaded = true;
                 hidden_since = None;
             }
@@ -238,6 +278,10 @@ fn run(
             }
             let play = !locked && screen_on && !power_paused && !covered.contains(&screen.monitor);
             screen.player.set_playing(play);
+            if play {
+                // The video is drawing again: the kept picture is no longer needed.
+                screen.surface.drop_still();
+            }
             any_playing |= play;
         }
 

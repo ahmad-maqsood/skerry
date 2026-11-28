@@ -7,6 +7,7 @@ import { IslandApp } from "./windows/island/IslandApp";
 import { TranslationWindow } from "./windows/translation/TranslationWindow";
 import { SettingsWindow } from "./windows/settings/SettingsWindow";
 import { ClipboardWindow } from "./windows/clipboard/ClipboardWindow";
+import { WidgetWindow } from "./windows/widgets/WidgetWindow";
 import { I18nProvider, loadLocale, TRANSLATIONS } from "./i18n";
 import { trackIslandTopEdge } from "./windows/island/topEdge";
 import { installSameWindowStorageEvents } from "./lib/sameWindowStorageEvents";
@@ -67,6 +68,8 @@ async function mountApp() {
           <SettingsWindow />
         ) : windowKind === "clipboard" ? (
           <ClipboardWindow />
+        ) : windowKind?.startsWith("widget-") ? (
+          <WidgetWindow kind={windowKind} />
         ) : (
           <IslandApp />
         )}

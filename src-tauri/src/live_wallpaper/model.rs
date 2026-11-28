@@ -15,6 +15,31 @@ pub enum Fit {
     Fit,
 }
 
+/// How long every desktop must stay hidden before the players are closed to free their memory.
+/// Mirrored by LiveWallpaperUnloadAfter in src/features/live-wallpaper/api.ts.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum UnloadAfter {
+    Minute,
+    #[default]
+    ThreeMinutes,
+    TenMinutes,
+    /// The players stay open (and keep their memory) however long the desktop is hidden.
+    Never,
+}
+
+impl UnloadAfter {
+    /// The hidden time after which the players close; `None` for never.
+    pub(crate) fn delay(self) -> Option<Duration> {
+        match self {
+            Self::Minute => Some(Duration::from_secs(60)),
+            Self::ThreeMinutes => Some(Duration::from_secs(180)),
+            Self::TenMinutes => Some(Duration::from_secs(600)),
+            Self::Never => None,
+        }
+    }
+}
+
 /// Mirrored by LiveWallpaperSettings in src/features/live-wallpaper/api.ts. Off by default.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
@@ -24,11 +49,13 @@ pub struct Settings {
     pub fit: Fit,
     /// Pause on battery power or in Battery Saver. On by default, also for files saved before it existed.
     pub pause_on_battery: bool,
+    /// When the players close after the desktop was hidden. Three minutes, also for files saved before it existed.
+    pub unload_after: UnloadAfter,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Self { enabled: false, path: String::new(), fit: Fit::default(), pause_on_battery: true }
+        Self { enabled: false, path: String::new(), fit: Fit::default(), pause_on_battery: true, unload_after: UnloadAfter::default() }
     }
 }
 
@@ -94,12 +121,24 @@ pub(crate) const MAX_RECOVERIES: u32 = 3;
 /// Playing this long without an error counts the last recovery as having worked.
 pub(crate) const STABLE_AFTER: Duration = Duration::from_secs(15);
 
-/// How long every desktop must stay hidden before the players are closed to free their memory.
-pub(crate) const UNLOAD_AFTER: Duration = Duration::from_secs(180);
-
 /// Whether the desktops have been hidden long enough to close the players.
-pub(crate) fn unload_due(hidden_for: Duration) -> bool {
-    hidden_for >= UNLOAD_AFTER
+pub(crate) fn unload_due(hidden_for: Duration, after: UnloadAfter) -> bool {
+    after.delay().is_some_and(|delay| hidden_for >= delay)
+}
+
+/// The widest the picture kept on the desktop while the video is closed gets, in pixels. A 4K
+/// screen would otherwise hold some 33 MB for it; this holds about 8 MB at most, and the picture
+/// is stretched to the screen when drawn.
+pub(crate) const STILL_MAX_WIDTH: i32 = 1920;
+
+/// The size of the kept picture for a screen of `width` by `height` pixels.
+pub(crate) fn still_size(width: i32, height: i32) -> (i32, i32) {
+    let (width, height) = (width.max(1), height.max(1));
+    if width <= STILL_MAX_WIDTH {
+        return (width, height);
+    }
+    let scaled = i64::from(height) * i64::from(STILL_MAX_WIDTH) / i64::from(width);
+    (STILL_MAX_WIDTH, i32::try_from(scaled).unwrap_or(height).max(1))
 }
 
 /// Whether trying again could help. An unsupported format (4) never gets better by itself, while a
@@ -156,9 +195,33 @@ mod tests {
 
     #[test]
     fn players_close_only_after_a_long_hidden_spell() {
-        assert!(!unload_due(Duration::ZERO));
-        assert!(!unload_due(UNLOAD_AFTER - Duration::from_millis(1)));
-        assert!(unload_due(UNLOAD_AFTER));
+        let three = UnloadAfter::ThreeMinutes;
+        let delay = Duration::from_secs(180);
+        assert!(!unload_due(Duration::ZERO, three));
+        assert!(!unload_due(delay - Duration::from_millis(1), three));
+        assert!(unload_due(delay, three));
+    }
+
+    #[test]
+    fn the_unload_delay_follows_the_setting_and_never_means_never() {
+        assert!(unload_due(Duration::from_secs(60), UnloadAfter::Minute));
+        assert!(!unload_due(Duration::from_secs(599), UnloadAfter::TenMinutes));
+        assert!(unload_due(Duration::from_secs(600), UnloadAfter::TenMinutes));
+        assert!(!unload_due(Duration::from_secs(10 * 24 * 3600), UnloadAfter::Never));
+        let saved: Settings = serde_json::from_str("{}").unwrap();
+        assert_eq!(saved.unload_after, UnloadAfter::ThreeMinutes);
+        let never: Settings = serde_json::from_str(r#"{"unloadAfter":"never"}"#).unwrap();
+        assert_eq!(never.unload_after, UnloadAfter::Never);
+    }
+
+    #[test]
+    fn the_kept_picture_is_capped_in_width_and_keeps_the_screen_shape() {
+        assert_eq!(still_size(1920, 1080), (1920, 1080));
+        assert_eq!(still_size(1366, 768), (1366, 768));
+        assert_eq!(still_size(3840, 2160), (1920, 1080));
+        assert_eq!(still_size(5120, 1440), (1920, 540));
+        assert_eq!(still_size(0, -5), (1, 1));
+        assert_eq!(still_size(100_000, 1), (1920, 1));
     }
 
     #[test]

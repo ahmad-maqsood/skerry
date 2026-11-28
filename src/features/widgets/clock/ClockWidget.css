@@ -1,0 +1,43 @@
+.widget-clock {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  color: var(--widget-ink);
+  font-family: Bahnschrift, "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  font-weight: 600;
+  user-select: none;
+  cursor: default;
+  transition: color 0.8s ease;
+}
+/* The window itself is the drag handle (data-tauri-drag-region), so its contents must not take the click. */
+.widget-clock > * {
+  pointer-events: none;
+}
+.widget-clock__weekday {
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: var(--widget-ink);
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 10;
+  filter: drop-shadow(var(--widget-shadow));
+  transition: stroke 0.8s ease;
+}
+.widget-clock__date,
+.widget-clock__time {
+  letter-spacing: 0.2em;
+  text-shadow: var(--widget-shadow);
+  white-space: nowrap;
+}
+.widget-clock__date {
+  font-size: 19px;
+}
+.widget-clock__time {
+  font-size: 20px;
+  letter-spacing: 0.16em;
+}

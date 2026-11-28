@@ -43,6 +43,18 @@ pub struct LyricsQuery {
     /// Whether LRCLIB may be asked.
     #[serde(default)]
     online: bool,
+    /// The player's own id for the song, when it reports one.
+    #[serde(default)]
+    #[allow(dead_code, reason = "sent by the island (tests/regression/lyric-word-fill.tsx) for player-specific sources; LRCLIB and local files do not use it")]
+    track_id: Option<String>,
+    /// The playing app's AppUserModelId.
+    #[serde(default)]
+    #[allow(dead_code, reason = "sent by the island for player-specific sources; LRCLIB and local files do not use it")]
+    source_app_id: Option<String>,
+    /// Whether word-by-word lyrics are switched on.
+    #[serde(default)]
+    #[allow(dead_code, reason = "sent by the island for sources with word timing; LRCLIB and local files do not use it")]
+    word_fill: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

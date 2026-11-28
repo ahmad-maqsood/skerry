@@ -11,6 +11,7 @@ import type { SettingsPositionText } from "./position";
 import type { SettingsExpandText } from "./expand";
 import type { SettingsLyricsText } from "./lyrics";
 import type { SettingsLiveWallpaperText } from "./liveWallpaper";
+import type { SettingsWidgetsText } from "./widgets";
 import type { SettingsMusicSourcesText } from "./musicSources";
 import type { SettingsShortcutsText } from "./shortcuts";
 import type { SettingsProjectText } from "./project";
@@ -40,6 +41,7 @@ import * as position from "./position.ts";
 import * as expand from "./expand.ts";
 import * as lyrics from "./lyrics.ts";
 import * as liveWallpaper from "./liveWallpaper.ts";
+import * as widgets from "./widgets.ts";
 import * as musicSources from "./musicSources.ts";
 import * as shortcuts from "./shortcuts.ts";
 import * as project from "./project.ts";
@@ -80,6 +82,7 @@ export type SettingsText = {
 
   lyrics: SettingsLyricsText;
   liveWallpaper: SettingsLiveWallpaperText;
+  widgets: SettingsWidgetsText;
 
   musicSources: SettingsMusicSourcesText;
 
@@ -134,6 +137,7 @@ export const en: SettingsText = {
 
   lyrics: lyrics.en,
   liveWallpaper: liveWallpaper.en,
+  widgets: widgets.en,
   musicSources: musicSources.en,
 
   shortcuts: shortcuts.en,

@@ -28,6 +28,11 @@
   filter: drop-shadow(var(--widget-shadow));
   transition: stroke 0.8s ease;
 }
+/* A picked colour should keep up with the picker as it is dragged. */
+.widget-clock--custom,
+.widget-clock--custom .widget-clock__weekday {
+  transition-duration: 0.1s;
+}
 .widget-clock__date,
 .widget-clock__time {
   letter-spacing: 0.2em;

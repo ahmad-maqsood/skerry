@@ -54,9 +54,16 @@ export function pickInk(backdrop: WidgetBackdrop | null): WidgetInk {
   for (let step = 0; step <= 20 && contrastBetween(luminanceOf(ink), background) < MIN_CONTRAST; step += 1) {
     ink = mix(accent ?? target, target, step / 20);
   }
-  const lightInk = luminanceOf(ink) > 0.4;
-  return {
-    color: hex(ink),
-    shadow: lightInk ? "0 1px 5px rgba(0, 0, 0, 0.45)" : "0 1px 5px rgba(255, 255, 255, 0.35)",
-  };
+  return { color: hex(ink), shadow: shadowFor(ink) };
+}
+
+/** A dark halo under light ink and a light one under dark ink, so either keeps an edge. */
+function shadowFor(ink: Rgb) {
+  return luminanceOf(ink) > 0.4 ? "0 1px 5px rgba(0, 0, 0, 0.45)" : "0 1px 5px rgba(255, 255, 255, 0.35)";
+}
+
+/** The user's own colour (`#RRGGBB`), drawn exactly as picked; only the halo is chosen for it. */
+export function customInk(color: string): WidgetInk {
+  const rgb = [1, 3, 5].map((start) => parseInt(color.slice(start, start + 2), 16)) as Rgb;
+  return { color, shadow: shadowFor(rgb) };
 }

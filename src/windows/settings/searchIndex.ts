@@ -180,6 +180,8 @@ export const SETTINGS_SEARCH_INDEX: readonly SettingsSearchEntry[] = [
   { page: "advanced", group: "Live wallpaper", title: "Free memory when hidden for" },
   { page: "advanced", group: "Widgets" },
   { page: "advanced", group: "Widgets", title: "Clock" },
+  { page: "advanced", group: "Widgets", title: "Clock colour", conditional: true },
+  { page: "advanced", group: "Widgets", title: "Custom colour", conditional: true },
   { page: "about", title: "Automatic updates" },
   { page: "about", title: "Check for updates" },
   { page: "about", group: "Troubleshooting" },

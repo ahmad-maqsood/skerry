@@ -7,8 +7,11 @@ const SAMPLE_EVERY_MS = 5000;
 /** After a drag stops, the place is kept and the new backdrop is read. */
 const SETTLE_MS = 500;
 
-/** The widget's colour, chosen from what is behind it and kept up to date. */
-export function useWidgetInk(): WidgetInk {
+/**
+ * The widget's automatic colour, chosen from what is behind it and kept up to date while `follow`
+ * is on. With a colour of the user's own the desktop is not read; a drag's new place is still kept.
+ */
+export function useWidgetInk(follow: boolean): WidgetInk {
   const [ink, setInk] = useState<WidgetInk>(FALLBACK_INK);
 
   useEffect(() => {
@@ -18,7 +21,7 @@ export function useWidgetInk(): WidgetInk {
     let settleTimer = 0;
 
     const refresh = async () => {
-      if (busy) return;
+      if (!follow || busy) return;
       busy = true;
       try {
         const backdrop = await sampleWidgetBackdrop();
@@ -50,7 +53,7 @@ export function useWidgetInk(): WidgetInk {
       window.clearTimeout(settleTimer);
       void unlisten.then((stop) => stop()).catch(() => {});
     };
-  }, []);
+  }, [follow]);
 
   return ink;
 }

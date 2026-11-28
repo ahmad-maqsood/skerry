@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { hasGlyph, layoutWord } from "../../src/features/widgets/clock/glyphs.ts";
 import { clockLines, msUntilNextMinute } from "../../src/features/widgets/clock/text.ts";
-import { contrastBetween, FALLBACK_INK, pickInk } from "../../src/features/widgets/clock/ink.ts";
+import { contrastBetween, customInk, FALLBACK_INK, pickInk } from "../../src/features/widgets/clock/ink.ts";
+import { DEFAULT_CLOCK_COLOR, normalizeClockColor } from "../../src/features/widgets/clock/storage.ts";
 
 const names = {
   weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -57,4 +58,18 @@ test("an accent too close to the background is lightened or darkened until it re
 test("no backdrop or a damaged one falls back to white ink", () => {
   assert.deepEqual(pickInk(null), FALLBACK_INK);
   assert.deepEqual(pickInk({ luminance: Number.NaN, average: [0, 0, 0], accent: null }), FALLBACK_INK);
+});
+
+test("a picked colour is drawn as picked, with a halo that contrasts with it", () => {
+  assert.deepEqual(customInk("#FFE08A"), { color: "#FFE08A", shadow: "0 1px 5px rgba(0, 0, 0, 0.45)" });
+  assert.deepEqual(customInk("#101030"), { color: "#101030", shadow: "0 1px 5px rgba(255, 255, 255, 0.35)" });
+});
+
+test("the saved clock colour falls back to the default field by field", () => {
+  for (const damaged of [undefined, null, "custom", 7, {}]) {
+    assert.deepEqual(normalizeClockColor(damaged), DEFAULT_CLOCK_COLOR);
+  }
+  assert.deepEqual(normalizeClockColor({ mode: "custom", color: "#ab12cd" }), { mode: "custom", color: "#AB12CD" });
+  assert.deepEqual(normalizeClockColor({ mode: "custom", color: "red" }), { mode: "custom", color: "#FFFFFF" });
+  assert.deepEqual(normalizeClockColor({ mode: "neon", color: "#000000" }), { mode: "auto", color: "#000000" });
 });

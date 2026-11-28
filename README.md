@@ -110,7 +110,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 <p align="center">
   <img src="docs/assets/screenshots/screenshot-music.png" alt="Music player with synced lyrics on the island" width="760">
   <br>
-  <b>Music and Lyrics</b>: WinRT GSMTC playback integration with synchronized line-by-line lyrics from LRCLIB.
+  <b>Music and Lyrics</b>: WinRT GSMTC playback integration with synchronized line-by-line lyrics from LRCLIB. The playing song's colours light the whole open island.
 </p>
 
 ### Tasks, Translation, and File Staging
@@ -234,6 +234,12 @@ Each published GitHub Release page also provides GitHub-generated source archive
   - **Synchronized Lyrics**: Queries LRCLIB for line-by-line lyrics synchronized with playback.
   - **Collapsed Lyric Glance**: The collapsed pill shows the song title and artist during playback, or the active lyric line when switched on in Settings -> Music.
   - **Players and Shortcuts**: Set which player takes priority, and assign optional global music shortcuts.
+  - **Song-Coloured Island**: On the music page the cover's colours glow across the whole open island, header included, and drift while the song plays (still when reduced motion is on).
+
+- **Desktop Clock Widget** (Settings -> Advanced -> Widgets, off by default)
+  - **Look**: The weekday in wide, cut geometric letters, with the date and a 12-hour time under it, in the style of the Mond desktop skin.
+  - **Moving It**: Drag it anywhere on the desktop; the pointer turns into a hand over it, and its place is kept.
+  - **Colour**: "Auto" picks a readable colour from the wallpaper. It looks only while no app window is open on that screen, and changes only when two looks in a row agree, so open windows and passing video scenes do not recolour it. "Custom" keeps a colour you pick.
 
 - **Tasks, Notes, and Timers**
   - **Daily Checklist**: Quick task creation, completion toggles, and rotation.
@@ -352,6 +358,7 @@ flowchart TD
 ├── scripts/                  # Release automation, size checks, screenshots, and regression runner
 ├── tests/                    # Unit tests, script tests, browser regression pages, screenshot scenes
 ├── docs/                     # Architecture, design notes, updater/release guide, plugin guide, screenshot shot list
+├── licenses/                 # Licence texts of bundled fonts
 ├── .github/workflows/        # CI, Release, Screenshots and Microsoft Store package workflows
 ├── release-features.json     # Release feature flags shared by the frontend and Rust
 ├── AGENTS.md / DESIGN.md     # Contributor and AI-agent rules; confirmed UI design conventions
@@ -418,5 +425,7 @@ For instructions on reporting security vulnerabilities, please refer to [SECURIT
 Skerry's main application is a modified derivative of [Fly Island](https://github.com/flyl1u/fly-island) and is distributed under [GNU GPL-3.0-only](LICENSE). The project-origin and modification history are recorded in [NOTICE.md](NOTICE.md).
 
 The optional plugin workspace crates under `plugins/` declare the MIT License; see [plugins/LICENSE-MIT](plugins/LICENSE-MIT). Third-party dependency license details and the current scope of the license inventory are explained in [NOTICE.md](NOTICE.md).
+
+The clock widget's date and time are set in [Quicksand](https://github.com/andrew-paglinawan/QuicksandFamily), bundled under the [SIL Open Font License 1.1](licenses/Quicksand-OFL.txt).
 
 The full GPL license text is configured for inclusion in the Windows installer bundles.

@@ -223,3 +223,4 @@ Overview see [overview.md](overview.md).
 
 - The `mail` collapsed-island slot and the `mailEnabled` setting were removed (2026-11-23): nothing rendered them. Saved layouts and hidden lists that still name `mail` drop it on read, like any unknown slot; a stored `mailEnabled` is ignored.
 - `skerry-settings.marginY` is a setting again (2026-11-23): an integer px, 0-160, default 0 (values outside are clamped, non-numbers read as 0). No Rust or command changes; `set_island_layout` and `set_island_interaction` already clamped it to 0-160.
+- Live wallpaper (2026-11-28): `live-wallpaper.json` in the app data directory (`{ enabled, path, fit: "fill" | "fit" }`, default off with an empty path; not part of configuration transfer, as the path belongs to one computer). Commands `get_live_wallpaper`, `set_live_wallpaper`, `pick_live_wallpaper_video`; event `live-wallpaper-status` (`{ kind: "off" | "noVideo" | "starting" | "playing" | "paused" | "error", message? }`).

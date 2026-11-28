@@ -5,7 +5,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if features["plugins"].as_bool().ok_or("release feature must be a boolean")? {
         println!("cargo:rustc-cfg=skerry_plugins");
     }
-    tauri_build::build();
+    println!("cargo:rerun-if-changed=windows-app-manifest.xml");
+    let windows = tauri_build::WindowsAttributes::new().app_manifest(include_str!("windows-app-manifest.xml"));
+    tauri_build::try_build(tauri_build::Attributes::new().windows_attributes(windows))?;
+    // Missing on Windows "N" editions, and not needed unless the live wallpaper is on.
+    println!("cargo:rustc-link-arg=/DELAYLOAD:mfplat.dll");
     println!("cargo:rustc-link-arg=/DELAYLOAD:comctl32.dll");
     println!("cargo:rustc-link-lib=delayimp");
     Ok(())

@@ -16,6 +16,7 @@ src-tauri/src/
 ├── config_transfer/         # Configuration backup / transfer: native file dialogs, restricted data and sound pack collection, startup restore, and undo logs
 ├── file_shelf/              # File shelf: path list (file-shelf.json) and commands; drag-out invokes win32/ole.rs
 ├── media_control/           # diagnostics.rs: SMTC, processes, versions, and player read-only diagnostics; hotkeys.rs: optional music global shortcuts, registration status, and existing media session control
+├── live_wallpaper/          # Opt-in video wallpaper behind the desktop icons (off by default): saved switch, worker thread that pauses per screen while the desktop is hidden
 ├── lyrics/                  # Local LRC, LRCLIB; online results cached in lyrics-cache/
 ├── device_status/           # Device pop-up sources polled by the island: connected Bluetooth devices (WinRT device enumeration) and airplane mode (registry)
 ├── system_notifications/  # Generic Windows system notification listener (WinRT UserNotificationListener), history, logo cache, per-app mute, privacy filter
@@ -28,7 +29,7 @@ src-tauri/src/
                              # com (COM / WinRT initialization guard), audio, ole (file drag-out), process / process_times, process_job (plugin process tree cleanup on exit), registry,
                              # notification_state (fullscreen application detection), shell_open (protocol opening without system error dialogs),
                              # task_switcher (keeps main window out of Alt+Tab), known_folder (known folders such as Downloads),
-                             # icon, process_env / process_tree / process_memory, file_version (exe file version), std_handle (redirecting stderr, local time), uia_tabs / uia_list, caption_close, taskbar
+                             # icon, process_env / process_tree / process_memory, file_version (exe file version), desktop_layer (windows behind the desktop icons), video_player (Media Foundation playback), std_handle (redirecting stderr, local time), uia_tabs / uia_list, caption_close, taskbar
 ```
 
 ## lib.rs and Module Organization

@@ -8,10 +8,10 @@
 use windows::{
     core::BOOL,
     Win32::{
-        Foundation::{HWND, LPARAM},
+        Foundation::{HWND, LPARAM, RECT},
         Graphics::{
             Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED},
-            Gdi::{MonitorFromWindow, MONITOR_DEFAULTTONULL},
+            Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST, MONITOR_DEFAULTTONULL},
         },
         UI::WindowsAndMessaging::{
             EnumWindows, GetWindow, GW_OWNER, WS_EX_APPWINDOW, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
@@ -119,6 +119,43 @@ unsafe extern "system" fn check_window(hwnd: HWND, found: LPARAM) -> BOOL {
     BOOL::from(true)
 }
 
+/// Whether a window with these bounds hides the whole desktop of a monitor with this work area
+/// (the monitor without the taskbar): maximized and full-screen windows do, smaller ones do not.
+fn hides_desktop(window: RECT, work: RECT) -> bool {
+    window.left <= work.left && window.top <= work.top && window.right >= work.right && window.bottom >= work.bottom
+}
+
+unsafe extern "system" fn collect_covered(hwnd: HWND, list: LPARAM) -> BOOL {
+    if !window::is_visible(hwnd) || window::is_minimized(hwnd) {
+        return BOOL::from(true);
+    }
+    let class = window::class_name(hwnd);
+    if !is_open_app_window(&facts_of(hwnd, &class)) {
+        return BOOL::from(true);
+    }
+    let mut info = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+    // SAFETY: DEFAULTTONEAREST always returns a monitor; GetMonitorInfoW writes only into `info`,
+    // whose cbSize is set.
+    let read = unsafe {
+        GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &mut info).as_bool()
+    };
+    if read && window::window_rect(hwnd).is_some_and(|rect| hides_desktop(rect, info.rcWork)) {
+        // SAFETY: `list` is the address of the Vec on `covered_monitors`'s stack, which outlives
+        // the EnumWindows call that runs this callback on the same thread.
+        unsafe { (*(list.0 as *mut Vec<RECT>)).push(info.rcMonitor) };
+    }
+    BOOL::from(true)
+}
+
+/// The monitors (full rectangles) whose desktop an app window hides right now.
+pub(crate) fn covered_monitors() -> Vec<RECT> {
+    let mut covered: Vec<RECT> = Vec::new();
+    // SAFETY: the callback matches WNDENUMPROC and only writes through the pointer to `covered`,
+    // which stays alive for the whole call.
+    let _ = unsafe { EnumWindows(Some(collect_covered), LPARAM((&mut covered as *mut Vec<RECT>) as isize)) };
+    covered
+}
+
 /// Whether any app window is open on screen right now.
 pub(crate) fn any_open_app_window() -> bool {
     let mut found = false;
@@ -146,6 +183,17 @@ mod tests {
             width: 640,
             height: 480,
         }
+    }
+
+    #[test]
+    fn only_maximized_and_full_screen_windows_hide_the_desktop() {
+        let work = RECT { left: 0, top: 0, right: 1920, bottom: 1040 };
+        let rect = |left, top, right, bottom| RECT { left, top, right, bottom };
+        // Maximized windows hang a few pixels past the work area; full screen covers the taskbar.
+        assert!(hides_desktop(rect(-8, -8, 1928, 1048), work));
+        assert!(hides_desktop(rect(0, 0, 1920, 1080), work));
+        assert!(!hides_desktop(rect(0, 0, 960, 1040), work));
+        assert!(!hides_desktop(rect(100, 100, 1800, 900), work));
     }
 
     #[test]

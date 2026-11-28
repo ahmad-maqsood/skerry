@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Activity, ClipboardList, Info, Languages, ListTodo, MessageCircle, Music, Palette, Puzzle, ScrollText, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { Activity, ClipboardList, FlaskConical, Info, Languages, ListTodo, MessageCircle, Music, Palette, Puzzle, ScrollText, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { useTranslation } from "../../i18n";
 import { SETTINGS_GROUPS, type SettingsCategory } from "./categories";
 import { SettingsSearch } from "./SettingsSearch";
@@ -15,6 +15,7 @@ const CATEGORY_ICONS: Record<SettingsCategory, LucideIcon> = {
   clipboard: ClipboardList,
   translation: Languages,
   system: Activity,
+  advanced: FlaskConical,
   plugins: Puzzle,
   changelog: ScrollText,
   about: Info,

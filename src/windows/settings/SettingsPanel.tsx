@@ -12,6 +12,7 @@ import { PluginsSettingsPage } from "./PluginsSettingsPage";
 import { SETTINGS_FOCUS_STORAGE_KEY, takeFocusRequest, requestPanelPreview } from "./storage";
 import { TodosSettingsPage } from "./TodosSettingsPage";
 import { TranslationSettingsPage } from "./TranslationSettingsPage";
+import { AdvancedSettingsPage } from "./AdvancedSettingsPage";
 import { AboutSettingsPage } from "./AboutSettingsPage";
 import { ChangelogSettingsPage } from "./ChangelogSettingsPage";
 import { SettingsErrorBoundary } from "./SettingsErrorBoundary";
@@ -135,6 +136,7 @@ export function SettingsPanel({
         {category === "clipboard" && <ClipboardSettingsPage settings={settings} onSettingsChange={setSettings} />}
         {category === "music" && <MusicSettingsPage settings={settings} onSettingsChange={setSettings} />}
         {category === "system" && <SystemSettingsPage islandSettings={settings} onIslandSettingsChange={setSettings} />}
+        {category === "advanced" && <AdvancedSettingsPage />}
         {category === "plugins" && <PluginsSettingsPage />}
         {category === "changelog" && <ChangelogSettingsPage />}
         {category === "about" && <AboutSettingsPage />}

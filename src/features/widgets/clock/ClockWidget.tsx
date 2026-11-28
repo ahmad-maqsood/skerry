@@ -1,11 +1,14 @@
-import type { CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 // The date and time's rounded face (OFL, licenses/Quicksand-OFL.txt), bundled so it works offline.
 import "@fontsource/quicksand/latin-700.css";
 import { useTranslation } from "../../../i18n";
+import { resizeWidget } from "../api";
 import { useWidgetInk } from "../useWidgetInk";
 import { GLYPH_HEIGHT, layoutWord } from "./glyphs";
 import { useClockLines } from "./useClockLines";
 import { useClockColor } from "./useClockColor";
+import { useClockSize } from "./useClockSize";
+import { clockScale, clockWindowSize } from "./size";
 import { customInk } from "./ink";
 import "./ClockWidget.css";
 
@@ -25,7 +28,17 @@ export function ClockWidget() {
   const followed = useWidgetInk(!isCustom);
   const ink = isCustom ? customInk(colorSettings.color) : followed;
   const word = layoutWord(lines.weekday);
-  const style = { "--widget-ink": ink.color, "--widget-shadow": ink.shadow } as CSSProperties;
+  const { width } = useClockSize();
+  // The window follows the width chosen in Settings; the face inside is scaled to fill it.
+  useEffect(() => {
+    const size = clockWindowSize(width);
+    void resizeWidget(size.width, size.height).catch((error: unknown) => console.warn("Could not resize the clock widget", error));
+  }, [width]);
+  const style = {
+    "--widget-ink": ink.color,
+    "--widget-shadow": ink.shadow,
+    "--widget-scale": clockScale(width),
+  } as CSSProperties;
 
   return (
     <div className={isCustom ? "widget-clock widget-clock--custom" : "widget-clock"} data-tauri-drag-region style={style} role="img" aria-label={`${lines.weekday} ${lines.date} ${lines.time}`}>

@@ -1,7 +1,9 @@
 import { readJson, writeJson } from "../../../lib/storage.ts";
+import { normalizeClockWidth } from "./size.ts";
 
 export const CLOCK_COLOR_KEY = "skerry-widget-clock-color";
 export const CLOCK_INK_KEY = "skerry-widget-clock-ink";
+export const CLOCK_SIZE_KEY = "skerry-widget-clock-size";
 
 /** "auto" follows what is behind the widget; "custom" draws it in `color`, which is kept while on auto. */
 export type ClockColorSettings = { mode: "auto" | "custom"; color: string };
@@ -29,3 +31,7 @@ export function loadLastAutoColor() {
 }
 
 export const saveLastAutoColor = (color: string) => writeJson(CLOCK_INK_KEY, color);
+
+/** The widget's width in pixels; the default until one is chosen, or when the stored value is damaged. */
+export const loadClockWidth = () => normalizeClockWidth(readJson(CLOCK_SIZE_KEY));
+export const saveClockWidth = (width: number) => writeJson(CLOCK_SIZE_KEY, normalizeClockWidth(width));

@@ -19,7 +19,7 @@ export type SettingsLiveWallpaperText = {
 export const en: SettingsLiveWallpaperText = {
   title: "Live wallpaper",
   enable: "Enable live wallpaper",
-  enableHint: "Plays a muted, looping video behind your desktop icons. It pauses while a maximized or full-screen window hides the desktop, then carries on from the same point. Playing video uses extra power; switched off, it uses none.",
+  enableHint: "Plays a muted, looping video behind your desktop icons. It pauses while maximized, full-screen or side-by-side windows hide the desktop, then carries on from the same point. Playing video uses extra power; switched off, it uses none.",
   video: "Wallpaper video",
   noVideo: "No video chosen",
   choose: "Choose video",

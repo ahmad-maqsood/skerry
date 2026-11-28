@@ -1,5 +1,5 @@
 //! Live wallpaper (Settings → Advanced): a muted, looping video behind the desktop icons, off by
-//! default. Each screen pauses while a maximized or full-screen window hides its desktop and
+//! default. Each screen pauses while open windows, alone or together, hide its desktop and
 //! carries on from the same frame when the desktop shows again.
 
 mod model;

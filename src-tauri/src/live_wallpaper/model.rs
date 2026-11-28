@@ -126,6 +126,21 @@ pub(crate) fn unload_due(hidden_for: Duration, after: UnloadAfter) -> bool {
     after.delay().is_some_and(|delay| hidden_for >= delay)
 }
 
+/// The widest the picture kept on the desktop while the video is closed gets, in pixels. A 4K
+/// screen would otherwise hold some 33 MB for it; this holds about 8 MB at most, and the picture
+/// is stretched to the screen when drawn.
+pub(crate) const STILL_MAX_WIDTH: i32 = 1920;
+
+/// The size of the kept picture for a screen of `width` by `height` pixels.
+pub(crate) fn still_size(width: i32, height: i32) -> (i32, i32) {
+    let (width, height) = (width.max(1), height.max(1));
+    if width <= STILL_MAX_WIDTH {
+        return (width, height);
+    }
+    let scaled = i64::from(height) * i64::from(STILL_MAX_WIDTH) / i64::from(width);
+    (STILL_MAX_WIDTH, i32::try_from(scaled).unwrap_or(height).max(1))
+}
+
 /// Whether trying again could help. An unsupported format (4) never gets better by itself, while a
 /// sleep, a graphics driver reset or a briefly unreadable file usually does.
 pub(crate) fn is_recoverable(code: u32) -> bool {
@@ -197,6 +212,16 @@ mod tests {
         assert_eq!(saved.unload_after, UnloadAfter::ThreeMinutes);
         let never: Settings = serde_json::from_str(r#"{"unloadAfter":"never"}"#).unwrap();
         assert_eq!(never.unload_after, UnloadAfter::Never);
+    }
+
+    #[test]
+    fn the_kept_picture_is_capped_in_width_and_keeps_the_screen_shape() {
+        assert_eq!(still_size(1920, 1080), (1920, 1080));
+        assert_eq!(still_size(1366, 768), (1366, 768));
+        assert_eq!(still_size(3840, 2160), (1920, 1080));
+        assert_eq!(still_size(5120, 1440), (1920, 540));
+        assert_eq!(still_size(0, -5), (1, 1));
+        assert_eq!(still_size(100_000, 1), (1920, 1));
     }
 
     #[test]

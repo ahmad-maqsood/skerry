@@ -18,10 +18,12 @@ use windows::{
             Direct3D::D3D_DRIVER_TYPE_HARDWARE,
             Direct3D10::ID3D10Multithread,
             Direct3D11::{
-                D3D11CreateDevice, ID3D11Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-                D3D11_CREATE_DEVICE_VIDEO_SUPPORT, D3D11_SDK_VERSION,
+                D3D11CreateDevice, ID3D11Device, ID3D11DeviceContext, ID3D11Texture2D,
+                D3D11_BIND_RENDER_TARGET, D3D11_CPU_ACCESS_READ, D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                D3D11_CREATE_DEVICE_VIDEO_SUPPORT, D3D11_MAPPED_SUBRESOURCE, D3D11_MAP_READ,
+                D3D11_SDK_VERSION, D3D11_TEXTURE2D_DESC, D3D11_USAGE_DEFAULT, D3D11_USAGE_STAGING,
             },
-            Dxgi::Common::DXGI_FORMAT_B8G8R8A8_UNORM,
+            Dxgi::Common::{DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_SAMPLE_DESC},
         },
         Media::MediaFoundation::{
             CLSID_MFMediaEngineClassFactory, IMFAttributes, IMFDXGIDeviceManager,
@@ -91,16 +93,25 @@ impl IMFMediaEngineNotify_Impl for Notify_Impl {
     }
 }
 
+/// The Direct3D device the decoder shares, with its context for reading a frame back.
+struct Gpu {
+    manager: IMFDXGIDeviceManager,
+    device: ID3D11Device,
+    context: ID3D11DeviceContext,
+}
+
 /// A Direct3D device the decoder can share, which is what turns hardware decoding on.
-fn device_manager() -> windows::core::Result<IMFDXGIDeviceManager> {
+fn device_manager() -> windows::core::Result<Gpu> {
     let mut device: Option<ID3D11Device> = None;
-    // SAFETY: the out pointer is a valid local; no adapter or software module is passed.
+    let mut context: Option<ID3D11DeviceContext> = None;
+    // SAFETY: the out pointers are valid locals; no adapter or software module is passed.
     unsafe {
         D3D11CreateDevice(None, D3D_DRIVER_TYPE_HARDWARE, HMODULE::default(),
             D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_VIDEO_SUPPORT, None,
-            D3D11_SDK_VERSION, Some(&mut device), None, None)?;
+            D3D11_SDK_VERSION, Some(&mut device), None, Some(&mut context))?;
     }
-    let device = device.ok_or_else(|| windows::core::Error::from_hresult(windows::Win32::Foundation::E_FAIL))?;
+    let failed = || windows::core::Error::from_hresult(windows::Win32::Foundation::E_FAIL);
+    let (device, context) = device.zip(context).ok_or_else(failed)?;
     // SAFETY: the media threads use the device too, so it must lock itself; the manager and token
     // are valid locals.
     unsafe {
@@ -108,15 +119,25 @@ fn device_manager() -> windows::core::Result<IMFDXGIDeviceManager> {
         let mut token = 0;
         let mut manager = None;
         MFCreateDXGIDeviceManager(&mut token, &mut manager)?;
-        let manager = manager.ok_or_else(|| windows::core::Error::from_hresult(windows::Win32::Foundation::E_FAIL))?;
+        let manager = manager.ok_or_else(failed)?;
         manager.ResetDevice(&device, token)?;
-        Ok(manager)
+        Ok(Gpu { manager, device, context })
     }
+}
+
+/// One picture read back from the player: rows of BGRA from the top, with no padding.
+pub(crate) struct Still {
+    pub(crate) width: i32,
+    pub(crate) height: i32,
+    pub(crate) bgra: Vec<u8>,
 }
 
 pub(crate) struct VideoPlayer {
     engine: IMFMediaEngine,
     events: Arc<Events>,
+    /// The engine's own device, which a frame can only be copied out through. None on a machine
+    /// that decodes in software.
+    gpu: Option<(ID3D11Device, ID3D11DeviceContext)>,
     _thread_bound: PhantomData<*const ()>,
 }
 
@@ -130,7 +151,7 @@ impl VideoPlayer {
     fn create(window: isize, path: &str, events: Arc<Events>) -> windows::core::Result<Self> {
         let notify: IMFMediaEngineNotify = Notify(events.clone()).into();
         // A software-only machine (or a remote session) still plays, decoding on the processor.
-        let manager = device_manager().ok();
+        let gpu = device_manager().ok();
         let mut attributes: Option<IMFAttributes> = None;
         // SAFETY: COM and Media Foundation are running on this thread (the caller holds a
         // MediaRuntime). Every pointer is a valid local or an interface alive for the call.
@@ -139,8 +160,8 @@ impl VideoPlayer {
             let attributes = attributes
                 .ok_or_else(|| windows::core::Error::from_hresult(windows::Win32::Foundation::E_FAIL))?;
             attributes.SetUnknown(&MF_MEDIA_ENGINE_CALLBACK, &notify)?;
-            if let Some(manager) = &manager {
-                attributes.SetUnknown(&MF_MEDIA_ENGINE_DXGI_MANAGER, manager)?;
+            if let Some(gpu) = &gpu {
+                attributes.SetUnknown(&MF_MEDIA_ENGINE_DXGI_MANAGER, &gpu.manager)?;
             }
             attributes.SetUINT64(&MF_MEDIA_ENGINE_PLAYBACK_HWND, window as u64)?;
             attributes.SetUINT32(&MF_MEDIA_ENGINE_VIDEO_OUTPUT_FORMAT, DXGI_FORMAT_B8G8R8A8_UNORM.0 as u32)?;
@@ -148,7 +169,8 @@ impl VideoPlayer {
                 CoCreateInstance(&CLSID_MFMediaEngineClassFactory, None, CLSCTX_INPROC_SERVER)?;
             factory.CreateInstance(0, &attributes)?
         };
-        let player = Self { engine, events, _thread_bound: PhantomData };
+        let gpu = gpu.map(|gpu| (gpu.device, gpu.context));
+        let player = Self { engine, events, gpu, _thread_bound: PhantomData };
         let name = HSTRING::from(path);
         // SAFETY: `name` outlives the calls. The file is handed over as a byte stream so that
         // characters such as # or % in its path are never read as parts of a URL.
@@ -216,6 +238,62 @@ impl VideoPlayer {
                 engine.UpdateVideoStream(Some(&source), Some(&target), Some(&black))
             })
         };
+    }
+
+    /// The frame on screen now, drawn the way [`VideoPlayer::set_layout`] draws it (`source` is the
+    /// same part of the picture) into a `width` by `height` image. None when it cannot be read
+    /// back, for instance without a graphics device: the caller then shows black.
+    pub(crate) fn still_frame(&self, source: [f32; 4], width: i32, height: i32) -> Option<Still> {
+        let (device, context) = self.gpu.as_ref()?;
+        let (columns, rows) = (u32::try_from(width).ok()?.max(1), u32::try_from(height).ok()?.max(1));
+        let target_description = D3D11_TEXTURE2D_DESC {
+            Width: columns,
+            Height: rows,
+            MipLevels: 1,
+            ArraySize: 1,
+            Format: DXGI_FORMAT_B8G8R8A8_UNORM,
+            SampleDesc: DXGI_SAMPLE_DESC { Count: 1, Quality: 0 },
+            Usage: D3D11_USAGE_DEFAULT,
+            BindFlags: D3D11_BIND_RENDER_TARGET.0 as u32,
+            ..Default::default()
+        };
+        let staging_description = D3D11_TEXTURE2D_DESC {
+            Usage: D3D11_USAGE_STAGING,
+            BindFlags: 0,
+            CPUAccessFlags: D3D11_CPU_ACCESS_READ.0 as u32,
+            ..target_description
+        };
+        let (mut target, mut staging): (Option<ID3D11Texture2D>, Option<ID3D11Texture2D>) = (None, None);
+        // SAFETY: the descriptions and out pointers are valid locals.
+        unsafe {
+            device.CreateTexture2D(&target_description, None, Some(&mut target)).ok()?;
+            device.CreateTexture2D(&staging_description, None, Some(&mut staging)).ok()?;
+        }
+        let (target, staging) = (target?, staging?);
+        let area = MFVideoNormalizedRect { left: source[0], top: source[1], right: source[2], bottom: source[3] };
+        let whole = RECT { left: 0, top: 0, right: width.max(1), bottom: height.max(1) };
+        let black = MFARGB { rgbBlue: 0, rgbGreen: 0, rgbRed: 0, rgbAlpha: 255 };
+        let mut mapped = D3D11_MAPPED_SUBRESOURCE::default();
+        // SAFETY: both textures are `columns` by `rows` in the same format and belong to the
+        // engine's device. A successful Map is paired with the Unmap below.
+        unsafe {
+            self.engine.TransferVideoFrame(&target, Some(&area), &whole, Some(&black)).ok()?;
+            context.CopyResource(&staging, &target);
+            context.Map(&staging, 0, D3D11_MAP_READ, 0, Some(&mut mapped)).ok()?;
+        }
+        let row = columns as usize * 4;
+        let mut bgra = vec![0u8; row * rows as usize];
+        for (line, out) in bgra.chunks_exact_mut(row).enumerate() {
+            // SAFETY: the mapping holds `rows` lines of RowPitch bytes, each at least `row` long.
+            let read = unsafe {
+                std::slice::from_raw_parts((mapped.pData as *const u8).add(line * mapped.RowPitch as usize), row)
+            };
+            out.copy_from_slice(read);
+        }
+        // SAFETY: pairs the successful Map above.
+        unsafe { context.Unmap(&staging, 0) };
+        // A frame that has not been drawn yet comes back all zero: nothing worth showing.
+        bgra.iter().any(|&byte| byte != 0).then_some(Still { width, height, bgra })
     }
 }
 

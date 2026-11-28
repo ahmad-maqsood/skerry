@@ -15,22 +15,24 @@
 //! keep that thread pumping messages ([`wait_and_pump`]). Their parent is Explorer's, so a stalled
 //! pump can stall the desktop.
 
-use std::{iter::once, marker::PhantomData};
+use std::{ffi::c_void, iter::once, marker::PhantomData};
 
 use windows::{
     core::{BOOL, PCWSTR},
     Win32::{
         Foundation::{COLORREF, HWND, LPARAM, LRESULT, POINT, RECT, WPARAM},
         Graphics::Gdi::{
-            EnumDisplayMonitors, FillRect, GetMonitorInfoW, GetStockObject, MapWindowPoints, RedrawWindow,
-            BLACK_BRUSH, HBRUSH, HDC, HMONITOR, MONITORINFO, RDW_ALLCHILDREN, RDW_ERASE, RDW_INVALIDATE,
-            RDW_UPDATENOW,
+            CreateCompatibleDC, CreateDIBSection, DeleteDC, DeleteObject, EnumDisplayMonitors, FillRect,
+            GetMonitorInfoW, GetObjectW, GetStockObject, MapWindowPoints, RedrawWindow, SelectObject,
+            SetStretchBltMode, StretchBlt, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, BLACK_BRUSH,
+            DIB_RGB_COLORS, HALFTONE, HBITMAP, HBRUSH, HDC, HGDIOBJ, HMONITOR, MONITORINFO,
+            RDW_ALLCHILDREN, RDW_ERASE, RDW_INVALIDATE, RDW_UPDATENOW, SRCCOPY,
         },
         UI::WindowsAndMessaging::{
             CreateWindowExW, DispatchMessageW, EnumWindows, FindWindowExW, FindWindowW, GetClientRect,
-            GetParent, GetWindow, IsWindow, MsgWaitForMultipleObjects, PeekMessageW, SendMessageTimeoutW,
+            GetParent, GetWindow, GetWindowLongPtrW, IsWindow, MsgWaitForMultipleObjects, PeekMessageW, SendMessageTimeoutW,
             SetLayeredWindowAttributes, SetParent, SetWindowLongPtrW, SetWindowPos, TranslateMessage,
-            GWL_STYLE, GW_HWNDPREV, HWND_TOP, LWA_ALPHA, MSG, PM_REMOVE, QS_ALLINPUT, SMTO_NORMAL,
+            GWLP_USERDATA, GWL_STYLE, GW_HWNDPREV, HWND_TOP, LWA_ALPHA, MSG, PM_REMOVE, QS_ALLINPUT, SMTO_NORMAL,
             SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, WINDOW_EX_STYLE, WM_ERASEBKGND, WS_CHILD,
             WS_CLIPCHILDREN, WS_DISABLED, WS_EX_LAYERED, WS_EX_NOACTIVATE,
             WS_EX_NOREDIRECTIONBITMAP, WS_EX_TOOLWINDOW, WS_POPUP, WS_VISIBLE,
@@ -38,14 +40,15 @@ use windows::{
     },
 };
 
-use super::{message_window, window};
+use super::{message_window, video_player::Still, window};
 
 const CLASS_NAME: &str = "SkerryLiveWallpaper";
 /// Undocumented Progman message that creates the wallpaper's `WorkerW` layer.
 const SPAWN_WORKER: u32 = 0x052C;
 
-/// Windows with nothing of their own to draw. Their background is black, so that a surface whose
-/// video is closed (see [`DesktopSurface::blank`]) shows black rather than whatever was under it.
+/// Windows with nothing of their own to draw. Their background is the picture kept in the window's
+/// user data (see [`DesktopSurface::show_still`]) or, with none, black: either way a surface whose
+/// video is closed shows that rather than whatever was under it.
 struct Plain;
 impl message_window::WindowMessages for Plain {
     fn handle(window: HWND, message: u32, wparam: WPARAM, _: LPARAM) -> Option<LRESULT> {
@@ -53,13 +56,73 @@ impl message_window::WindowMessages for Plain {
             return None;
         }
         let mut area = RECT::default();
+        let dc = HDC(wparam.0 as *mut _);
         // SAFETY: for WM_ERASEBKGND, `wparam` is the device context to paint, valid for this call;
         // `area` is a valid local and the stock black brush needs no cleanup.
         unsafe {
             GetClientRect(window, &mut area).ok()?;
-            FillRect(HDC(wparam.0 as *mut _), &area, HBRUSH(GetStockObject(BLACK_BRUSH).0));
+            FillRect(dc, &area, HBRUSH(GetStockObject(BLACK_BRUSH).0));
+        }
+        let still = HBITMAP(unsafe { GetWindowLongPtrW(window, GWLP_USERDATA) } as *mut c_void);
+        if !still.is_invalid() {
+            draw_still(dc, still, &area);
         }
         Some(LRESULT(1))
+    }
+}
+
+/// Stretches `still` over `area` of `dc`.
+fn draw_still(dc: HDC, still: HBITMAP, area: &RECT) {
+    let mut bitmap = BITMAP::default();
+    // SAFETY: `still` is a bitmap owned by the window being painted (it is only deleted after the
+    // window stops pointing at it, on this thread); `bitmap` is a valid local of the size given.
+    // The memory device context only holds the bitmap for the copy, and is cleaned up after it.
+    unsafe {
+        let size = std::mem::size_of::<BITMAP>() as i32;
+        if GetObjectW(HGDIOBJ(still.0), size, Some((&mut bitmap as *mut BITMAP).cast())) == 0 {
+            return;
+        }
+        let source = CreateCompatibleDC(Some(dc));
+        if source.is_invalid() {
+            return;
+        }
+        let previous = SelectObject(source, HGDIOBJ(still.0));
+        SetStretchBltMode(dc, HALFTONE);
+        let _ = StretchBlt(dc, 0, 0, area.right, area.bottom, Some(source), 0, 0, bitmap.bmWidth,
+            bitmap.bmHeight, SRCCOPY);
+        SelectObject(source, previous);
+        let _ = DeleteDC(source);
+    }
+}
+
+/// A bitmap holding `still`, to be deleted by whoever ends up owning it.
+fn bitmap_of(still: &Still) -> Option<HBITMAP> {
+    let header = BITMAPINFOHEADER {
+        biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+        biWidth: still.width,
+        // Negative: the rows run from the top, as they were read.
+        biHeight: -still.height,
+        biPlanes: 1,
+        biBitCount: 32,
+        biCompression: BI_RGB.0,
+        ..Default::default()
+    };
+    let info = BITMAPINFO { bmiHeader: header, ..Default::default() };
+    let mut bits: *mut c_void = std::ptr::null_mut();
+    // SAFETY: `info` and `bits` are valid locals. A 32-bit bitmap of this size holds exactly
+    // `still.bgra.len()` bytes, which is what is copied in (and the length is checked first).
+    unsafe {
+        let wanted = still.width.max(0) as usize * still.height.max(0) as usize * 4;
+        if wanted == 0 || still.bgra.len() != wanted {
+            return None;
+        }
+        let bitmap = CreateDIBSection(None, &info, DIB_RGB_COLORS, &mut bits, None, 0).ok()?;
+        if bits.is_null() {
+            let _ = DeleteObject(HGDIOBJ(bitmap.0));
+            return None;
+        }
+        std::ptr::copy_nonoverlapping(still.bgra.as_ptr(), bits.cast::<u8>(), wanted);
+        Some(bitmap)
     }
 }
 
@@ -190,13 +253,32 @@ impl DesktopSurface {
         self.video.0 as isize
     }
 
-    /// Repaints the video's window in the background colour (black), for after the player that drew
-    /// into it was closed: otherwise its last frame, or nothing, would be left there.
-    pub(crate) fn blank(&self) {
+    /// Repaints the video's window for after the player that drew into it was closed: with `still`
+    /// (the player's last picture) when there is one, else black. Otherwise its last frame, or
+    /// nothing, would be left there.
+    pub(crate) fn show_still(&self, still: Option<&Still>) {
+        self.drop_still();
+        if let Some(bitmap) = still.and_then(bitmap_of) {
+            // SAFETY: the window keeps the bitmap's handle until `drop_still` deletes it.
+            unsafe { SetWindowLongPtrW(self.video, GWLP_USERDATA, bitmap.0 as isize) };
+        }
         // SAFETY: repaints a window of this thread; fails harmlessly if it is gone.
         let _ = unsafe {
             RedrawWindow(Some(self.video), None, None, RDW_INVALIDATE | RDW_ERASE | RDW_UPDATENOW)
         };
+    }
+
+    /// Lets go of the picture to free its memory, without repainting: whatever is on screen stays
+    /// until something draws over it (the video, once it plays).
+    pub(crate) fn drop_still(&self) {
+        // SAFETY: the window's user data is only ever set to a bitmap made by `bitmap_of`, which is
+        // cleared before it is deleted; both calls fail harmlessly if the window is gone.
+        unsafe {
+            let held = SetWindowLongPtrW(self.video, GWLP_USERDATA, 0);
+            if held != 0 {
+                let _ = DeleteObject(HGDIOBJ(held as *mut c_void));
+            }
+        }
     }
 
     /// False once Explorer restarted or rebuilt the desktop; the surface must then be remade.
@@ -232,6 +314,7 @@ impl DesktopSurface {
 
 impl Drop for DesktopSurface {
     fn drop(&mut self) {
+        self.drop_still();
         // Destroying the host destroys the video child with it.
         let _ = message_window::destroy_window(self.host);
         // SAFETY: repaints Explorer's window so no stale frame stays; fails harmlessly if gone.

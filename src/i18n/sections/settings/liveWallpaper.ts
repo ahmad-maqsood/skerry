@@ -37,7 +37,7 @@ export const en: SettingsLiveWallpaperText = {
   pauseOnBattery: "Pause on battery or Battery Saver",
   pauseOnBatteryHint: "Stops the video while your laptop runs on its battery or Windows Battery Saver is on, and carries on when it is plugged in again.",
   freeMemory: "Free memory when hidden for",
-  freeMemoryHint: "After the desktop has been hidden this long (for example, in a full-screen app), the video is closed to free its memory. It reopens at the same point when the desktop shows again, which can take a moment. Never keeps it open, using more memory but returning instantly.",
+  freeMemoryHint: "After the desktop has been hidden this long (for example, in a full-screen app), the video is closed to free its memory, and a still picture of it stays on the desktop. The video reopens at the same point when the desktop shows again, which can take a moment. Never keeps it open, using more memory but returning instantly.",
   afterMinute: "1 min",
   afterThreeMinutes: "3 min",
   afterTenMinutes: "10 min",

@@ -10,7 +10,7 @@ use std::{
 use windows::Win32::Foundation::RECT;
 
 use super::model::{
-    is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, unload_due, Fit, Status,
+    is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, still_size, unload_due, Fit, Status,
     UnloadAfter, MAX_RECOVERIES, STABLE_AFTER,
 };
 use crate::win32::{
@@ -241,10 +241,17 @@ fn run(
                 if let Some(screen) = screens.first() {
                     position = screen.player.position();
                 }
-                // Close the players but keep their windows on the desktop.
+                // Close the players but keep their windows on the desktop, each showing the
+                // picture the video had stopped on (black where that could not be read).
                 for Screen { player, surface, monitor, .. } in screens.drain(..) {
+                    let (width, height) = (monitor.right - monitor.left, monitor.bottom - monitor.top);
+                    let (still_width, still_height) = still_size(width, height);
+                    let still = player
+                        .video_size()
+                        .map(|video| source_rect(fit, video, (width, height)))
+                        .and_then(|source| player.still_frame(source, still_width, still_height));
                     drop(player);
-                    surface.blank();
+                    surface.show_still(still.as_ref());
                     parked.push((monitor, surface));
                 }
                 unloaded = true;
@@ -271,6 +278,10 @@ fn run(
             }
             let play = !locked && screen_on && !power_paused && !covered.contains(&screen.monitor);
             screen.player.set_playing(play);
+            if play {
+                // The video is drawing again: the kept picture is no longer needed.
+                screen.surface.drop_still();
+            }
             any_playing |= play;
         }
 

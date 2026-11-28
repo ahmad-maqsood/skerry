@@ -10,7 +10,8 @@ use std::{
 use windows::Win32::Foundation::RECT;
 
 use super::model::{
-    is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, Fit, Status, MAX_RECOVERIES, STABLE_AFTER,
+    is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, unload_due, Fit, Status,
+    MAX_RECOVERIES, STABLE_AFTER,
 };
 use crate::win32::{
     self,
@@ -117,6 +118,10 @@ fn run(
     // Playback restarts since the video last played steadily, and when it last began to.
     let mut recoveries = 0u32;
     let mut healthy_since: Option<Instant> = None;
+    // Every desktop hidden since when, and whether the players were closed to free their memory.
+    let mut hidden_since: Option<Instant> = None;
+    let mut unloaded = false;
+    let mut monitors_now: Vec<RECT> = Vec::new();
 
     loop {
         loop {
@@ -133,8 +138,10 @@ fn run(
         if Instant::now() >= next_check {
             next_check = Instant::now() + CHECK_EVERY;
             let monitors = desktop_layer::monitors();
-            let stale = screens.is_empty() || monitors != built_for
-                || !screens.iter().all(|screen| screen.surface.is_alive());
+            let stale = !unloaded
+                && (screens.is_empty() || monitors != built_for
+                    || !screens.iter().all(|screen| screen.surface.is_alive()));
+            monitors_now.clone_from(&monitors);
             if stale && !monitors.is_empty() && Instant::now() >= retry_at {
                 // Explorer restarted or the screens changed: carry on from the same place.
                 if let Some(screen) = screens.first().filter(|screen| screen.player.is_loaded()) {
@@ -187,6 +194,30 @@ fn run(
         }
 
         let screen_on = display_state::display_is_on();
+        // Hidden: nothing of the wallpaper can be seen on any screen (as against paused on battery,
+        // where the frozen picture still shows and must stay).
+        let all_hidden = !monitors_now.is_empty()
+            && monitors_now.iter().all(|monitor| locked || !screen_on || covered.contains(monitor));
+        if !all_hidden {
+            hidden_since = None;
+            if unloaded {
+                // A desktop shows again: reopen at the saved place on the next check.
+                unloaded = false;
+                next_check = Instant::now();
+            }
+        } else if !unloaded {
+            let since = *hidden_since.get_or_insert_with(Instant::now);
+            let settled = !screens.is_empty()
+                && screens.iter().all(|screen| screen.player.is_loaded() && screen.resume_at == 0.0);
+            if unload_due(since.elapsed()) && settled {
+                if let Some(screen) = screens.first() {
+                    position = screen.player.position();
+                }
+                screens.clear();
+                unloaded = true;
+                hidden_since = None;
+            }
+        }
         let power_paused = paused_for_power(pause_on_battery, power.on_battery, power.battery_saver);
         let mut any_playing = false;
         let mut all_loaded = !screens.is_empty();
@@ -219,7 +250,7 @@ fn run(
             healthy_since = None;
         }
 
-        let status = match (all_loaded, any_playing) {
+        let status = match (all_loaded || unloaded, any_playing) {
             (false, _) => Status::Starting,
             (true, true) => Status::Playing,
             (true, false) if power_paused => Status::PausedPower,

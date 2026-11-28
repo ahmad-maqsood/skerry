@@ -94,6 +94,14 @@ pub(crate) const MAX_RECOVERIES: u32 = 3;
 /// Playing this long without an error counts the last recovery as having worked.
 pub(crate) const STABLE_AFTER: Duration = Duration::from_secs(15);
 
+/// How long every desktop must stay hidden before the players are closed to free their memory.
+pub(crate) const UNLOAD_AFTER: Duration = Duration::from_secs(180);
+
+/// Whether the desktops have been hidden long enough to close the players.
+pub(crate) fn unload_due(hidden_for: Duration) -> bool {
+    hidden_for >= UNLOAD_AFTER
+}
+
 /// Whether trying again could help. An unsupported format (4) never gets better by itself, while a
 /// sleep, a graphics driver reset or a briefly unreadable file usually does.
 pub(crate) fn is_recoverable(code: u32) -> bool {
@@ -144,6 +152,13 @@ mod tests {
         assert!(paused_for_power(true, false, true));
         assert!(!paused_for_power(true, false, false));
         assert!(!paused_for_power(false, true, true));
+    }
+
+    #[test]
+    fn players_close_only_after_a_long_hidden_spell() {
+        assert!(!unload_due(Duration::ZERO));
+        assert!(!unload_due(UNLOAD_AFTER - Duration::from_millis(1)));
+        assert!(unload_due(UNLOAD_AFTER));
     }
 
     #[test]

@@ -62,6 +62,28 @@ function shadowFor(ink: Rgb) {
   return luminanceOf(ink) > 0.4 ? "0 1px 5px rgba(0, 0, 0, 0.45)" : "0 1px 5px rgba(255, 255, 255, 0.35)";
 }
 
+/** How far apart (per channel, 0 to 255) two colours may be and still count as the same. */
+const SAME_WITHIN = 24;
+
+export function isSameInk(a: WidgetInk, b: WidgetInk) {
+  return [1, 3, 5].every((start) =>
+    Math.abs(parseInt(a.color.slice(start, start + 2), 16) - parseInt(b.color.slice(start, start + 2), 16)) <= SAME_WITHIN);
+}
+
+/** The colour on show, and one that has been seen once and waits to be seen again. */
+export type InkState = { shown: WidgetInk; pending: WidgetInk | null };
+
+/**
+ * One more look at the desktop. A different colour is shown only when two looks in a row agree on
+ * it, so a passing scene of a video wallpaper, or a window still animating away, does not recolour
+ * the widget. Small drifts keep the colour on show.
+ */
+export function settleInk({ shown, pending }: InkState, next: WidgetInk): InkState {
+  if (isSameInk(next, shown)) return { shown, pending: null };
+  if (pending && isSameInk(next, pending)) return { shown: next, pending: null };
+  return { shown, pending: next };
+}
+
 /** The user's own colour (`#RRGGBB`), drawn exactly as picked; only the halo is chosen for it. */
 export function customInk(color: string): WidgetInk {
   const rgb = [1, 3, 5].map((start) => parseInt(color.slice(start, start + 2), 16)) as Rgb;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { hasGlyph, layoutWord } from "../../src/features/widgets/clock/glyphs.ts";
 import { clockLines, msUntilNextMinute } from "../../src/features/widgets/clock/text.ts";
-import { contrastBetween, customInk, FALLBACK_INK, pickInk } from "../../src/features/widgets/clock/ink.ts";
+import { contrastBetween, customInk, FALLBACK_INK, pickInk, settleInk } from "../../src/features/widgets/clock/ink.ts";
 import { DEFAULT_CLOCK_COLOR, normalizeClockColor } from "../../src/features/widgets/clock/storage.ts";
 
 const names = {
@@ -72,4 +72,21 @@ test("the saved clock colour falls back to the default field by field", () => {
   assert.deepEqual(normalizeClockColor({ mode: "custom", color: "#ab12cd" }), { mode: "custom", color: "#AB12CD" });
   assert.deepEqual(normalizeClockColor({ mode: "custom", color: "red" }), { mode: "custom", color: "#FFFFFF" });
   assert.deepEqual(normalizeClockColor({ mode: "neon", color: "#000000" }), { mode: "auto", color: "#000000" });
+});
+
+test("a new automatic colour is shown only when two looks in a row agree on it", () => {
+  const white = customInk("#FAFAFC");
+  const red = customInk("#C02020");
+  const blue = customInk("#2040C0");
+  const once = settleInk({ shown: white, pending: null }, red);
+  assert.deepEqual(once, { shown: white, pending: red });
+  assert.deepEqual(settleInk(once, red), { shown: red, pending: null });
+  // A video that has moved on starts the wait again; going back to the shown colour drops it.
+  assert.deepEqual(settleInk(once, blue), { shown: white, pending: blue });
+  assert.deepEqual(settleInk(once, white), { shown: white, pending: null });
+});
+
+test("a small drift keeps the colour on show", () => {
+  const shown = customInk("#C02020");
+  assert.deepEqual(settleInk({ shown, pending: null }, customInk("#CC2A18")), { shown, pending: null });
 });

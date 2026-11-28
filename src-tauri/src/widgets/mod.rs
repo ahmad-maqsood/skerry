@@ -174,8 +174,8 @@ pub async fn save_widget_position(app: AppHandle) {
     remember_clock_position(&app);
 }
 
-/// What is behind the clock right now; `None` where that cannot be read, in which case the
-/// widget keeps its fallback colours.
+/// What is behind the clock right now; `None` where that cannot be read or while an app window is
+/// open on its screen, in which case the widget keeps the colour it has.
 #[tauri::command]
 pub async fn sample_widget_backdrop(app: AppHandle) -> Result<Option<Backdrop>, String> {
     if !CLOCK_EXCLUDED.load(Ordering::Relaxed) {

@@ -182,12 +182,40 @@ unsafe extern "system" fn collect_covered(hwnd: HWND, list: LPARAM) -> BOOL {
     BOOL::from(true)
 }
 
-/// The monitors (full rectangles) whose desktop the open app windows hide, alone or together, right now.
-pub(crate) fn covered_monitors() -> Vec<RECT> {
+/// Every open app window, each with the monitor it is mostly on.
+fn open_tiles() -> Vec<Tile> {
     let mut tiles: Vec<Tile> = Vec::new();
     // SAFETY: the callback matches WNDENUMPROC and only writes through the pointer to `tiles`,
     // which stays alive for the whole call.
     let _ = unsafe { EnumWindows(Some(collect_covered), LPARAM((&mut tiles as *mut Vec<Tile>) as isize)) };
+    tiles
+}
+
+/// How far a window may reach into a monitor without showing on it: a maximized window hangs a
+/// few pixels (more on scaled screens) past its own monitor, into the one next to it.
+const EDGE_SPILL: i32 = 16;
+
+/// Whether `window` shows on `monitor` by more than that spill, both across and down.
+fn shows_on(window: RECT, monitor: RECT) -> bool {
+    let across = window.right.min(monitor.right) - window.left.max(monitor.left);
+    let down = window.bottom.min(monitor.bottom) - window.top.max(monitor.top);
+    across > EDGE_SPILL && down > EDGE_SPILL
+}
+
+/// Whether any app window, however small, shows on the monitor that `hwnd` is mostly on.
+pub(crate) fn any_open_app_window_beside(hwnd: HWND) -> bool {
+    let mut info = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+    // SAFETY: DEFAULTTONEAREST always returns a monitor; GetMonitorInfoW writes only into `info`,
+    // whose cbSize is set.
+    let read = unsafe {
+        GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &mut info).as_bool()
+    };
+    read && open_tiles().iter().any(|tile| shows_on(tile.window, info.rcMonitor))
+}
+
+/// The monitors (full rectangles) whose desktop the open app windows hide, alone or together, right now.
+pub(crate) fn covered_monitors() -> Vec<RECT> {
+    let tiles = open_tiles();
     let mut covered: Vec<RECT> = Vec::new();
     for tile in &tiles {
         if covered.contains(&tile.monitor) {
@@ -253,6 +281,17 @@ mod tests {
         assert!(union_covers(work, &[rect(0, 0, 1200, 1040), rect(800, 0, 1920, 1040)]));
         assert!(!union_covers(work, &[rect(0, 0, 900, 1040), rect(960, 0, 1920, 1040)]));
         assert!(!union_covers(work, &[rect(0, 0, 960, 520), rect(960, 0, 1920, 520), rect(0, 520, 960, 1040)]));
+    }
+
+    #[test]
+    fn a_window_shows_on_a_monitor_only_past_the_maximized_spill() {
+        let rect = |left, top, right, bottom| RECT { left, top, right, bottom };
+        let monitor = rect(0, 0, 1920, 1080);
+        assert!(shows_on(rect(100, 100, 400, 300), monitor));
+        assert!(shows_on(rect(1800, 200, 2600, 900), monitor));
+        // Maximized on the screen to the right, hanging a little into this one.
+        assert!(!shows_on(rect(1912, -8, 3848, 1048), monitor));
+        assert!(!shows_on(rect(2000, 100, 2600, 900), monitor));
     }
 
     #[test]

@@ -34,9 +34,9 @@ test("every letter of the seven weekdays has a glyph and the layout is gapped", 
     assert.equal(layoutWord(day).glyphs.length, day.length);
   }
   const thursday = layoutWord("Thursday");
-  // T H U R S D A Y: the letters' own widths with seven gaps of 32.
-  assert.equal(thursday.width, 42 + 40 + 42 + 40 + 38 + 42 + 48 + 44 + 7 * 32);
-  assert.deepEqual(thursday.glyphs.slice(0, 2).map((glyph) => glyph.x), [0, 74]);
+  // T H U R S D A Y: the letters' own widths with seven gaps of 40.
+  assert.equal(thursday.width, 44 + 44 + 44 + 46 + 42 + 48 + 50 + 50 + 7 * 40);
+  assert.deepEqual(thursday.glyphs.slice(0, 2).map((glyph) => glyph.x), [0, 84]);
   assert.equal(layoutWord("Q").glyphs.length, 0);
 });
 

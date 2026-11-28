@@ -8,7 +8,7 @@
   padding: 0 14px;
   color: var(--widget-ink);
   font-family: "Quicksand", "Segoe UI Variable Display", "Segoe UI", sans-serif;
-  font-weight: 500;
+  font-weight: 700;
   user-select: none;
   /* The whole widget drags: an open hand says so, closed while it is held. */
   cursor: grab;
@@ -25,14 +25,10 @@
   max-width: 100%;
   height: auto;
   overflow: visible;
-  fill: none;
-  stroke: var(--widget-ink);
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
-  /* High enough to keep the A's and M's corners sharp. */
-  stroke-miterlimit: 10;
+  fill: var(--widget-ink);
+  fill-rule: evenodd;
   filter: drop-shadow(var(--widget-shadow));
-  transition: stroke 0.8s ease;
+  transition: fill 0.8s ease;
 }
 /* A picked colour should keep up with the picker as it is dragged. */
 .widget-clock--custom,
@@ -41,14 +37,18 @@
 }
 .widget-clock__date,
 .widget-clock__time {
-  font-size: 19px;
-  letter-spacing: 0.08em;
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  word-spacing: 0.2em;
   text-shadow: var(--widget-shadow);
   white-space: nowrap;
 }
 .widget-clock__date {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 .widget-clock__time {
-  margin-top: 22px;
+  margin-top: 28px;
+  /* The dashes sit close to the time. */
+  word-spacing: 0;
 }

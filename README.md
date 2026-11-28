@@ -60,7 +60,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 - **Pixel Cat**: A cat that takes the clock's place on the collapsed island, on by default on a fresh install. It walks, sits and flicks its tail, hops, stretches, naps and blinks.
 - **Stays Where You Want It**: Keep the island out while the desktop is in front (on by default), or keep it displayed all the time.
 - **Island Pop-ups**: Short notices for copied text, new songs, the charger, Bluetooth connections, airplane mode, volume and brightness, each with its own switch.
-- **Optional Live Wallpaper**: A muted, looping video behind the desktop icons that pauses while the desktop is hidden or the screen is off, and on battery power or in Battery Saver. Off by default (Settings -> Advanced).
+- **Optional Live Wallpaper**: A muted, looping video behind the desktop icons, played from your original file (MP4, MOV and more; HEVC, AV1 and VP9 may need Microsoft's video extensions) without re-encoding. It pauses while open windows, alone or together, hide the desktop, while the screen is off or locked, and on battery power or in Battery Saver (switchable), then carries on from the same point. Playback restarts by itself after an error, and the players close after a long hidden spell to free memory. Off by default (Settings -> Advanced).
 - **System Media and Synced Lyrics**: Global media controls via Windows GSMTC with real-time lyrics fetched from LRCLIB.
 - **Today's To-Dos and Focus Timer**: Fast daily task management, Markdown file sync, and built-in Pomodoro timers.
 - **Searchable Clipboard History**: Standalone hotkey-activated window (`Ctrl + Shift + W` by default, changeable in Settings) storing text, images, and file paths in a local history file.

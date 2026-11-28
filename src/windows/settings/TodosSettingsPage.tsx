@@ -70,6 +70,9 @@ export function TodosSettingsPage({
         />}
       </SettingsGroup>
       <SettingsGroup title={t.settings.todo.collapsedTitle}>
+        <SettingsToggleRow title={t.settings.todo.showTodoCount} description={t.settings.todo.showTodoCountDescription}
+          checked={settings.showIdleTodoCount}
+          onChange={(showIdleTodoCount) => onSettingsChange({ ...settings, showIdleTodoCount })} />
         <SettingsToggleRow title={t.settings.todo.rotateTodos} checked={settings.rotateTodos}
           onChange={(rotateTodos) => onSettingsChange({ ...settings, rotateTodos })} />
         {settings.rotateTodos && <>

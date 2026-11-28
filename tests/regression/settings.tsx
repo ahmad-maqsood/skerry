@@ -120,6 +120,7 @@ if (!automated) {
       // 2026-11-19: the tucked look (+1) moves from general (16 -> 15) to appearance (22 -> 23).
       // Clock & Weather became built-in appearance settings (+5, 24 -> 29).
       // Clipboard 9 -> 12: pause recording, keep-history-for and the image cache budget joined the "What's saved" group (still 5 rows, the per-group limit in docs/design/settings.md).
+      // Clipboard 12 -> 13: the file shelf group gained "Show the file count" (hides the shelf icon from the collapsed island).
       // System 8 -> 9: the system monitor page (sampling, collapsed chip and visible cards) has nine rows.
       // Appearance 29 -> 30: Clock & Weather now has six rows (time format, seconds and the hover date chip join the two switches and the city).
       // General: 14 existing rows + 7 Island tabs switches; the tabs are intentionally one row each.
@@ -129,7 +130,7 @@ if (!automated) {
       // General 23 -> 24: the Always display island on the desktop row.
       // General 24 -> 25: the Show minimize button row.
       // Appearance 30 -> 31: the Pixel cat switch.
-      const maxRows = category === "general" ? 25 : category === "appearance" ? 31 : category === "clipboard" ? 12 : category === "system" ? 11 : category === "todos" ? 9 : 8;
+      const maxRows = category === "general" ? 25 : category === "appearance" ? 31 : category === "clipboard" ? 13 : category === "system" ? 11 : category === "todos" ? 9 : 8;
       if (category === "appearance") {
         const row = [...panel.querySelectorAll<HTMLElement>(".settings-row")].find((item) => item.textContent?.includes("Top edge curves"))!;
         const toggle = row.querySelector<HTMLInputElement>("[role='switch']")!;

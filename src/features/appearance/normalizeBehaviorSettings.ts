@@ -81,6 +81,8 @@ export function normalizeBehaviorSettings(settings: LegacyIslandSettings | null 
     shelfEnabled: settings?.shelfEnabled !== false,
     systemMonitorEnabled: settings?.systemMonitorEnabled !== false,
     translationEnabled: settings?.translationEnabled !== false,
+    // The shelf icon and count on the collapsed island: on unless turned off in Settings → Clipboard.
+    shelfShowCount: settings?.shelfShowCount !== false,
     shelfAutoCleanupDays: oneOf(SHELF_CLEANUP_DAYS, settings?.shelfAutoCleanupDays, DEFAULT_SETTINGS.shelfAutoCleanupDays),
     ...normalizeLyricsSettings(settings),
     autoCopyOtp: typeof settings?.autoCopyOtp === "boolean" ? settings.autoCopyOtp : DEFAULT_SETTINGS.autoCopyOtp,

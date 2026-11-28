@@ -2,6 +2,7 @@ import { isGlass } from "../../features/appearance/settings";
 import type { ReactNode } from "react";
 import type { CollapsedItem, CollapsedSlot, IslandShape, Material, PageButtonStyle, PageDot, TuckStyle } from "../../features/appearance/types";
 import type { MediaState } from "../../features/media/api";
+import { MusicBackdrop } from "../../features/media/MusicBackdrop";
 import type { MessagePreview } from "../../features/messages/messagePreview";
 import type { SystemNotificationsController } from "../../features/messages/system-notifications/useSystemNotifications";
 import { useTranslation } from "../../i18n";
@@ -204,6 +205,7 @@ export function IslandShell({
             {hasRim && <span className="island__glass-highlight" />}
           </div>
         )}
+        {page === "music" && features.music && <MusicBackdrop mediaState={mediaState} />}
         <IslandCollapsedBar
           systemNotifications={systemNotifications}
           preview={preview}

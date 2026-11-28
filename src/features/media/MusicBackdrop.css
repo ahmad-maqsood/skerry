@@ -1,0 +1,87 @@
+/*
+ * The music page's light (MusicBackdrop.tsx). Fills the island's surface, above its glass and under
+ * the header and page. No box or mask of its own: .island__surface clips it to the island's shape.
+ */
+.music-backdrop {
+  /* The same accent as the page (MusicPlayerPanel.css), which this layer sits outside of. */
+  --music-tint: 236, 236, 242;
+  --music-tint-light: 58, 58, 68;
+  --music-accent: color-mix(in srgb, rgb(var(--music-tint-light)) calc(var(--is-light) * 100%), rgb(var(--music-tint)));
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+  corner-shape: var(--island-corner-shape, round);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--island-panel-fade-duration, 120ms) ease;
+  /* Switching to the music tab: fades in with the page (usePageFadeIn) instead of popping. */
+  animation: music-backdrop-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes music-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Only the open island is lit; the collapsed bar stays as it was. */
+.island--expanded .music-backdrop {
+  opacity: 1;
+  transition: opacity var(--island-panel-open-fade-duration, 240ms) ease-out var(--island-panel-open-fade-delay, 120ms);
+}
+
+/* The cover's accent: strongest by the artwork, with a fainter wash to the right. */
+.music-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(34% 56% at 24% 50%, color-mix(in srgb, var(--music-accent) 28%, transparent), transparent 100%),
+    radial-gradient(40% 54% at 72% 62%, color-mix(in srgb, var(--music-accent) 14%, transparent), transparent 100%);
+  transition: opacity 500ms ease;
+}
+
+.music-backdrop:not(.music-backdrop--playing)::after {
+  opacity: 0.45;
+}
+
+/* Scaled past the edges all through its drift, so the picture's own border never shows. */
+.music-backdrop img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(44px) saturate(1.8);
+  opacity: calc(0.14 - var(--is-light) * 0.05);
+  transform: scale(1.5);
+  transition: opacity 600ms ease;
+  animation: music-ambient-drift 20s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+
+.music-backdrop--playing img {
+  opacity: calc(0.34 - var(--is-light) * 0.14);
+}
+
+/* Drifts only while it can be seen. */
+.island--expanded .music-backdrop--playing img {
+  animation-play-state: running;
+}
+
+@keyframes music-ambient-drift {
+  from {
+    transform: scale(1.5) translate(-4%, -3%) rotate(0deg);
+  }
+  to {
+    transform: scale(1.7) translate(5%, 4%) rotate(6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .music-backdrop,
+  .music-backdrop img {
+    animation: none;
+  }
+}

@@ -37,7 +37,7 @@ pub(super) fn analyze(widget: &[u8], screen: &[u8]) -> Option<Backdrop> {
     }
     let table = linear_table();
     let (mut luminance, mut sum) = (0.0f64, [0.0f64; 3]);
-    for pixel in widget.chunks_exact(4) {
+    for pixel in widget.as_chunks::<4>().0 {
         let (b, g, r) = (pixel[0], pixel[1], pixel[2]);
         sum[0] += f64::from(r);
         sum[1] += f64::from(g);
@@ -60,7 +60,7 @@ fn accent_of(screen: &[u8]) -> Option<[u8; 3]> {
     // Weight (saturation × brightness) and weighted colour per hue bin.
     let mut weight = [0.0f32; HUE_BINS];
     let mut colour = [[0.0f32; 3]; HUE_BINS];
-    for pixel in screen.chunks_exact(4) {
+    for pixel in screen.as_chunks::<4>().0 {
         let (r, g, b) = (f32::from(pixel[2]) / 255.0, f32::from(pixel[1]) / 255.0, f32::from(pixel[0]) / 255.0);
         let (high, low) = (r.max(g).max(b), r.min(g).min(b));
         if high <= 0.0 {

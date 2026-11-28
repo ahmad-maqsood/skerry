@@ -40,8 +40,8 @@ type MusicPlayerPanelProps = {
 /**
  * The music page, drawn straight on the island rather than in a card of its own. The song's cover, title and artist sit at the top; under them the lyrics, only when
  * Settings > Music > "Show lyrics on the music page" is on and some were found, then a progress bar with elapsed and remaining time and the transport.
- * Without lyrics (the default) the cover grows and takes their room. The playing song colours the page: its cover is blurred into a slowly drifting
- * glow behind everything, and its accent tints the progress wave, the player chip, the play button and the equalizer. Nothing playing shows its own quiet page (MusicIdle),
+ * Without lyrics (the default) the cover grows and takes their room. The playing song colours the whole island: its cover is blurred into a slowly drifting
+ * glow behind everything (MusicBackdrop, a layer of the island's surface), and its accent tints the progress wave, the player chip, the play button and the equalizer. Nothing playing shows its own quiet page (MusicIdle),
  * not an empty player.
  */
 export function MusicPlayerPanel({
@@ -87,11 +87,6 @@ export function MusicPlayerPanel({
 
   return (
     <section className={className} style={style} aria-label={t.music.playerLabel}>
-      {hasTrack && mediaState.thumbnail && (
-        <div className="music-player__ambient" aria-hidden="true">
-          <img src={mediaState.thumbnail} alt="" draggable={false} />
-        </div>
-      )}
       {hasTrack ? (
         <header className="music-player__head">
           <div className="music-player__cover" aria-hidden="true">

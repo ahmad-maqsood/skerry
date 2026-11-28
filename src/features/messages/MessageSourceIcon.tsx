@@ -1,4 +1,4 @@
-import { Bell, BatteryCharging, Bluetooth, Clipboard, Music, Plane, Puzzle, Sun, Volume2, type LucideIcon } from "lucide-react";
+import { ArrowBigUp, Bell, BatteryCharging, Bluetooth, Clipboard, Music, Plane, Puzzle, Sun, Volume2, type LucideIcon } from "lucide-react";
 import type { PreviewKind } from "./messagePreview";
 import "./MessageSourceIcon.css";
 
@@ -8,6 +8,7 @@ const KIND_ICONS: Record<PreviewKind, LucideIcon> = {
   battery: BatteryCharging,
   bluetooth: Bluetooth,
   airplane: Plane,
+  capsLock: ArrowBigUp,
   volume: Volume2,
   brightness: Sun,
   plugin: Puzzle,

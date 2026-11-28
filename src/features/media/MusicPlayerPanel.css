@@ -17,64 +17,6 @@
   color: var(--text-1);
 }
 
-/* The cover's accent lights the page from behind: strongest by the artwork, gone before the edges. */
-.music-player::before {
-  content: "";
-  position: absolute;
-  inset: -16px -12px -10px;
-  z-index: -2;
-  background:
-    radial-gradient(24% 46% at 24% 46%, color-mix(in srgb, var(--music-accent) 30%, transparent), transparent 100%),
-    radial-gradient(28% 42% at 70% 58%, color-mix(in srgb, var(--music-accent) 15%, transparent), transparent 100%);
-  pointer-events: none;
-  transition: opacity 500ms ease;
-}
-
-.music-player:not(.music-player--playing)::before {
-  opacity: 0.45;
-}
-
-.music-player--idle::before {
-  display: none;
-}
-
-/* The cover blurred into a wide glow that drifts slowly while the song plays: the song colours the island. */
-.music-player__ambient {
-  position: absolute;
-  inset: -16px -12px -10px;
-  z-index: -3;
-  overflow: hidden;
-  pointer-events: none;
-  mask-image: radial-gradient(ellipse 80% 75% at 30% 45%, #000 20%, transparent 100%);
-}
-
-.music-player__ambient img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(44px) saturate(1.8);
-  opacity: calc(0.14 - var(--is-light) * 0.05);
-  transform: scale(1.5);
-  transition: opacity 600ms ease;
-  animation: music-ambient-drift 20s ease-in-out infinite alternate;
-  animation-play-state: paused;
-}
-
-.music-player--playing .music-player__ambient img {
-  opacity: calc(0.4 - var(--is-light) * 0.16);
-  animation-play-state: running;
-}
-
-@keyframes music-ambient-drift {
-  from {
-    transform: scale(1.5) translate(-4%, -3%) rotate(0deg);
-  }
-  to {
-    transform: scale(1.7) translate(5%, 4%) rotate(6deg);
-  }
-}
-
 /* --- The song ------------------------------------------------------------------------- */
 
 .music-player__head {
@@ -461,7 +403,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .music-control-button__track-change,
-  .music-player__ambient img,
   .music-player--playing:not(.music-player--lyrics) .music-player__cover::before {
     animation: none;
   }

@@ -24,6 +24,8 @@ export type SettingsMessageSourcesText = {
   popupBluetoothHint: string;
   popupAirplane: string;
   popupAirplaneHint: string;
+  popupCapsLock: string;
+  popupCapsLockHint: string;
   popupVolume: string;
   popupVolumeHint: string;
   popupBrightness: string;
@@ -70,6 +72,8 @@ export const en: SettingsMessageSourcesText = {
   popupBluetoothHint: "The island pops out for a moment with the device's name when a Bluetooth device (headphones, a mouse, a keyboard) connects.",
   popupAirplane: "Show airplane mode",
   popupAirplaneHint: "The island pops out for a moment when airplane mode is switched on or off.",
+  popupCapsLock: "Show Caps Lock",
+  popupCapsLockHint: "The island pops out for a moment when Caps Lock is switched on or off.",
   popupVolume: "Show volume changes",
   popupVolumeHint: "The island pops out for a moment with a level bar when the system volume changes, from a keyboard key, the taskbar or an app.",
   popupBrightness: "Show brightness changes",

@@ -25,6 +25,7 @@ export function SettingsColor({
   // Kept while open so a grey (no hue) does not snap the hue strip back to red.
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value));
   const rootRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
   const pendingRef = useRef<string | null>(null);
 
@@ -34,6 +35,8 @@ export function SettingsColor({
 
   useEffect(() => {
     if (!open) return;
+    // On a page's last rows the picker would open past the window's bottom edge, out of sight.
+    pickerRef.current?.scrollIntoView?.({ block: "nearest" });
     const close = (event: PointerEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
@@ -97,7 +100,7 @@ export function SettingsColor({
         onKeyDown={(event) => { if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); } }}
       />
       {open && (
-        <div className="settings-color__picker" role="dialog" aria-label={ariaLabel}
+        <div className="settings-color__picker" ref={pickerRef} role="dialog" aria-label={ariaLabel}
           style={{ "--picker-hue": `hsl(${hsv.h} 100% 50%)` } as CSSProperties}
           onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setOpen(false); } }}>
           <div className="settings-color__area" tabIndex={0} role="slider" aria-label={ariaLabel}

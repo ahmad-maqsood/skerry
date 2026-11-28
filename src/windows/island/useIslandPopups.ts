@@ -24,7 +24,7 @@ const STARTUP_GRACE_MS = 4000;
 const CHARGER_POLL_MS = 2000;
 
 type IslandPopupsOptions = {
-  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled" | "chargerPopup" | "bluetoothPopup" | "airplanePopup" | "volumePopup" | "brightnessPopup">;
+  settings: Pick<IslandSettings, "clipboardPopup" | "musicPopup" | "musicEnabled" | "chargerPopup" | "bluetoothPopup" | "airplanePopup" | "capsLockPopup" | "volumePopup" | "brightnessPopup">;
   showPreview: SystemNotificationsController["showPreview"];
   /** Whether a pop-up could show now; the level pop-ups poll only then. */
   canPreview: boolean;
@@ -36,7 +36,7 @@ type IslandPopupsOptions = {
 /**
  * The island's own pop-ups, shown like a notification (same timing, same slide-out from a tucked
  * island, same game-mode rules, all decided by showPreview): a text just copied, a song that
- * just started playing, the charger being plugged in or unplugged, devices (useDevicePopups), the
+ * just started playing, the charger being plugged in or unplugged, devices and Caps Lock (useDevicePopups), the
  * volume and brightness changing (useLevelPopups), and a new notification from a plugin (each
  * plugin has its own switch in Settings → Plugins).
  */
@@ -45,7 +45,7 @@ export function useIslandPopups({ settings, showPreview, canPreview, clipboardHi
   useCopyPopup(settings.clipboardPopup, showPreview, clipboardHistory, ownCopyAtRef, t.messages.copiedToClipboard);
   useTrackPopup(settings.musicEnabled && settings.musicPopup, showPreview, mediaState);
   useChargerPopup(settings.chargerPopup, showPreview, t.messages);
-  useDevicePopups({ bluetooth: settings.bluetoothPopup, airplane: settings.airplanePopup, showPreview, copy: t.messages });
+  useDevicePopups({ bluetooth: settings.bluetoothPopup, airplane: settings.airplanePopup, capsLock: settings.capsLockPopup, showPreview, copy: t.messages });
   useLevelPopups({ volume: settings.volumePopup, brightness: settings.brightnessPopup, active: canPreview, showPreview, copy: t.messages });
   usePluginPopups((item) => showPreview({
     id: `plugin-${item.pluginId}-${item.id}`,

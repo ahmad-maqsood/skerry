@@ -19,6 +19,10 @@ export type MessagesText = {
   airplaneName: string;
   airplaneOn: string;
   airplaneOff: string;
+  /** Source name and titles of the island pop-up for Caps Lock being switched on or off. */
+  capsLockName: string;
+  capsLockOn: string;
+  capsLockOff: string;
   /** Source names of the volume and brightness pop-ups; the pop-up's label reads e.g. "Volume · 45%". */
   volumeName: string;
   brightnessName: string;
@@ -61,6 +65,9 @@ export const en: MessagesText = {
   airplaneName: "Airplane mode",
   airplaneOn: "Airplane mode on",
   airplaneOff: "Airplane mode off",
+  capsLockName: "Caps Lock",
+  capsLockOn: "Caps Lock on",
+  capsLockOff: "Caps Lock off",
   volumeName: "Volume",
   brightnessName: "Brightness",
   batteryLevel: (percent) => `${percent}%`,

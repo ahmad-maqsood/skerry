@@ -2,20 +2,23 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { hasGlyph, layoutWord } from "../../src/features/widgets/clock/glyphs.ts";
 import { clockLines, msUntilNextMinute } from "../../src/features/widgets/clock/text.ts";
-import { contrastBetween, FALLBACK_INK, pickInk } from "../../src/features/widgets/clock/ink.ts";
+import { contrastBetween, customInk, FALLBACK_INK, pickInk, settleInk } from "../../src/features/widgets/clock/ink.ts";
+import { DEFAULT_CLOCK_COLOR, normalizeClockColor } from "../../src/features/widgets/clock/storage.ts";
 
 const names = {
   weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
   months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
 };
 
-test("the three lines read like the widget: capital weekday, day month, year and 24-hour time", () => {
+test("the three lines read like the widget: capital weekday, day month, year and 12-hour time", () => {
   assert.deepEqual(clockLines(new Date(2026, 10, 19, 23, 27, 5), names), {
     weekday: "THURSDAY",
     date: "19 NOVEMBER, 2026.",
-    time: "23:27",
+    time: "11:27 PM",
   });
-  assert.equal(clockLines(new Date(2026, 0, 4, 7, 5), names).time, "07:05");
+  assert.equal(clockLines(new Date(2026, 0, 4, 7, 5), names).time, "07:05 AM");
+  assert.equal(clockLines(new Date(2026, 0, 4, 0, 5), names).time, "12:05 AM");
+  assert.equal(clockLines(new Date(2026, 0, 4, 12, 0), names).time, "12:00 PM");
   assert.equal(clockLines(new Date(2026, 0, 4, 7, 5), names).weekday, "SUNDAY");
 });
 
@@ -31,8 +34,9 @@ test("every letter of the seven weekdays has a glyph and the layout is gapped", 
     assert.equal(layoutWord(day).glyphs.length, day.length);
   }
   const thursday = layoutWord("Thursday");
-  assert.equal(thursday.width, 8 * 40 - 0 + 7 * 14);
-  assert.deepEqual(thursday.glyphs.slice(0, 2).map((glyph) => glyph.x), [0, 54]);
+  // T H U R S D A Y: the letters' own widths with seven gaps of 40.
+  assert.equal(thursday.width, 44 + 44 + 44 + 46 + 42 + 48 + 50 + 50 + 7 * 40);
+  assert.deepEqual(thursday.glyphs.slice(0, 2).map((glyph) => glyph.x), [0, 84]);
   assert.equal(layoutWord("Q").glyphs.length, 0);
 });
 
@@ -57,4 +61,35 @@ test("an accent too close to the background is lightened or darkened until it re
 test("no backdrop or a damaged one falls back to white ink", () => {
   assert.deepEqual(pickInk(null), FALLBACK_INK);
   assert.deepEqual(pickInk({ luminance: Number.NaN, average: [0, 0, 0], accent: null }), FALLBACK_INK);
+});
+
+test("a picked colour is drawn as picked, with a halo that contrasts with it", () => {
+  assert.deepEqual(customInk("#FFE08A"), { color: "#FFE08A", shadow: "0 1px 5px rgba(0, 0, 0, 0.45)" });
+  assert.deepEqual(customInk("#101030"), { color: "#101030", shadow: "0 1px 5px rgba(255, 255, 255, 0.35)" });
+});
+
+test("the saved clock colour falls back to the default field by field", () => {
+  for (const damaged of [undefined, null, "custom", 7, {}]) {
+    assert.deepEqual(normalizeClockColor(damaged), DEFAULT_CLOCK_COLOR);
+  }
+  assert.deepEqual(normalizeClockColor({ mode: "custom", color: "#ab12cd" }), { mode: "custom", color: "#AB12CD" });
+  assert.deepEqual(normalizeClockColor({ mode: "custom", color: "red" }), { mode: "custom", color: "#FFFFFF" });
+  assert.deepEqual(normalizeClockColor({ mode: "neon", color: "#000000" }), { mode: "auto", color: "#000000" });
+});
+
+test("a new automatic colour is shown only when two looks in a row agree on it", () => {
+  const white = customInk("#FAFAFC");
+  const red = customInk("#C02020");
+  const blue = customInk("#2040C0");
+  const once = settleInk({ shown: white, pending: null }, red);
+  assert.deepEqual(once, { shown: white, pending: red });
+  assert.deepEqual(settleInk(once, red), { shown: red, pending: null });
+  // A video that has moved on starts the wait again; going back to the shown colour drops it.
+  assert.deepEqual(settleInk(once, blue), { shown: white, pending: blue });
+  assert.deepEqual(settleInk(once, white), { shown: white, pending: null });
+});
+
+test("a small drift keeps the colour on show", () => {
+  const shown = customInk("#C02020");
+  assert.deepEqual(settleInk({ shown, pending: null }, customInk("#CC2A18")), { shown, pending: null });
 });

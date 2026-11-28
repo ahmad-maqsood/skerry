@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { COPY_POPUP_MAX_CHARS, copiedTextSince, copyPopupText, newestCopiedAt } from "../../src/features/clipboard/copyPopup.ts";
 import { isNewTrack, playingTrackKey } from "../../src/features/media/trackPopup.ts";
+import { capsLockChange } from "../../src/features/device-status/capsLockPopup.ts";
 import { chargerChange } from "../../src/features/system-monitor/chargerPopup.ts";
 import { normalizeSettings } from "../../src/features/appearance/settings.ts";
 
@@ -45,12 +46,21 @@ test("a song counts once, and resuming it after a pause is not a new song", () =
 });
 
 test("the pop-ups are on unless switched off", () => {
-  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup", "bluetoothPopup", "airplanePopup", "volumePopup", "brightnessPopup"]) {
+  for (const key of ["clipboardPopup", "musicPopup", "chargerPopup", "bluetoothPopup", "airplanePopup", "capsLockPopup", "volumePopup", "brightnessPopup"]) {
     for (const value of [undefined, null, "false", 0, {}, true]) {
       assert.equal(normalizeSettings({ [key]: value })[key], true, key);
     }
     assert.equal(normalizeSettings({ [key]: false })[key], false, key);
   }
+});
+
+test("Caps Lock is announced only when it switches, never for the first reading", () => {
+  assert.equal(capsLockChange(undefined, true), null, "already on at start");
+  assert.equal(capsLockChange(undefined, false), null, "already off at start");
+  assert.equal(capsLockChange(true, true), null);
+  assert.equal(capsLockChange(false, false), null);
+  assert.equal(capsLockChange(false, true), "on");
+  assert.equal(capsLockChange(true, false), "off");
 });
 
 test("the charger is announced only when it changes, never for the first reading", () => {

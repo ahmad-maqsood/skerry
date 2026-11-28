@@ -127,6 +127,12 @@ export function MessagesSettingsPage({
           onChange={(airplanePopup) => onSettingsChange({ ...settings, airplanePopup })}
         />
         <SettingsToggleRow
+          title={labels.popupCapsLock}
+          description={labels.popupCapsLockHint}
+          checked={settings.capsLockPopup}
+          onChange={(capsLockPopup) => onSettingsChange({ ...settings, capsLockPopup })}
+        />
+        <SettingsToggleRow
           title={labels.popupVolume}
           description={labels.popupVolumeHint}
           checked={settings.volumePopup}

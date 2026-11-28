@@ -1,5 +1,5 @@
-//! What happens to the PC's devices, for the island's pop-ups: Bluetooth devices connecting and
-//! airplane mode switching. The frontend polls these commands and announces what changed.
+//! What happens to the PC's devices, for the island's pop-ups: Bluetooth devices connecting,
+//! airplane mode switching and Caps Lock being switched on or off. The frontend polls these commands and announces what changed.
 
 mod airplane;
 mod bluetooth;
@@ -20,11 +20,18 @@ pub async fn get_airplane_mode() -> Result<Option<bool>, String> {
     Ok(airplane::airplane_mode())
 }
 
+/// Whether Caps Lock is on right now (the keyboard light).
+#[tauri::command]
+pub async fn get_caps_lock() -> Result<bool, String> {
+    Ok(crate::win32::input::is_caps_lock_on())
+}
+
 macro_rules! tauri_commands {
     ($next:ident [$($done:tt)*] $($rest:tt)*) => {
         $next!([$($done)*
             crate::device_status::get_connected_bluetooth_devices,
             crate::device_status::get_airplane_mode,
+            crate::device_status::get_caps_lock,
         ] $($rest)*)
     };
 }

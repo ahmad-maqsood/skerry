@@ -18,6 +18,10 @@ Skerry uses third-party npm packages and Rust crates. Their copyright notices an
 
 A complete, version-specific inventory of all direct and transitive dependency licenses has not yet been generated and verified. Do not treat this notice as a complete third-party license bundle. Before distributing a release as having a complete third-party notices package, generate and review the notices for the exact dependency graph used by that release and include the required texts.
 
+## Bundled fonts
+
+The desktop clock widget draws its date and time in **Quicksand** (Copyright 2019 The Quicksand Project Authors), packaged by `@fontsource/quicksand` and licensed under the SIL Open Font License 1.1; see [licenses/Quicksand-OFL.txt](licenses/Quicksand-OFL.txt). The big weekday letters are Skerry's own vector drawings, not a font.
+
 ## Source code for releases
 
 For each published release, GitHub provides automatically generated source archives from the corresponding release tag on the [Skerry Releases](https://github.com/ahmad-maqsood/skerry-island/releases) page. The source for a distributed binary must correspond to the exact version of that binary, including relevant build scripts and configuration.

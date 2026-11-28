@@ -4,13 +4,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 26px;
+  /* Room at the sides: the longest weekday is scaled down to fit inside it. */
+  padding: 0 14px;
   color: var(--widget-ink);
-  font-family: Bahnschrift, "Segoe UI Variable Display", "Segoe UI", sans-serif;
-  font-weight: 600;
+  font-family: "Quicksand", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  font-weight: 700;
   user-select: none;
-  cursor: default;
+  /* The whole widget drags: an open hand says so, closed while it is held. */
+  cursor: grab;
   transition: color 0.8s ease;
+}
+.widget-clock:active {
+  cursor: grabbing;
 }
 /* The window itself is the drag handle (data-tauri-drag-region), so its contents must not take the click. */
 .widget-clock > * {
@@ -20,24 +25,30 @@
   max-width: 100%;
   height: auto;
   overflow: visible;
-  fill: none;
-  stroke: var(--widget-ink);
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
-  stroke-miterlimit: 10;
+  fill: var(--widget-ink);
+  fill-rule: evenodd;
   filter: drop-shadow(var(--widget-shadow));
-  transition: stroke 0.8s ease;
+  transition: fill 0.8s ease;
+}
+/* A picked colour should keep up with the picker as it is dragged. */
+.widget-clock--custom,
+.widget-clock--custom .widget-clock__weekday {
+  transition-duration: 0.1s;
 }
 .widget-clock__date,
 .widget-clock__time {
-  letter-spacing: 0.2em;
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  word-spacing: 0.2em;
   text-shadow: var(--widget-shadow);
   white-space: nowrap;
 }
 .widget-clock__date {
-  font-size: 19px;
+  margin-top: 24px;
 }
 .widget-clock__time {
-  font-size: 20px;
-  letter-spacing: 0.16em;
+  margin-top: 28px;
+  /* The dashes sit close to the time. */
+  word-spacing: 0;
 }

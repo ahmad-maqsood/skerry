@@ -77,12 +77,23 @@ export function useMusicSourcePriority(sessions: MediaState["sessions"]) {
     }
 
     setSources((current) => {
-      const known = new Set(current.map((source) => source.id));
+      // A label saved when the player was first seen can be out of date (a raw id the app has since
+      // learned a name for): the live one replaces it.
+      const live = new Map(sessions.map((session) => [session.id, session.label]));
+      let relabelled = false;
+      const refreshed = current.map((source) => {
+        const label = live.get(source.id);
+        if (!label || label === source.label) return source;
+        relabelled = true;
+        return { ...source, label };
+      });
+      const known = new Set(refreshed.map((source) => source.id));
       const additions = sessions
         .filter((session) => !known.has(session.id))
         .map((session) => ({ id: session.id, label: session.label }));
 
-      return additions.length > 0 ? [...current, ...additions] : current;
+      if (additions.length > 0) return [...refreshed, ...additions];
+      return relabelled ? refreshed : current;
     });
   }, [sessions]);
 

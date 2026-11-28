@@ -11,7 +11,7 @@ use windows::Win32::Foundation::RECT;
 
 use super::model::{
     is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, unload_due, Fit, Status,
-    MAX_RECOVERIES, STABLE_AFTER,
+    UnloadAfter, MAX_RECOVERIES, STABLE_AFTER,
 };
 use crate::win32::{
     self,
@@ -31,7 +31,7 @@ const CHECK_EVERY_UNLOADED: Duration = Duration::from_millis(150);
 const RETRY_AFTER: Duration = Duration::from_secs(2);
 
 enum Command {
-    SetOptions { fit: Fit, pause_on_battery: bool },
+    SetOptions { fit: Fit, pause_on_battery: bool, unload_after: UnloadAfter },
     Stop,
 }
 
@@ -45,11 +45,12 @@ impl Worker {
         path: String,
         fit: Fit,
         pause_on_battery: bool,
+        unload_after: UnloadAfter,
         report: impl Fn(Status) + Send + 'static,
     ) -> Self {
         let (commands, receiver) = mpsc::channel();
         let thread = thread::spawn(move || {
-            if let Err(message) = run(&path, fit, pause_on_battery, &receiver, &report) {
+            if let Err(message) = run(&path, fit, pause_on_battery, unload_after, &receiver, &report) {
                 eprintln!("live wallpaper stopped: {message}");
                 report(Status::Error(message));
             }
@@ -57,8 +58,8 @@ impl Worker {
         Self { commands, thread }
     }
 
-    pub(super) fn set_options(&self, fit: Fit, pause_on_battery: bool) {
-        let _ = self.commands.send(Command::SetOptions { fit, pause_on_battery });
+    pub(super) fn set_options(&self, fit: Fit, pause_on_battery: bool, unload_after: UnloadAfter) {
+        let _ = self.commands.send(Command::SetOptions { fit, pause_on_battery, unload_after });
     }
 
     /// Returns once the windows are gone and the video file is closed.
@@ -111,6 +112,7 @@ fn run(
     path: &str,
     mut fit: Fit,
     mut pause_on_battery: bool,
+    mut unload_after: UnloadAfter,
     commands: &Receiver<Command>,
     report: &dyn Fn(Status),
 ) -> Result<(), String> {
@@ -147,9 +149,10 @@ fn run(
     loop {
         loop {
             match commands.try_recv() {
-                Ok(Command::SetOptions { fit: next_fit, pause_on_battery: next_pause }) => {
+                Ok(Command::SetOptions { fit: next_fit, pause_on_battery: next_pause, unload_after: next_unload }) => {
                     fit = next_fit;
                     pause_on_battery = next_pause;
+                    unload_after = next_unload;
                 }
                 Ok(Command::Stop) | Err(TryRecvError::Disconnected) => return Ok(()),
                 Err(TryRecvError::Empty) => break,
@@ -234,13 +237,14 @@ fn run(
             let since = *hidden_since.get_or_insert_with(Instant::now);
             let settled = !screens.is_empty()
                 && screens.iter().all(|screen| screen.player.is_loaded() && screen.resume_at == 0.0);
-            if unload_due(since.elapsed()) && settled {
+            if unload_due(since.elapsed(), unload_after) && settled {
                 if let Some(screen) = screens.first() {
                     position = screen.player.position();
                 }
                 // Close the players but keep their windows on the desktop.
                 for Screen { player, surface, monitor, .. } in screens.drain(..) {
                     drop(player);
+                    surface.blank();
                     parked.push((monitor, surface));
                 }
                 unloaded = true;

@@ -22,15 +22,16 @@ use windows::{
     Win32::{
         Foundation::{COLORREF, HWND, LPARAM, LRESULT, POINT, RECT, WPARAM},
         Graphics::Gdi::{
-            EnumDisplayMonitors, GetMonitorInfoW, MapWindowPoints, RedrawWindow, HDC, HMONITOR,
-            MONITORINFO, RDW_ALLCHILDREN, RDW_ERASE, RDW_INVALIDATE,
+            EnumDisplayMonitors, FillRect, GetMonitorInfoW, GetStockObject, MapWindowPoints, RedrawWindow,
+            BLACK_BRUSH, HBRUSH, HDC, HMONITOR, MONITORINFO, RDW_ALLCHILDREN, RDW_ERASE, RDW_INVALIDATE,
+            RDW_UPDATENOW,
         },
         UI::WindowsAndMessaging::{
-            CreateWindowExW, DispatchMessageW, EnumWindows, FindWindowExW, FindWindowW, GetParent,
-            GetWindow, IsWindow, MsgWaitForMultipleObjects, PeekMessageW, SendMessageTimeoutW,
+            CreateWindowExW, DispatchMessageW, EnumWindows, FindWindowExW, FindWindowW, GetClientRect,
+            GetParent, GetWindow, IsWindow, MsgWaitForMultipleObjects, PeekMessageW, SendMessageTimeoutW,
             SetLayeredWindowAttributes, SetParent, SetWindowLongPtrW, SetWindowPos, TranslateMessage,
             GWL_STYLE, GW_HWNDPREV, HWND_TOP, LWA_ALPHA, MSG, PM_REMOVE, QS_ALLINPUT, SMTO_NORMAL,
-            SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, WINDOW_EX_STYLE, WS_CHILD,
+            SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, WINDOW_EX_STYLE, WM_ERASEBKGND, WS_CHILD,
             WS_CLIPCHILDREN, WS_DISABLED, WS_EX_LAYERED, WS_EX_NOACTIVATE,
             WS_EX_NOREDIRECTIONBITMAP, WS_EX_TOOLWINDOW, WS_POPUP, WS_VISIBLE,
         },
@@ -43,10 +44,22 @@ const CLASS_NAME: &str = "SkerryLiveWallpaper";
 /// Undocumented Progman message that creates the wallpaper's `WorkerW` layer.
 const SPAWN_WORKER: u32 = 0x052C;
 
+/// Windows with nothing of their own to draw. Their background is black, so that a surface whose
+/// video is closed (see [`DesktopSurface::blank`]) shows black rather than whatever was under it.
 struct Plain;
 impl message_window::WindowMessages for Plain {
-    fn handle(_: HWND, _: u32, _: WPARAM, _: LPARAM) -> Option<LRESULT> {
-        None
+    fn handle(window: HWND, message: u32, wparam: WPARAM, _: LPARAM) -> Option<LRESULT> {
+        if message != WM_ERASEBKGND {
+            return None;
+        }
+        let mut area = RECT::default();
+        // SAFETY: for WM_ERASEBKGND, `wparam` is the device context to paint, valid for this call;
+        // `area` is a valid local and the stock black brush needs no cleanup.
+        unsafe {
+            GetClientRect(window, &mut area).ok()?;
+            FillRect(HDC(wparam.0 as *mut _), &area, HBRUSH(GetStockObject(BLACK_BRUSH).0));
+        }
+        Some(LRESULT(1))
     }
 }
 
@@ -175,6 +188,15 @@ impl DesktopSurface {
     /// The window the video is drawn into.
     pub(crate) fn video_window(&self) -> isize {
         self.video.0 as isize
+    }
+
+    /// Repaints the video's window in the background colour (black), for after the player that drew
+    /// into it was closed: otherwise its last frame, or nothing, would be left there.
+    pub(crate) fn blank(&self) {
+        // SAFETY: repaints a window of this thread; fails harmlessly if it is gone.
+        let _ = unsafe {
+            RedrawWindow(Some(self.video), None, None, RDW_INVALIDATE | RDW_ERASE | RDW_UPDATENOW)
+        };
     }
 
     /// False once Explorer restarted or rebuilt the desktop; the surface must then be remade.

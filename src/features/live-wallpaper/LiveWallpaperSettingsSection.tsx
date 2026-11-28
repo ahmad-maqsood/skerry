@@ -2,6 +2,7 @@ import { SettingsChoice } from "../../components/settings/SettingsChoice";
 import { SettingsGroup } from "../../components/settings/SettingsGroup";
 import { SettingsLinkButton } from "../../components/settings/SettingsLinkButton";
 import { SettingsRow } from "../../components/settings/SettingsRow";
+import { SettingsSelect } from "../../components/settings/SettingsSelect";
 import { SettingsToggleRow } from "../../components/settings/SettingsToggleRow";
 import { useTranslation } from "../../i18n";
 import { useLiveWallpaper } from "./useLiveWallpaper";
@@ -36,6 +37,22 @@ export function LiveWallpaperSettingsSection() {
         checked={settings?.pauseOnBattery ?? true}
         disabled={!settings}
         onChange={(pauseOnBattery) => { if (settings) void save({ ...settings, pauseOnBattery }); }}
+      />
+      <SettingsRow
+        title={text.freeMemory}
+        description={text.freeMemoryHint}
+        control={<SettingsSelect
+          value={settings?.unloadAfter ?? "threeMinutes"}
+          ariaLabel={text.freeMemory}
+          disabled={!settings}
+          options={[
+            { value: "minute", label: text.afterMinute },
+            { value: "threeMinutes", label: text.afterThreeMinutes },
+            { value: "tenMinutes", label: text.afterTenMinutes },
+            { value: "never", label: text.never },
+          ]}
+          onChange={(unloadAfter) => { if (settings) void save({ ...settings, unloadAfter }); }}
+        />}
       />
       <SettingsRow
         title={text.scaling}

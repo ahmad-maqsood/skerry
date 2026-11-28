@@ -603,6 +603,10 @@ pub(super) fn friendly_app_label(id: &str) -> String {
         ("msedge", "Edge"),
         ("edge", "Edge"),
         ("firefox", "Firefox"),
+        ("librewolf", "LibreWolf"),
+        ("waterfox", "Waterfox"),
+        ("floorp", "Floorp"),
+        ("vivaldi", "Vivaldi"),
         ("brave", "Brave"),
         ("opera", "Opera"),
         ("vlc", "VLC"),
@@ -627,7 +631,8 @@ pub(super) fn friendly_app_label(id: &str) -> String {
     }
 
     // Firefox's id is a 16-digit hex hash of its install (e.g. `308046B0AF4A39CB`), which would
-    // otherwise be shown as the source.
+    // otherwise be shown as the source. Other Firefox-based browsers use the same kind of id and
+    // are called Firefox too until the user names them (Settings > Music > Player compatibility).
     if id.len() == 16 && id.chars().all(|c| c.is_ascii_hexdigit()) {
         return "Firefox".to_string();
     }

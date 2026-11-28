@@ -6,7 +6,15 @@ export const LIVE_WALLPAPER_STATUS_EVENT = "live-wallpaper-status";
 
 /** These three mirror Fit, Settings and Status in src-tauri/src/live_wallpaper/model.rs. */
 export type LiveWallpaperFit = "fill" | "fit";
-export type LiveWallpaperSettings = { enabled: boolean; path: string; fit: LiveWallpaperFit; pauseOnBattery: boolean };
+/** How long the desktop stays hidden before the video is closed to free its memory. */
+export type LiveWallpaperUnloadAfter = "minute" | "threeMinutes" | "tenMinutes" | "never";
+export type LiveWallpaperSettings = {
+  enabled: boolean;
+  path: string;
+  fit: LiveWallpaperFit;
+  pauseOnBattery: boolean;
+  unloadAfter: LiveWallpaperUnloadAfter;
+};
 export type LiveWallpaperStatus =
   | { kind: "off" | "noVideo" | "starting" | "playing" | "paused" | "pausedPower" }
   | { kind: "error"; message: string };

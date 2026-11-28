@@ -122,7 +122,7 @@ mockIPC((command, payload) => {
     case "get_plugins": return { registry: { installed: {}, developerMode: false, indexUrl: "" }, live: {} };
     case "get_plugins_index": return [];
     case "get_clipboard_shortcut_error": return null;
-    case "get_live_wallpaper": return { settings: { enabled: false, path: "", fit: "fill", pauseOnBattery: true }, status: { kind: "off" } };
+    case "get_live_wallpaper": return { settings: { enabled: false, path: "", fit: "fill", pauseOnBattery: true, unloadAfter: "threeMinutes" }, status: { kind: "off" } };
     case "get_app_log_state": return { enabled: false, path: "", bytes: 0 };
     default:
       // A command nobody mocked is a gap in this file, not a null: answering null hid a crash once.

@@ -4,6 +4,8 @@
 
 use windows::{core::BOOL, Win32::{Foundation::{HWND, POINT, RECT}, Graphics::{Dwm::{DwmSetWindowAttribute, DWMWA_TRANSITIONS_FORCEDISABLED, DWMWA_USE_IMMERSIVE_DARK_MODE}, Gdi::{GetMonitorInfoW, MonitorFromWindow, SetWindowRgn, MONITORINFO, MONITOR_DEFAULTTONEAREST}}, System::Threading::{AttachThreadInput, GetCurrentThreadId}, UI::{WindowsAndMessaging::{BringWindowToTop, IsGUIThread, GetClassNameW, GetCursorPos, GetForegroundWindow, GetWindowLongPtrW, GetWindowRect, GetWindowThreadProcessId, IsIconic, IsWindowVisible, SetForegroundWindow, ShowWindow, GWL_EXSTYLE, GWL_STYLE, SW_RESTORE}}}};
 
+use windows::Win32::UI::WindowsAndMessaging::{SetWindowPos, HWND_BOTTOM, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE};
+
 /// Class names are at most 256 UTF-16 units including the terminator.
 const MAX_CLASS_NAME_UNITS: usize = 256;
 
@@ -130,6 +132,21 @@ pub(crate) fn share_monitor(a: HWND, b: HWND) -> bool {
     // SAFETY: MonitorFromWindow takes the HWND by value; with DEFAULTTONEAREST it
     // returns a monitor even for invalid windows and never fails.
     unsafe { MonitorFromWindow(a, MONITOR_DEFAULTTONEAREST) == MonitorFromWindow(b, MONITOR_DEFAULTTONEAREST) }
+}
+
+/// Whether `window` is the desktop itself (Explorer's `Progman` or `WorkerW`). Giving it the
+/// foreground raises it over every window sitting at the bottom of the order, desktop widgets
+/// among them, so it is never handed the focus back.
+pub(crate) fn is_desktop(window: HWND) -> bool {
+    matches!(class_name(window).as_str(), "Progman" | "WorkerW")
+}
+
+/// Puts `window` back at the very bottom of the window order without activating or moving it.
+/// For desktop widgets, which something else may have raised over.
+pub(crate) fn send_to_bottom(window: HWND) -> bool {
+    // SAFETY: SetWindowPos takes the HWND by value and fails for an invalid window; with
+    // SWP_NOMOVE | SWP_NOSIZE the position and size arguments are ignored.
+    unsafe { SetWindowPos(window, Some(HWND_BOTTOM), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE) }.is_ok()
 }
 
 /// Whether `window` is already in the foreground or was just brought there.

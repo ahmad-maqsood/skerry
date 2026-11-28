@@ -123,6 +123,14 @@ fn close_clock(app: &AppHandle) {
     }
 }
 
+/// Puts the clock back at the bottom of the window order if it is open. The island takes and gives
+/// back the keyboard focus as it is used, and the window that gets it can end up over the widget.
+pub(crate) fn keep_at_bottom(app: &AppHandle) {
+    if let Some(handle) = app.get_webview_window(CLOCK_LABEL).and_then(|window| window.hwnd().ok()) {
+        crate::win32::window::send_to_bottom(handle);
+    }
+}
+
 /// Opens the widgets that were left on.
 pub(crate) fn init(app: &AppHandle) {
     let saved = settings_path(app)

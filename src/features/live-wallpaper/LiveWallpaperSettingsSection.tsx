@@ -30,6 +30,13 @@ export function LiveWallpaperSettingsSection() {
         description={settings?.path ? <span title={settings.path}>{fileName(settings.path)}</span> : text.noVideo}
         control={<SettingsLinkButton disabled={!settings} onClick={() => void chooseVideo(text.pickerTitle)}>{text.choose}</SettingsLinkButton>}
       />
+      <SettingsToggleRow
+        title={text.pauseOnBattery}
+        description={text.pauseOnBatteryHint}
+        checked={settings?.pauseOnBattery ?? true}
+        disabled={!settings}
+        onChange={(pauseOnBattery) => { if (settings) void save({ ...settings, pauseOnBattery }); }}
+      />
       <SettingsRow
         title={text.scaling}
         description={text.scalingHint}

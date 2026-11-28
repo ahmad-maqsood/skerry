@@ -10,11 +10,12 @@ use std::{
 use windows::Win32::Foundation::RECT;
 
 use super::model::{
-    is_recoverable, playback_error, recovery_delay, source_rect, Fit, Status, MAX_RECOVERIES, STABLE_AFTER,
+    is_recoverable, paused_for_power, playback_error, recovery_delay, source_rect, Fit, Status, MAX_RECOVERIES, STABLE_AFTER,
 };
 use crate::win32::{
     self,
     desktop_layer::{self, DesktopLayer, DesktopSurface},
+    power,
     video_player::{MediaRuntime, VideoPlayer},
 };
 
@@ -25,7 +26,7 @@ const CHECK_EVERY: Duration = Duration::from_millis(500);
 const RETRY_AFTER: Duration = Duration::from_secs(2);
 
 enum Command {
-    SetFit(Fit),
+    SetOptions { fit: Fit, pause_on_battery: bool },
     Stop,
 }
 
@@ -35,10 +36,15 @@ pub(super) struct Worker {
 }
 
 impl Worker {
-    pub(super) fn start(path: String, fit: Fit, report: impl Fn(Status) + Send + 'static) -> Self {
+    pub(super) fn start(
+        path: String,
+        fit: Fit,
+        pause_on_battery: bool,
+        report: impl Fn(Status) + Send + 'static,
+    ) -> Self {
         let (commands, receiver) = mpsc::channel();
         let thread = thread::spawn(move || {
-            if let Err(message) = run(&path, fit, &receiver, &report) {
+            if let Err(message) = run(&path, fit, pause_on_battery, &receiver, &report) {
                 eprintln!("live wallpaper stopped: {message}");
                 report(Status::Error(message));
             }
@@ -46,8 +52,8 @@ impl Worker {
         Self { commands, thread }
     }
 
-    pub(super) fn set_fit(&self, fit: Fit) {
-        let _ = self.commands.send(Command::SetFit(fit));
+    pub(super) fn set_options(&self, fit: Fit, pause_on_battery: bool) {
+        let _ = self.commands.send(Command::SetOptions { fit, pause_on_battery });
     }
 
     /// Returns once the windows are gone and the video file is closed.
@@ -79,7 +85,13 @@ fn build(runtime: &MediaRuntime, path: &str, monitors: &[RECT], resume_at: f64) 
         .collect()
 }
 
-fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(Status)) -> Result<(), String> {
+fn run(
+    path: &str,
+    mut fit: Fit,
+    mut pause_on_battery: bool,
+    commands: &Receiver<Command>,
+    report: &dyn Fn(Status),
+) -> Result<(), String> {
     if !std::path::Path::new(path).is_file() {
         return Err("The video file was not found. Choose it again.".to_string());
     }
@@ -87,6 +99,7 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
     let mut screens: Vec<Screen> = Vec::new();
     let mut built_for: Vec<RECT> = Vec::new();
     let mut covered: Vec<RECT> = Vec::new();
+    let mut power = power::PowerSaving::default();
     let mut position = 0.0;
     let mut last_status = Status::Starting;
     let mut next_check = Instant::now();
@@ -99,7 +112,10 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
     loop {
         loop {
             match commands.try_recv() {
-                Ok(Command::SetFit(next)) => fit = next,
+                Ok(Command::SetOptions { fit: next_fit, pause_on_battery: next_pause }) => {
+                    fit = next_fit;
+                    pause_on_battery = next_pause;
+                }
                 Ok(Command::Stop) | Err(TryRecvError::Disconnected) => return Ok(()),
                 Err(TryRecvError::Empty) => break,
             }
@@ -135,6 +151,7 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
                 screen.surface.keep_order();
             }
             covered = win32::open_windows::covered_monitors();
+            power = power::query_power_saving();
             // Remembered so a restart after an error carries on from here.
             if let Some(screen) = screens.first().filter(|screen| screen.player.is_loaded() && screen.resume_at == 0.0) {
                 position = screen.player.position();
@@ -160,6 +177,7 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
             continue;
         }
 
+        let power_paused = paused_for_power(pause_on_battery, power.on_battery, power.battery_saver);
         let mut any_playing = false;
         let mut all_loaded = !screens.is_empty();
         for screen in &mut screens {
@@ -177,7 +195,7 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
                     screen.laid_out = Some(fit);
                 }
             }
-            let play = !locked && !covered.contains(&screen.monitor);
+            let play = !locked && !power_paused && !covered.contains(&screen.monitor);
             screen.player.set_playing(play);
             any_playing |= play;
         }
@@ -194,6 +212,7 @@ fn run(path: &str, mut fit: Fit, commands: &Receiver<Command>, report: &dyn Fn(S
         let status = match (all_loaded, any_playing) {
             (false, _) => Status::Starting,
             (true, true) => Status::Playing,
+            (true, false) if power_paused => Status::PausedPower,
             (true, false) => Status::Paused,
         };
         if status != last_status {

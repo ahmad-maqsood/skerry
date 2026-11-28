@@ -29,7 +29,7 @@ struct Control {
 }
 
 static CONTROL: Mutex<Control> = Mutex::new(Control {
-    settings: Settings { enabled: false, path: String::new(), fit: model::Fit::Fill },
+    settings: Settings { enabled: false, path: String::new(), fit: model::Fit::Fill, pause_on_battery: true },
     worker: None,
 });
 /// Apart from CONTROL: the worker reports while a change may be waiting for it to stop.
@@ -58,8 +58,8 @@ fn apply(app: &AppHandle, control: &mut Control, next: Settings) {
     if settings.wants_player() && same_video {
         let failed = matches!(*STATUS.lock().unwrap_or_else(PoisonError::into_inner), Status::Error(_));
         if let (Some(worker), false) = (&control.worker, failed) {
-            // Only the scaling changed: the video carries on where it is.
-            worker.set_fit(settings.fit);
+            // Only the scaling or the power rule changed: the video carries on where it is.
+            worker.set_options(settings.fit, settings.pause_on_battery);
             return;
         }
     }
@@ -72,7 +72,7 @@ fn apply(app: &AppHandle, control: &mut Control, next: Settings) {
     }
     report(app, Status::Starting);
     let handle = app.clone();
-    control.worker = Some(service::Worker::start(settings.path, settings.fit, move |status| report(&handle, status)));
+    control.worker = Some(service::Worker::start(settings.path, settings.fit, settings.pause_on_battery, move |status| report(&handle, status)));
 }
 
 fn state(control: &Control) -> LiveWallpaperState {

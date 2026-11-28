@@ -16,12 +16,20 @@ pub enum Fit {
 }
 
 /// Mirrored by LiveWallpaperSettings in src/features/live-wallpaper/api.ts. Off by default.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
     pub enabled: bool,
     pub path: String,
     pub fit: Fit,
+    /// Pause on battery power or in Battery Saver. On by default, also for files saved before it existed.
+    pub pause_on_battery: bool,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self { enabled: false, path: String::new(), fit: Fit::default(), pause_on_battery: true }
+    }
 }
 
 impl Settings {
@@ -42,7 +50,14 @@ pub enum Status {
     Playing,
     /// The desktop is hidden on every screen.
     Paused,
+    /// Paused to save power: on battery or in Battery Saver.
+    PausedPower,
     Error(String),
+}
+
+/// Whether the power source alone should stop the video.
+pub(crate) fn paused_for_power(pause_on_battery: bool, on_battery: bool, battery_saver: bool) -> bool {
+    pause_on_battery && (on_battery || battery_saver)
 }
 
 /// The part of the picture to show, as left, top, right, bottom fractions of it.
@@ -113,6 +128,22 @@ mod tests {
         assert!(tall[0] == 0.0 && tall[1] > 0.3 && (tall[1] + tall[3] - 1.0).abs() < 0.001);
         assert_eq!(source_rect(Fit::Fit, (2560, 1080), (1920, 1080)), [0.0, 0.0, 1.0, 1.0]);
         assert_eq!(source_rect(Fit::Fill, (0, 0), (1920, 1080)), [0.0, 0.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn pausing_on_battery_is_on_unless_saved_otherwise() {
+        let saved: Settings = serde_json::from_str(r#"{"enabled":true,"path":"a.mp4","fit":"fit"}"#).unwrap();
+        assert!(saved.pause_on_battery && saved.enabled && saved.fit == Fit::Fit);
+        let off: Settings = serde_json::from_str(r#"{"pauseOnBattery":false}"#).unwrap();
+        assert!(!off.pause_on_battery);
+    }
+
+    #[test]
+    fn power_pauses_only_on_battery_or_battery_saver_and_only_when_asked() {
+        assert!(paused_for_power(true, true, false));
+        assert!(paused_for_power(true, false, true));
+        assert!(!paused_for_power(true, false, false));
+        assert!(!paused_for_power(false, true, true));
     }
 
     #[test]

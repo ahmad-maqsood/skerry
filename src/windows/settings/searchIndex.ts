@@ -174,6 +174,7 @@ export const SETTINGS_SEARCH_INDEX: readonly SettingsSearchEntry[] = [
   { page: "advanced", group: "Live wallpaper" },
   { page: "advanced", group: "Live wallpaper", title: "Enable live wallpaper" },
   { page: "advanced", group: "Live wallpaper", title: "Wallpaper video" },
+  { page: "advanced", group: "Live wallpaper", title: "Pause on battery or Battery Saver" },
   { page: "advanced", group: "Live wallpaper", title: "Scaling" },
   { page: "about", title: "Automatic updates" },
   { page: "about", title: "Check for updates" },

@@ -6,9 +6,9 @@ export const LIVE_WALLPAPER_STATUS_EVENT = "live-wallpaper-status";
 
 /** These three mirror Fit, Settings and Status in src-tauri/src/live_wallpaper/model.rs. */
 export type LiveWallpaperFit = "fill" | "fit";
-export type LiveWallpaperSettings = { enabled: boolean; path: string; fit: LiveWallpaperFit };
+export type LiveWallpaperSettings = { enabled: boolean; path: string; fit: LiveWallpaperFit; pauseOnBattery: boolean };
 export type LiveWallpaperStatus =
-  | { kind: "off" | "noVideo" | "starting" | "playing" | "paused" }
+  | { kind: "off" | "noVideo" | "starting" | "playing" | "paused" | "pausedPower" }
   | { kind: "error"; message: string };
 
 export type LiveWallpaperState = { settings: LiveWallpaperSettings; status: LiveWallpaperStatus };

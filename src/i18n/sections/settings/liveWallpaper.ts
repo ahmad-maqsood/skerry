@@ -10,8 +10,10 @@ export type SettingsLiveWallpaperText = {
   scalingHint: string;
   fill: string;
   fit: string;
+  pauseOnBattery: string;
+  pauseOnBatteryHint: string;
   formats: string;
-  status: Record<"off" | "noVideo" | "starting" | "playing" | "paused", string>;
+  status: Record<"off" | "noVideo" | "starting" | "playing" | "paused" | "pausedPower", string>;
 };
 
 export const en: SettingsLiveWallpaperText = {
@@ -26,6 +28,8 @@ export const en: SettingsLiveWallpaperText = {
   scalingHint: "Fill covers the screen and may crop the edges. Fit shows the whole picture.",
   fill: "Fill",
   fit: "Fit",
+  pauseOnBattery: "Pause on battery or Battery Saver",
+  pauseOnBatteryHint: "Stops the video while your laptop runs on its battery or Windows Battery Saver is on, and carries on when it is plugged in again.",
   formats: "MP4, MOV, M4V, MKV, WebM, AVI, WMV and more, played from your original file without re-encoding. Windows does the decoding: HEVC (common in iPhone videos), AV1 and VP9 may need Microsoft's video extensions. ProRes is not supported.",
   status: {
     off: "Off",
@@ -33,5 +37,6 @@ export const en: SettingsLiveWallpaperText = {
     starting: "Starting",
     playing: "Playing",
     paused: "Paused while the desktop is hidden",
+    pausedPower: "Paused to save battery",
   },
 };

@@ -20,6 +20,7 @@ mod system_notifications;
 mod translation;
 mod tray;
 mod weather;
+mod widgets;
 mod win32;
 
 use tauri::WindowEvent;
@@ -90,6 +91,7 @@ pub fn run() {
             }
             system::fullscreen::start(app.handle());
             live_wallpaper::init(app.handle());
+            widgets::init(app.handle());
             if let Err(error) = plugin_host::init(app.handle()) {
                 eprintln!("failed to initialize plugins: {error}");
             }
@@ -119,6 +121,7 @@ pub fn run() {
             ; device_status
             ; changelog
             ; live_wallpaper
+            ; widgets
         ))
         .build(context)
         .map(|app| {
@@ -128,6 +131,7 @@ pub fn run() {
                     clipboard_window::remember_bounds(handle);
                     plugin_host::shutdown(handle);
                     live_wallpaper::shutdown();
+                    widgets::shutdown(handle);
                 }
             })
         });

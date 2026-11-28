@@ -17,6 +17,7 @@ src-tauri/src/
 ├── file_shelf/              # File shelf: path list (file-shelf.json) and commands; drag-out invokes win32/ole.rs
 ├── media_control/           # diagnostics.rs: SMTC, processes, versions, and player read-only diagnostics; hotkeys.rs: optional music global shortcuts, registration status, and existing media session control
 ├── live_wallpaper/          # Opt-in video wallpaper behind the desktop icons (off by default): saved switch, worker thread that pauses per screen while the desktop is hidden
+├── widgets/                 # Opt-in desktop widgets (off by default), the clock first: saved switches and positions (widgets.json), a window per widget at the bottom of the window order that takes no focus, and a Desktop Duplication look at what is behind it (backdrop.rs, sampler.rs) so the page can pick readable colours
 ├── lyrics/                  # Local LRC, LRCLIB; online results cached in lyrics-cache/
 ├── device_status/           # Device pop-up sources polled by the island: connected Bluetooth devices (WinRT device enumeration) and airplane mode (registry)
 ├── system_notifications/  # Generic Windows system notification listener (WinRT UserNotificationListener), history, logo cache, per-app mute, privacy filter

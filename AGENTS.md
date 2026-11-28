@@ -12,7 +12,7 @@ Subdirectory rules are more specific than this file. In case of conflict, subdir
 
 **Skerry** (repository name and installer package name `skerry`) is a Windows-first desktop productivity tool running as a transparent, borderless, always-on-top Tauri floating island. Core features include: todos, daily notes and archiving, appearance settings and presets, media controls, clipboard history, file shelf, quick translation, system notifications, system monitor, configuration backup / transfer, a plugin host (switched on through `release-features.json`), and automatic updates.
 
-The application has four windows, dispatched on the frontend via the `?window=` parameter at the single entry point:
+The application has five windows (plus one per switched-on desktop widget), dispatched on the frontend via the `?window=` parameter at the single entry point:
 
 | Window Label | Frontend Entry Point | Description |
 |---|---|---|
@@ -20,6 +20,7 @@ The application has four windows, dispatched on the frontend via the `?window=` 
 | `translation` | `?window=translation` | Quick translation window, persistent, toggles visibility |
 | `clipboard` | `?window=clipboard` | Independent clipboard history window, `create: false`, created on demand when enabled in settings, always on top by default |
 | `settings` | `?window=settings` | Settings window, `create: false`, created on demand |
+| `widget-clock` | `?window=widget-clock` | Desktop clock widget (Settings → Advanced → Widgets), `create: false`, created only while switched on; one `widget-<id>` window per widget |
 
 Code is organized according to the target structure: Rust-side `unsafe` blocks only exist in `src-tauri/src/win32/`, production code does not use `unwrap` / `expect`, and both clippy and ESLint have 0 warnings.
 
@@ -92,7 +93,7 @@ The following identifiers are referenced by existing user data, configurations, 
 
 - `localStorage` keys (`skerry-*`, full list in [contracts.md](docs/architecture/contracts.md))
 - Tauri command names (Rust function names), parameter names, and event names
-- Window labels (`main` / `translation` / `settings` / `clipboard`) and `?window=` parameter values
+- Window labels (`main` / `translation` / `settings` / `clipboard` / `widget-*`) and `?window=` parameter values
 - App identifier `com.ahmad-maqsood.skerry`, startup registry value `Skerry`, and Credential Manager service names `skerry.translation` / `skerry.plugins`
 - Update endpoints and `latest.json` format
 

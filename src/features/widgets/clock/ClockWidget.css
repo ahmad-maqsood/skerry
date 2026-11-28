@@ -1,5 +1,10 @@
 .widget-clock {
-  height: 100%;
+  /* Laid out at its default size (CLOCK_WIDTH.default) and scaled from the top left corner, so the
+     window, sized to match (ClockWidget), is filled whatever width Settings sets. */
+  width: 560px;
+  height: 230px;
+  transform: scale(var(--widget-scale, 1));
+  transform-origin: 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;

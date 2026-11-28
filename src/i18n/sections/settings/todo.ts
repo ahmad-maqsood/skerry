@@ -1,6 +1,8 @@
 export type SettingsTodoText = {
   collapsedTitle: string;
   rotateTodos: string;
+  showTodoCount: string;
+  showTodoCountDescription: string;
   rotationMode: string;
   switchMode: string;
   scrollMode: string;
@@ -24,6 +26,8 @@ export type SettingsTodoText = {
 export const en: SettingsTodoText = {
   collapsedTitle: "Collapsed island",
   rotateTodos: "Rotate todos",
+  showTodoCount: "Show the todo count",
+  showTodoCountDescription: "The collapsed island says how many todos are left while none is running",
   rotationMode: "Rotation mode",
   switchMode: "Switch",
   scrollMode: "Scroll",

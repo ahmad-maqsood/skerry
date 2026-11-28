@@ -119,7 +119,6 @@ test("options no longer in Settings load as their defaults, whatever was saved",
     shelfRemoveAfterDragOut: false,
     shelfMaxItems: 20,
     shelfDoubleClick: "reveal",
-    shelfShowCount: false,
     gameAutoTuck: true,
   };
   const normalized = normalizeSettings(saved);
@@ -248,4 +247,12 @@ test("clipboard rows are saved, clamped and independent of appearance presets", 
   const chosen = normalizeSettings({ clipboardVisibleRows: 5.6 });
   assert.equal(chosen.clipboardVisibleRows, 6);
   assert.equal(withAppearanceFrom(chosen, DEFAULT_SETTINGS).clipboardVisibleRows, 6);
+});
+
+test("the todo count and the shelf icon show on the collapsed island unless turned off", () => {
+  for (const key of ["showIdleTodoCount", "shelfShowCount"]) {
+    assert.equal(normalizeSettings({})[key], true, `${key} defaults to on`);
+    assert.equal(normalizeSettings({ [key]: false })[key], false, `${key} stays off once chosen`);
+    assert.equal(normalizeSettings({ [key]: "no" })[key], true, `${key} ignores damaged values`);
+  }
 });

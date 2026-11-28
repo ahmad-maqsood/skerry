@@ -29,6 +29,15 @@ export function ShelfSettingsGroup({
     <SettingsGroup title={t.settings.categories.shelf} footer={settings.shelfEnabled ? labels.cleanupHint : t.settings.modules.hint}>
       <SettingsToggleRow title={t.settings.modules.shelf} checked={settings.shelfEnabled} onChange={(shelfEnabled) => update({ shelfEnabled })} />
       {settings.shelfEnabled && (
+        <SettingsToggleRow
+          indent
+          title={labels.showCount}
+          description={labels.showCountDescription}
+          checked={settings.shelfShowCount}
+          onChange={(shelfShowCount) => update({ shelfShowCount })}
+        />
+      )}
+      {settings.shelfEnabled && (
         <SettingsRow
           indent
           title={labels.autoCleanup}

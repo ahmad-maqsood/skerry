@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import type { WidgetBackdrop } from "./clock/ink";
 
 /** Mirrors WidgetsState in src-tauri/src/widgets/model.rs. */
@@ -28,4 +28,9 @@ export function sampleWidgetBackdrop() {
 /** Fires as the widget's own window is dragged; resolves to the unlisten function. */
 export function listenWidgetMoved(handler: () => void) {
   return getCurrentWindow().onMoved(() => handler());
+}
+
+/** Sizes the widget's own window, in logical pixels; its top left corner stays where it is. */
+export function resizeWidget(width: number, height: number) {
+  return getCurrentWindow().setSize(new LogicalSize(width, height));
 }

@@ -3,6 +3,9 @@ export type SettingsWidgetsText = {
   clock: string;
   clockHint: string;
   footer: string;
+  clockSize: string;
+  clockSizeHint: string;
+  clockSizeUnit: string;
   clockColor: string;
   clockColorHint: string;
   clockColorAuto: string;
@@ -16,6 +19,9 @@ export const en: SettingsWidgetsText = {
   title: "Widgets",
   clock: "Clock",
   clockHint: "The weekday, date and time on your desktop. Drag it anywhere.",
+  clockSize: "Clock size",
+  clockSizeHint: "How wide the clock is on the desktop, in pixels. The height follows.",
+  clockSizeUnit: "px",
   clockColor: "Clock colour",
   clockColorHint: "Auto follows the wallpaper behind the clock. Custom keeps the colour you pick.",
   clockColorAuto: "Auto",

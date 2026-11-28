@@ -2,9 +2,16 @@ import { act } from "react";
 
 export async function checkTodoRotation(panel: Element, check: (value: unknown, message: string) => void) {
   const group = () => [...panel.querySelectorAll(".settings-group")].find(node => node.querySelector("h2")?.textContent === "Collapsed island")!;
-  const toggle = () => group().querySelector<HTMLInputElement>("input[role=switch]")!;
+  // The group's switches: the todo count first, then the rotation switch whose options follow it.
+  const switches = () => [...group().querySelectorAll<HTMLInputElement>("input[role=switch]")];
+  const toggle = () => switches()[1];
   const saved = () => JSON.parse(localStorage.getItem("skerry-settings")!);
   check(!toggle().checked && !group().querySelector("input[role=spinbutton]"), "todo: rotation options start hidden");
+  check(switches()[0].checked, "todo: the todo count shows on the island by default");
+  await act(async () => switches()[0].click());
+  check(saved().showIdleTodoCount === false && !switches()[0].checked, "todo: the todo count can be hidden from the island");
+  await act(async () => switches()[0].click());
+  check(saved().showIdleTodoCount === true, "todo: the todo count can be shown again");
   await act(async () => toggle().click());
   const fields = [...group().querySelectorAll<HTMLInputElement>("input[role=spinbutton]")];
   check(fields.map(field => field.value).join() === "5", "todo: switch mode exposes only the interval, with no count setting");

@@ -4,7 +4,7 @@
 //! is over it and hands it back to that app afterwards.
 
 use std::sync::atomic::{AtomicIsize, Ordering};
-use tauri::{AppHandle, WebviewWindow};
+use tauri::{AppHandle, Manager, WebviewWindow};
 use windows::Win32::Foundation::HWND;
 
 use super::main_window;
@@ -42,11 +42,14 @@ pub fn take_island_hover_focus(app: AppHandle) -> Result<bool, String> {
     if !win32::window::activate_from_background(island) {
         return Ok(true);
     }
-    if !foreground.is_invalid() {
+    // The desktop is never remembered: handing the focus back to it would raise it over the
+    // desktop widgets, which sit at the bottom of the window order.
+    if !foreground.is_invalid() && !win32::window::is_desktop(foreground) {
         PREVIOUS_FOREGROUND.store(foreground.0 as isize, Ordering::SeqCst);
     }
     // Already in front, so this only moves the focus into the webview.
     window.set_focus().map_err(|error| error.to_string())?;
+    crate::widgets::keep_at_bottom(&app);
     Ok(true)
 }
 
@@ -63,10 +66,12 @@ pub(crate) fn focus_island_for_shortcut(window: &WebviewWindow) {
     };
     if foreground != island
         && !foreground.is_invalid()
+        && !win32::window::is_desktop(foreground)
         && win32::window::foreground_window() == island
     {
         PREVIOUS_FOREGROUND.store(foreground.0 as isize, Ordering::SeqCst);
     }
+    crate::widgets::keep_at_bottom(window.app_handle());
 }
 
 /// Gives the focus back to the window the island took it from, but only while the
@@ -84,8 +89,12 @@ pub fn release_island_hover_focus(app: AppHandle) -> Result<bool, String> {
     }
     let island = main_window(&app)?.hwnd().map_err(|error| error.to_string())?;
     let previous = HWND(previous as *mut _);
-    if win32::window::foreground_window() == island && win32::window::is_visible(previous) {
+    if win32::window::foreground_window() == island
+        && win32::window::is_visible(previous)
+        && !win32::window::is_desktop(previous)
+    {
         win32::window::bring_to_foreground(previous);
     }
+    crate::widgets::keep_at_bottom(&app);
     Ok(true)
 }

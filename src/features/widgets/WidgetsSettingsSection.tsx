@@ -1,6 +1,7 @@
 import { SettingsGroup } from "../../components/settings/SettingsGroup";
 import { SettingsToggleRow } from "../../components/settings/SettingsToggleRow";
 import { ClockColorRows } from "./clock/ClockColorRows";
+import { ClockSizeRow } from "./clock/ClockSizeRow";
 import { useTranslation } from "../../i18n";
 import { useWidgets } from "./useWidgets";
 
@@ -18,6 +19,7 @@ export function WidgetsSettingsSection() {
         disabled={!state}
         onChange={(enabled) => void toggle("clock", enabled)}
       />
+      {state?.clock && <ClockSizeRow />}
       {state?.clock && <ClockColorRows />}
     </SettingsGroup>
   );

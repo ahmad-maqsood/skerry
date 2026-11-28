@@ -20,6 +20,7 @@ export function expandsPreview(settings: ExpandSettings, kind?: PreviewKind) {
     // Short device notices and level bars are one line: there is nothing to expand.
     case "bluetooth":
     case "airplane":
+    case "capsLock":
     case "volume":
     case "brightness": return false;
     default: return settings.messageExpandApps;
@@ -27,13 +28,13 @@ export function expandsPreview(settings: ExpandSettings, kind?: PreviewKind) {
 }
 
 /**
- * Short status pop-ups (the charger, a device, airplane mode, a new song) say little, so the bar
+ * Short status pop-ups (the charger, a device, airplane mode, Caps Lock, a new song) say little, so the bar
  * always widens enough to show them, whatever the "Expand long messages" switches say: on a narrow
  * bar "Charger plugged in · 90%" was cut to "Charger plugg… · 9…". A song's pop-up can outlast the
  * playback that made the bar wide: pausing narrows the bar, which cut the title to "B…".
  */
 export function widensToFit(kind?: PreviewKind) {
-  return kind === "battery" || kind === "bluetooth" || kind === "airplane" || kind === "music";
+  return kind === "battery" || kind === "bluetooth" || kind === "airplane" || kind === "capsLock" || kind === "music";
 }
 
 /** The page a click on a pop-up opens: the island's own pop-ups open a page, not an app. */

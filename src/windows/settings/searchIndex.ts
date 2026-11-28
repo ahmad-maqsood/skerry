@@ -145,6 +145,7 @@ export const SETTINGS_SEARCH_INDEX: readonly SettingsSearchEntry[] = [
   { page: "messages", group: "Island notifications", title: "Show charger changes" },
   { page: "messages", group: "Island notifications", title: "Show Bluetooth connections" },
   { page: "messages", group: "Island notifications", title: "Show airplane mode" },
+  { page: "messages", group: "Island notifications", title: "Show Caps Lock" },
   { page: "messages", group: "Island notifications", title: "Show volume changes" },
   { page: "messages", group: "Island notifications", title: "Show brightness changes" },
   { page: "messages", group: "Per-app mute list" },

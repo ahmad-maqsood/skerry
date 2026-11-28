@@ -15,3 +15,8 @@ export function getConnectedBluetoothDevices(): Promise<BluetoothDeviceInfo[]> {
 export function getAirplaneMode(): Promise<boolean | null> {
   return invoke<boolean | null>("get_airplane_mode");
 }
+
+// get_caps_lock in src-tauri/src/device_status/mod.rs: whether Caps Lock is switched on.
+export function getCapsLock(): Promise<boolean> {
+  return invoke<boolean>("get_caps_lock");
+}

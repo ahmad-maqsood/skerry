@@ -86,6 +86,7 @@ export const DEFAULT_SETTINGS: IslandSettings = {
   chargerPopup: true,
   bluetoothPopup: true,
   airplanePopup: true,
+  capsLockPopup: true,
   volumePopup: true,
   brightnessPopup: true,
   expandTrigger: "hover",

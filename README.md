@@ -59,7 +59,7 @@ Skerry brings a streamlined, glanceable floating island to the top of your Windo
 - **Glanceable Clock and Weather**: Optional tabular digits time display and Open-Meteo local weather forecasts when the island sits idle.
 - **Pixel Cat**: A cat that takes the clock's place on the collapsed island, on by default on a fresh install. It walks, sits and flicks its tail, hops, stretches, naps and blinks.
 - **Stays Where You Want It**: Keep the island out while the desktop is in front (on by default), or keep it displayed all the time.
-- **Island Pop-ups**: Short notices for copied text, new songs, the charger, Bluetooth connections, airplane mode, volume and brightness, each with its own switch.
+- **Island Pop-ups**: Short notices for copied text, new songs, the charger, Bluetooth connections, airplane mode, Caps Lock, volume and brightness, each with its own switch.
 - **Optional Live Wallpaper**: A muted, looping video behind the desktop icons, played from your original file (MP4, MOV and more; HEVC, AV1 and VP9 may need Microsoft's video extensions) without re-encoding. It pauses while open windows, alone or together, hide the desktop, while the screen is off or locked, and on battery power or in Battery Saver (switchable), then carries on from the same point. Playback restarts by itself after an error, and the players close after a long hidden spell to free memory. Off by default (Settings -> Advanced).
 - **Desktop Widgets**: Small movable widgets that sit on the desktop under your windows, off by default (Settings -> Advanced -> Widgets). The first is a clock with the weekday in large open letters, the date and the time; drag it anywhere, and its colour follows the wallpaper behind it.
 - **System Media and Synced Lyrics**: Global media controls via Windows GSMTC with real-time lyrics fetched from LRCLIB.
@@ -227,7 +227,7 @@ Each published GitHub Release page also provides GitHub-generated source archive
   - **App-Grouped Inbox**: Cards organized by originating application with timestamps, unread counts, and quick clearance options.
   - **Glanceable Collapsed Preview**: Incoming messages slide across the collapsed island for non-intrusive awareness.
   - **Reading and Control**: Optionally expand long messages on the island, hide message text, or mute individual apps.
-  - **Island Pop-ups**: Copied text (needs clipboard history), new songs, charger changes (laptops), Bluetooth connections, airplane mode, volume and brightness (supported laptop screens).
+  - **Island Pop-ups**: Copied text (needs clipboard history), new songs, charger changes (laptops), Bluetooth connections, airplane mode, Caps Lock, volume and brightness (supported laptop screens).
 
 - **Media Control and Live Lyrics**
   - **System Media Integration**: Controls active audio streams from Spotify, Apple Music, browsers, and media players via Windows GSMTC.

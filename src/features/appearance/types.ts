@@ -150,6 +150,8 @@ export type IslandSettings = {
   bluetoothPopup: boolean;
   /** The island pops out when airplane mode is switched on or off. */
   airplanePopup: boolean;
+  /** The island pops out when Caps Lock is switched on or off. */
+  capsLockPopup: boolean;
   /** The island pops out with a level bar when the system volume changes. */
   volumePopup: boolean;
   /** The island pops out with a level bar when the built-in display's brightness changes. */

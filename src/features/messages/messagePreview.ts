@@ -16,7 +16,7 @@ export type MessagePreview = {
   level?: number;
 };
 
-export type PreviewKind = "clipboard" | "music" | "battery" | "bluetooth" | "airplane" | "volume" | "brightness" | "plugin";
+export type PreviewKind = "clipboard" | "music" | "battery" | "bluetooth" | "airplane" | "capsLock" | "volume" | "brightness" | "plugin";
 
 /** Volume and brightness pop-ups: a bar rather than text, and short-lived (the user is looking at what they pressed). */
 export function isLevelKind(kind?: PreviewKind): kind is "volume" | "brightness" {
@@ -29,12 +29,12 @@ export const LEVEL_PREVIEW_SECONDS = 1.5;
 /**
  * Which pop-up wins when two want the bar: a higher one is not replaced by a lower one while it
  * shows. Level pop-ups (volume, brightness) give way to everything else; device notices (a
- * Bluetooth connection, airplane mode) give way to anything the user is more likely to be waiting
+ * Bluetooth connection, airplane mode, Caps Lock) give way to anything the user is more likely to be waiting
  * for (a notification from an app, a copied text, a new song); the rest replace each other.
  */
 export function previewPriority(kind?: PreviewKind): number {
   if (isLevelKind(kind)) return 1;
-  return kind === "bluetooth" || kind === "airplane" ? 2 : 3;
+  return kind === "bluetooth" || kind === "airplane" || kind === "capsLock" ? 2 : 3;
 }
 
 export function messagePreviewText(

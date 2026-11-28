@@ -2,6 +2,17 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { clamp } from "../../utils/number";
 import "./MusicWaveButton.css";
 
+/** Hue spread across the bars (degrees): the five bars span cyan through violet to pink. */
+const HUE_START = 190;
+const HUE_STEP = 34;
+/** How far the whole spectrum drifts per unit of phase; the colours slowly flow while music plays. */
+const HUE_DRIFT = 22;
+
+/** One bar's hue in degrees. With no phase (paused or reduced motion) the colours hold still. */
+function waveHue(index: number, phase: number) {
+  return (HUE_START + index * HUE_STEP + phase * HUE_DRIFT) % 360;
+}
+
 export function MusicWaveButton({
   isAvailable,
   isPlaying,
@@ -71,7 +82,8 @@ export function MusicWaveButton({
           style={
             {
               "--wave-scale": scale.toFixed(3),
-              "--wave-opacity": (0.42 + scale * 0.52).toFixed(3),
+              "--wave-opacity": (0.62 + Math.min(scale, 1) * 0.38).toFixed(3),
+              "--wave-hue": waveHue(index, phase).toFixed(0),
             } as CSSProperties
           }
         />

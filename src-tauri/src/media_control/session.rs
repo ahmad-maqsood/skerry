@@ -626,6 +626,12 @@ pub(super) fn friendly_app_label(id: &str) -> String {
         }
     }
 
+    // Firefox's id is a 16-digit hex hash of its install (e.g. `308046B0AF4A39CB`), which would
+    // otherwise be shown as the source.
+    if id.len() == 16 && id.chars().all(|c| c.is_ascii_hexdigit()) {
+        return "Firefox".to_string();
+    }
+
     if let Some(stripped) = lowered.strip_suffix(".exe") {
         if let Some(name) = stripped.rsplit(['\\', '/']).next() {
             if !name.is_empty() {
@@ -663,7 +669,14 @@ pub(super) fn current_unix_millis() -> i64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{thumbnail_is_fresh, CachedThumbnail};
+    use super::{friendly_app_label, thumbnail_is_fresh, CachedThumbnail};
+
+    #[test]
+    fn firefox_is_named_even_though_its_id_is_a_hash() {
+        assert_eq!(friendly_app_label("308046B0AF4A39CB"), "Firefox");
+        assert_eq!(friendly_app_label("Spotify.exe"), "Spotify");
+        assert_eq!(friendly_app_label("SomeApp"), "SomeApp");
+    }
 
     #[test]
     fn a_missing_or_new_cover_is_read_again() {

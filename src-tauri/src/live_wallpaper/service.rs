@@ -24,6 +24,9 @@ use crate::win32::{
 const TICK_MS: u32 = 100;
 /// How often the open windows, monitors and desktop are looked at.
 const CHECK_EVERY: Duration = Duration::from_millis(500);
+/// The same, while the players are closed: a desktop that shows again is noticed sooner, so the
+/// picture is back with as little gap as possible.
+const CHECK_EVERY_UNLOADED: Duration = Duration::from_millis(150);
 /// How long to wait before rebuilding after Explorer went away.
 const RETRY_AFTER: Duration = Duration::from_secs(2);
 
@@ -75,12 +78,29 @@ struct Screen {
     resume_at: f64,
 }
 
-fn build(runtime: &MediaRuntime, path: &str, monitors: &[RECT], resume_at: f64) -> Result<Vec<Screen>, String> {
+/// Desktop windows kept while the players are closed, so the desktop is never handed back to
+/// Explorer's static wallpaper (which showed for a moment when the video came back).
+type Parked = Vec<(RECT, DesktopSurface)>;
+
+fn build(
+    runtime: &MediaRuntime,
+    path: &str,
+    monitors: &[RECT],
+    resume_at: f64,
+    parked: &mut Parked,
+) -> Result<Vec<Screen>, String> {
     let layer = DesktopLayer::find()?;
     monitors
         .iter()
         .map(|&monitor| {
-            let surface = DesktopSurface::new(layer, monitor)?;
+            let kept = parked
+                .iter()
+                .position(|(rect, surface)| *rect == monitor && surface.is_alive())
+                .map(|index| parked.swap_remove(index).1);
+            let surface = match kept {
+                Some(surface) => surface,
+                None => DesktopSurface::new(layer, monitor)?,
+            };
             let player = VideoPlayer::open(runtime, surface.video_window(), path)?;
             Ok(Screen { player, surface, monitor, laid_out: None, resume_at })
         })
@@ -121,6 +141,7 @@ fn run(
     // Every desktop hidden since when, and whether the players were closed to free their memory.
     let mut hidden_since: Option<Instant> = None;
     let mut unloaded = false;
+    let mut parked: Parked = Vec::new();
     let mut monitors_now: Vec<RECT> = Vec::new();
 
     loop {
@@ -136,7 +157,7 @@ fn run(
         }
 
         if Instant::now() >= next_check {
-            next_check = Instant::now() + CHECK_EVERY;
+            next_check = Instant::now() + if unloaded { CHECK_EVERY_UNLOADED } else { CHECK_EVERY };
             let monitors = desktop_layer::monitors();
             let stale = !unloaded
                 && (screens.is_empty() || monitors != built_for
@@ -148,9 +169,13 @@ fn run(
                     position = screen.player.position();
                 }
                 screens.clear();
-                match build(&runtime, path, &monitors, position) {
+                if monitors != built_for {
+                    parked.clear();
+                }
+                match build(&runtime, path, &monitors, position, &mut parked) {
                     Ok(next) => {
                         screens = next;
+                        parked.clear();
                         built_for = monitors;
                         failures = 0;
                     }
@@ -213,7 +238,11 @@ fn run(
                 if let Some(screen) = screens.first() {
                     position = screen.player.position();
                 }
-                screens.clear();
+                // Close the players but keep their windows on the desktop.
+                for Screen { player, surface, monitor, .. } in screens.drain(..) {
+                    drop(player);
+                    parked.push((monitor, surface));
+                }
                 unloaded = true;
                 hidden_since = None;
             }

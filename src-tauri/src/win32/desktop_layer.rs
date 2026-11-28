@@ -63,6 +63,8 @@ impl message_window::WindowMessages for Plain {
             GetClientRect(window, &mut area).ok()?;
             FillRect(dc, &area, HBRUSH(GetStockObject(BLACK_BRUSH).0));
         }
+        // SAFETY: reads the user-data slot of the window being painted, which holds the handle of
+        // its still frame's bitmap (set where the surface keeps one) or 0; it takes no pointer.
         let still = HBITMAP(unsafe { GetWindowLongPtrW(window, GWLP_USERDATA) } as *mut c_void);
         if !still.is_invalid() {
             draw_still(dc, still, &area);

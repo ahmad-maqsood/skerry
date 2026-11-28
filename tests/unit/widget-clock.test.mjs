@@ -10,13 +10,15 @@ const names = {
   months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
 };
 
-test("the three lines read like the widget: capital weekday, day month, year and 24-hour time", () => {
+test("the three lines read like the widget: capital weekday, day month, year and 12-hour time", () => {
   assert.deepEqual(clockLines(new Date(2026, 10, 19, 23, 27, 5), names), {
     weekday: "THURSDAY",
     date: "19 NOVEMBER, 2026.",
-    time: "23:27",
+    time: "11:27 PM",
   });
-  assert.equal(clockLines(new Date(2026, 0, 4, 7, 5), names).time, "07:05");
+  assert.equal(clockLines(new Date(2026, 0, 4, 7, 5), names).time, "07:05 AM");
+  assert.equal(clockLines(new Date(2026, 0, 4, 0, 5), names).time, "12:05 AM");
+  assert.equal(clockLines(new Date(2026, 0, 4, 12, 0), names).time, "12:00 PM");
   assert.equal(clockLines(new Date(2026, 0, 4, 7, 5), names).weekday, "SUNDAY");
 });
 
@@ -32,8 +34,9 @@ test("every letter of the seven weekdays has a glyph and the layout is gapped", 
     assert.equal(layoutWord(day).glyphs.length, day.length);
   }
   const thursday = layoutWord("Thursday");
-  assert.equal(thursday.width, 8 * 40 - 0 + 7 * 14);
-  assert.deepEqual(thursday.glyphs.slice(0, 2).map((glyph) => glyph.x), [0, 54]);
+  // T H U R S D A Y: the letters' own widths with seven gaps of 32.
+  assert.equal(thursday.width, 42 + 40 + 42 + 40 + 38 + 42 + 48 + 44 + 7 * 32);
+  assert.deepEqual(thursday.glyphs.slice(0, 2).map((glyph) => glyph.x), [0, 74]);
   assert.equal(layoutWord("Q").glyphs.length, 0);
 });
 

@@ -1,4 +1,6 @@
 import type { CSSProperties } from "react";
+// The date and time's rounded face (OFL, licenses/Quicksand-OFL.txt), bundled so it works offline.
+import "@fontsource/quicksand/latin-500.css";
 import { useTranslation } from "../../../i18n";
 import { useWidgetInk } from "../useWidgetInk";
 import { GLYPH_HEIGHT, GLYPH_STROKE, layoutWord } from "./glyphs";
@@ -8,7 +10,7 @@ import { customInk } from "./ink";
 import "./ClockWidget.css";
 
 /** How much larger than a grid unit the weekday is drawn, in pixels per unit. */
-const WEEKDAY_SCALE = 1.15;
+const WEEKDAY_SCALE = 0.92;
 
 /**
  * The desktop clock: the weekday in big open letters, the date and the time under it, in one

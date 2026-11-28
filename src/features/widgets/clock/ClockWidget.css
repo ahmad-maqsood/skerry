@@ -4,10 +4,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 26px;
+  /* Room at the sides: the longest weekday is scaled down to fit inside it. */
+  padding: 0 14px;
   color: var(--widget-ink);
-  font-family: Bahnschrift, "Segoe UI Variable Display", "Segoe UI", sans-serif;
-  font-weight: 600;
+  font-family: "Quicksand", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  font-weight: 500;
   user-select: none;
   /* The whole widget drags: an open hand says so, closed while it is held. */
   cursor: grab;
@@ -28,6 +29,7 @@
   stroke: var(--widget-ink);
   stroke-linecap: butt;
   stroke-linejoin: miter;
+  /* High enough to keep the A's and M's corners sharp. */
   stroke-miterlimit: 10;
   filter: drop-shadow(var(--widget-shadow));
   transition: stroke 0.8s ease;
@@ -39,14 +41,14 @@
 }
 .widget-clock__date,
 .widget-clock__time {
-  letter-spacing: 0.2em;
+  font-size: 19px;
+  letter-spacing: 0.08em;
   text-shadow: var(--widget-shadow);
   white-space: nowrap;
 }
 .widget-clock__date {
-  font-size: 19px;
+  margin-top: 20px;
 }
 .widget-clock__time {
-  font-size: 20px;
-  letter-spacing: 0.16em;
+  margin-top: 22px;
 }

@@ -36,7 +36,7 @@ export const en: SettingsLiveWallpaperText = {
     noVideo: "Choose a video to start.",
     starting: "Starting",
     playing: "Playing",
-    paused: "Paused while the desktop is hidden",
+    paused: "Paused while the desktop is hidden or the screen is off",
     pausedPower: "Paused to save battery",
   },
 };

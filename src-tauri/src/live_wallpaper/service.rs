@@ -15,6 +15,7 @@ use super::model::{
 use crate::win32::{
     self,
     desktop_layer::{self, DesktopLayer, DesktopSurface},
+    display_state::{self, DisplayWatcher},
     power,
     video_player::{MediaRuntime, VideoPlayer},
 };
@@ -96,6 +97,14 @@ fn run(
         return Err("The video file was not found. Choose it again.".to_string());
     }
     let runtime = MediaRuntime::start()?;
+    // Without it the video just keeps playing when the screen is off, so a failure is not fatal.
+    let _display = match DisplayWatcher::start() {
+        Ok(watcher) => Some(watcher),
+        Err(message) => {
+            eprintln!("live wallpaper: screen-off detection unavailable: {message}");
+            None
+        }
+    };
     let mut screens: Vec<Screen> = Vec::new();
     let mut built_for: Vec<RECT> = Vec::new();
     let mut covered: Vec<RECT> = Vec::new();
@@ -177,6 +186,7 @@ fn run(
             continue;
         }
 
+        let screen_on = display_state::display_is_on();
         let power_paused = paused_for_power(pause_on_battery, power.on_battery, power.battery_saver);
         let mut any_playing = false;
         let mut all_loaded = !screens.is_empty();
@@ -195,7 +205,7 @@ fn run(
                     screen.laid_out = Some(fit);
                 }
             }
-            let play = !locked && !power_paused && !covered.contains(&screen.monitor);
+            let play = !locked && screen_on && !power_paused && !covered.contains(&screen.monitor);
             screen.player.set_playing(play);
             any_playing |= play;
         }

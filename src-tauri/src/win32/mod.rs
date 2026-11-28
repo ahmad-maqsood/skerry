@@ -7,6 +7,7 @@ pub(crate) mod com;
 pub(crate) mod consent_store;
 pub(crate) mod desktop_duplication;
 pub(crate) mod desktop_layer;
+pub(crate) mod display_state;
 pub(crate) mod folder_dialog;
 pub(crate) mod file_dialog;
 pub(crate) mod hotkey;
